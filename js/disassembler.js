@@ -1,5 +1,5 @@
 
-import * as i32     from "./i32.js";
+import * as i32 from "./i32.js";
 
 const ASM_TABLE = {
     lui   : "di",

@@ -1,45 +1,7 @@
 
 import * as v       from "./virgule.js";
 import {Controller} from "./controller.js";
-
-class Output extends v.Device {
-    constructor(...args) {
-        super(...args);
-        this.data = ""
-    }
-
-    localWrite(address, count, value) {
-        this.data = String.fromCharCode(value & 0xFF);
-    }
-
-    hasData() {
-        return this.data.length > 0;
-    }
-
-    getData() {
-        const res = this.data;
-        this.data = "";
-        return res;
-    }
-}
-
-class Input extends v.Memory {
-    constructor(firstAddress) {
-        super(firstAddress, 2);
-    }
-
-    onKeyDown(code) {
-        // Data reg.
-        this.localWrite(0, 1, code);
-        // Status reg.
-        this.localWrite(1, 1, this.localRead(1, 1) | 0x40);
-    }
-
-    irq() {
-        const status = this.localRead(1, 1);
-        return !!(status & 0x40) && !!(status & 0x80);
-    }
-}
+import {TextInput, TextOutput} from "./textio.js"
 
 window.addEventListener("load", evt => {
     const memSize = 1024;
@@ -47,13 +9,13 @@ window.addEventListener("load", evt => {
     const bus = new v.Bus();
     const mem = new v.Memory(0, memSize);
     bus.addDevice(mem);
-    const in_dev = new Input(0xB0000000);
-    bus.addDevice(in_dev);
-    const out_dev = new Output(0xC0000000, 4);
-    bus.addDevice(out_dev);
+    const text_in = new TextInput(0xB0000000);
+    bus.addDevice(text_in);
+    const text_out = new TextOutput(0xC0000000, 4);
+    bus.addDevice(text_out);
     const cpu = new v.Virgule(16, bus);
 
-    const ctrl = new Controller(cpu, mem, in_dev, out_dev);
+    const ctrl = new Controller(cpu, mem, text_in, text_out);
 
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
