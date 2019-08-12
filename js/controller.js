@@ -95,6 +95,9 @@ export class Controller {
 
         this.running = false;
 
+        // TODO when checking "animate", update memory and register views.
+        // TODO update memory and register views in case animation was disabled.
+
         view.setButtonLabel("run", "Run");
         view.enableButton(this.state);
         view.enableButton("step");
@@ -295,13 +298,8 @@ export class Controller {
         }
 
         // Output devices.
-        if (this.text_out.hasData()) {
-            view.updateOutput(this.text_out.getData());
-        }
-
-        if (this.bitmap_out.hasData()) {
-            view.updateBitmap(this.bitmap_out.getData());
-        }
+        view.updateOutput(this.text_out);
+        view.updateBitmap(this.bitmap_out);
 
         this.setNextState("pc");
     }
@@ -347,7 +345,14 @@ export class Controller {
             this.traceData = this.cpu.step();
             this.traceData.irqChanged = this.text_in.irq() !== savedIrq;
 
-            await this.traceFetch();
+            if (view.animate()) {
+                await this.traceFetch();
+            }
+            else {
+                view.updateOutput(this.text_out);
+                view.updateBitmap(this.bitmap_out);
+            }
+
             if (this.stopRequest) {
                 return;
             }

@@ -54,6 +54,11 @@ export function init(memSize) {
 
     window.addEventListener("resize", resize);
 
+    const canvas = document.getElementById("bitmap-output");
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     resize();
 }
 
@@ -84,7 +89,7 @@ export function activateButton(name, active=true) {
     }
 }
 
-function animate() {
+export function animate() {
     return document.getElementById("animate-cb").checked;
 }
 
@@ -176,17 +181,26 @@ export function waitUpdate() {
     return delay(2 * WRITE_DELAY_MAX);
 }
 
-export function updateOutput(c) {
-    document.getElementById("text-output").innerHTML += c;
+export function updateOutput(dev) {
+    if (dev.hasData()) {
+        document.getElementById("text-output").innerHTML += dev.getData();
+    }
 }
 
-export function updateBitmap(pixels) {
-    const ctx = document.getElementById("bitmap-output").getContext("2d");
+export function updateBitmap(dev) {
+    if (!dev.hasData()) {
+        return;
+    }
+    const pixels = dev.getData();
+    const canvas = document.getElementById("bitmap-output");
+    const scaleX = canvas.width / dev.width;
+    const scaleY = canvas.height / dev.height;
+    const ctx = canvas.getContext("2d");
     for (let p of pixels) {
         const red   = Math.floor(255 * getSlice(p.c, 7, 5) / 7);
         const green = Math.floor(255 * getSlice(p.c, 4, 2) / 7);
         const blue  = Math.floor(255 * getSlice(p.c, 1, 0) / 3);
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-        ctx.fillRect(p.x, p.y, 1, 1);
+        ctx.fillRect(p.x * scaleX, p.y * scaleY, scaleX, scaleY);
     }
 }
