@@ -8,6 +8,8 @@
 <div>
     <input id="hex-input"    type="file">
 
+    <label for="animate-cb">Animation</label>
+    <input id="animate-cb" type="checkbox" checked>
     <label for="speed">Speed</label>
     <input id="speed"     type="number" step="1" value="5">
     <input id="reset-btn" type="button" value="Reset">
@@ -40,7 +42,7 @@
             </table>
         </div>
 
-        <h1>Input</h1>
+        <h1>Text I/O</h1>
         <table>
             <tr class="reg">
                 <th>B0000000</th>
@@ -51,13 +53,16 @@
 
         <input id="text-input">
 
-        <h1>Output</h1>
         <table>
             <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
         </table>
 
         <pre id="text-output">
         </pre>
+
+        <h1>Bitmap output (00000C00&ndash;00000FFF)</h1>
+
+        <canvas id="bitmap-output" width="32" height="32"></canvas>
     </div>
     <div id="col-bus" class="col">
         <h1>Bus</h1>

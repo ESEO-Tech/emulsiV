@@ -1,8 +1,9 @@
 
 ENTRY(__reset)
 
-MEM_SIZE   = 1K;
-STACK_SIZE = 512;
+MEM_SIZE    = 4K;
+STACK_SIZE  = 512;
+BITMAP_SIZE = 1K;
 
 SECTIONS {
     . = 0x0;
@@ -24,7 +25,7 @@ SECTIONS {
         __bss_end = ALIGN(4);
     }
 
-    . = MEM_SIZE - STACK_SIZE;
+    . = MEM_SIZE - STACK_SIZE - BITMAP_SIZE;
 
     .stack ALIGN(4) : {
         __stack_start = .;

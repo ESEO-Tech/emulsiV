@@ -8,11 +8,12 @@ import {decode}     from "./decoder.js";
 const STEP_DELAY = 2500
 
 export class Controller {
-    constructor(cpu, mem, in_dev, out_dev) {
+    constructor(cpu, mem, text_in, text_out, bitmap_out) {
         this.cpu         = cpu;
         this.mem         = mem;
-        this.in_dev      = in_dev;
-        this.out_dev     = out_dev;
+        this.text_in     = text_in;
+        this.text_out    = text_out;
+        this.bitmap_out  = bitmap_out;
         this.running     = false;
         this.stepping    = false;
         this.stopRequest = false;
@@ -119,10 +120,6 @@ export class Controller {
 
     async traceFetch() {
         this.highlightCurrentState();
-
-        const savedIrq = this.in_dev.irq();
-        this.traceData = this.cpu.step();
-        this.traceData.irqChanged = this.in_dev.irq() !== savedIrq;
 
         view.simpleUpdate("addr", "-");
         view.simpleUpdate("data", "-");
@@ -293,8 +290,17 @@ export class Controller {
 
         // IRQ status
         if (this.traceData.irqChanged) {
-            view.update("irq", this.in_dev.irq());
+            view.update("irq", this.text_in.irq());
             await view.waitUpdate();
+        }
+
+        // Output devices.
+        if (this.text_out.hasData()) {
+            view.updateOutput(this.text_out.getData());
+        }
+
+        if (this.bitmap_out.hasData()) {
+            view.updateBitmap(this.bitmap_out.getData());
         }
 
         this.setNextState("pc");
@@ -332,15 +338,15 @@ export class Controller {
         view.update("pc-i", i32.toHex(this.cpu.pc + 4));
         await view.waitUpdate();
 
-        if (this.out_dev.hasData()) {
-            view.updateOutput(this.out_dev.getData());
-        }
-
         this.setNextState("fetch");
     }
 
     async trace() {
         if (this.state === "fetch") {
+            const savedIrq = this.text_in.irq();
+            this.traceData = this.cpu.step();
+            this.traceData.irqChanged = this.text_in.irq() !== savedIrq;
+
             await this.traceFetch();
             if (this.stopRequest) {
                 return;
@@ -396,9 +402,9 @@ export class Controller {
     }
 
     onKeyDown(code) {
-        this.in_dev.onKeyDown(code);
-        view.update("memb0000000", i32.toHex(this.in_dev.localRead(0, 1), 2));
-        view.update("memb0000001", i32.toHex(this.in_dev.localRead(1, 1), 2));
-        view.update("irq", this.in_dev.irq());
+        this.text_in.onKeyDown(code);
+        view.update("memb0000000", i32.toHex(this.text_in.localRead(0, 1), 2));
+        view.update("memb0000001", i32.toHex(this.text_in.localRead(1, 1), 2));
+        view.update("irq", this.text_in.irq());
     }
 }

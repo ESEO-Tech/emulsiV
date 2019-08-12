@@ -1,5 +1,6 @@
 
-import * as i32 from "./i32.js";
+import {getSlice} from "./decoder.js";
+import * as i32   from "./i32.js";
 
 const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
@@ -47,8 +48,8 @@ export function init(memSize) {
     }
 
     document.getElementById("speed").addEventListener("change", evt => {
-        const delay = WRITE_DELAY_MAX / evt.target.value;
-        document.querySelectorAll(".datapath td").forEach(r => r.style.transition = `background-color ${delay}ms`);
+        const duration = WRITE_DELAY_MAX / evt.target.value;
+        document.querySelectorAll(".datapath td").forEach(r => r.style.transition = `background-color ${duration}ms`);
     });
 
     window.addEventListener("resize", resize);
@@ -83,6 +84,10 @@ export function activateButton(name, active=true) {
     }
 }
 
+function animate() {
+    return document.getElementById("animate-cb").checked;
+}
+
 function scrollIntoView(elt) {
     const parent = elt.offsetParent.parentNode;
     if (elt.offsetTop < parent.scrollTop || elt.offsetTop + elt.offsetHeight >= parent.scrollTop + parent.clientHeight) {
@@ -98,6 +103,11 @@ export function highlightAsm(address) {
 }
 
 export function move(fromId, toId, value, slot=0) {
+    if (!animate()) {
+        this.simpleUpdate(toId, value);
+        return Promise.resolve();
+    }
+
     const fromElt   = document.getElementById(fromId);
     const toElt     = document.getElementById(toId);
 
@@ -114,7 +124,7 @@ export function move(fromId, toId, value, slot=0) {
 
     const dx = toRect.left - fromRect.left;
     const dy = toRect.top  - fromRect.top;
-    const delay = Math.max(ANIMATION_DELAY_MIN, Math.sqrt(dx * dx + dy * dy) * 1000 / speed);
+    const duration = Math.max(ANIMATION_DELAY_MIN, Math.sqrt(dx * dx + dy * dy) * 1000 / speed);
 
     return new Promise(resolve => {
         let start = -1;
@@ -122,7 +132,7 @@ export function move(fromId, toId, value, slot=0) {
             if (start < 0) {
                 start = timestamp;
             }
-            const progress  = (timestamp - start) / delay;
+            const progress  = (timestamp - start) / duration;
 
             movingElt.style.left = (fromRect.left + dx * progress) + "px";
             movingElt.style.top  = (fromRect.top  + dy * progress) + "px";
@@ -144,6 +154,9 @@ export function move(fromId, toId, value, slot=0) {
 }
 
 export function delay(ms) {
+    if (!animate()) {
+        ms = 0;
+    }
     return new Promise(resolve => setTimeout(() => resolve(), ms / document.getElementById("speed").value));
 }
 
@@ -165,4 +178,15 @@ export function waitUpdate() {
 
 export function updateOutput(c) {
     document.getElementById("text-output").innerHTML += c;
+}
+
+export function updateBitmap(pixels) {
+    const ctx = document.getElementById("bitmap-output").getContext("2d");
+    for (let p of pixels) {
+        const red   = Math.floor(255 * getSlice(p.c, 7, 5) / 7);
+        const green = Math.floor(255 * getSlice(p.c, 4, 2) / 7);
+        const blue  = Math.floor(255 * getSlice(p.c, 1, 0) / 3);
+        ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+        ctx.fillRect(p.x, p.y, 1, 1);
+    }
 }

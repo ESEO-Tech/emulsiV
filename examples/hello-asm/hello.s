@@ -5,7 +5,7 @@
 
 __reset:
     la x1, str
-    lui x2, 0xc0000
+    li x2, 0xC0000000
 loop:
     lbu x3, (x1)
     beq x3, zero, done

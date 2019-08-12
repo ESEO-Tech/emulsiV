@@ -147,23 +147,22 @@ export class Bus {
         this.devices.push(device);
     }
 
-    getDevice(address, size) {
+    getDevices(address, size) {
         address = i32.u(address);
-        return this.devices.find(dev => dev.accepts(address, size));
+        return this.devices.filter(dev => dev.accepts(address, size));
     }
 
     read(address, size, signed) {
         address = i32.u(address);
-        const device = this.getDevice(address, size);
-        if (device) {
-            return device.read(address, size, signed);
+        const devices = this.getDevices(address, size);
+        if (devices.length) {
+            return devices[0].read(address, size, signed);
         }
     }
 
     write(address, size, value) {
-        const device = this.getDevice(address, size);
-        if (device) {
-            device.write(address, size, value);
+        for (let d of this.getDevices(address, size)) {
+            d.write(address, size, value);
         }
     }
 

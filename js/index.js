@@ -1,10 +1,11 @@
 
 import * as v       from "./virgule.js";
 import {Controller} from "./controller.js";
-import {TextInput, TextOutput} from "./textio.js"
+import {TextInput, TextOutput} from "./textio.js";
+import {BitmapOutput} from "./bitmap.js";
 
 window.addEventListener("load", evt => {
-    const memSize = 1024;
+    const memSize = 4096;
 
     const bus = new v.Bus();
     const mem = new v.Memory(0, memSize);
@@ -13,9 +14,11 @@ window.addEventListener("load", evt => {
     bus.addDevice(text_in);
     const text_out = new TextOutput(0xC0000000, 4);
     bus.addDevice(text_out);
+    const bitmap_out = new BitmapOutput(0x00000C00, 32, 32);
+    bus.addDevice(bitmap_out);
     const cpu = new v.Virgule(16, bus);
 
-    const ctrl = new Controller(cpu, mem, text_in, text_out);
+    const ctrl = new Controller(cpu, mem, text_in, text_out, bitmap_out);
 
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];

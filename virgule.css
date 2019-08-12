@@ -139,3 +139,7 @@ body {
 .state-btn.active {
     background-color: hsl(115, 60%, 60%);
 }
+
+canvas {
+    border: 1px solid black;
+}
