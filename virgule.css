@@ -1,0 +1,141 @@
+
+body {
+    font-family: "Droid Sans", sans-serif;
+}
+
+.tbl-wrapper {
+    height: 16em;
+    overflow-y: scroll;
+}
+
+.datapath {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.datapath .col {
+    padding: 0 1em;
+}
+
+.datapath h1 {
+    font-size: 100%;
+    text-align: center;
+    margin-top: 2em;
+}
+
+.datapath h1:first-child {
+    margin-top: 0.5em;
+}
+
+.datapath table:first-child {
+    margin-top: 0;
+}
+
+.datapath table {
+    border-collapse: collapse;
+    margin: 0.5em auto;
+}
+
+.datapath th,
+.datapath td {
+    padding: 0.2em 0.5em;
+    vertical-align: middle;
+}
+
+.datapath th {
+    text-align: right;
+    font-weight: normal;
+}
+
+.datapath .heading th {
+    text-align: center;
+}
+
+.datapath td {
+    transition: background-color 0.25s; /* TODO configurable */
+    text-align: center;
+}
+
+.datapath th {
+    border: none;
+}
+
+.bus td, .reg td {
+    font-family: "Droid Sans Mono", monospace;
+    font-size: 95%;
+}
+
+.bus td {
+    border-top: 1px solid hsl(60, 80%, 40%);
+    border-bottom: 1px solid hsl(60, 80%, 40%);
+    width: 6em;
+}
+
+.reg td {
+    border: 1px solid hsl(60, 80%, 40%);
+    background-color: hsl(60, 80%, 90%);
+    box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
+}
+
+.datapath .written {
+    background-color: hsl(20, 100%, 70%);
+}
+
+.datapath .selected {
+    background-color: hsl(180, 100%, 90%);
+}
+
+.datapath .moving-value {
+    font-family: "Droid Sans Mono", monospace;
+    display: none;
+    position: absolute;
+    background-color: hsl(180, 100%, 80%);
+    border-radius: 1em;
+    left: 0;
+    top: 0;
+    box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
+}
+
+.reg .asm {
+    text-align: left;
+    background-color: white;
+}
+
+.reg .asm.active {
+    background-color: hsl(288, 100%, 90%);
+}
+
+.overlay {
+    visibility: collapse;
+}
+
+.datapath input {
+    width: 100%;
+}
+
+.datapath pre {
+    font-family: "Droid Sans Mono", monospace;
+    background: black;
+    color: lightgreen;
+    height: 5em;
+}
+
+.asm {
+    font-family: "Droid Sans Mono", monospace;
+    white-space: nowrap;
+}
+
+.state-btn {
+    border: none;
+    background-color: hsl(35, 100%, 60%);
+    color: black;
+}
+
+.state-btn[disabled] {
+    background-color: hsl(35, 0%, 80%);
+    color: black;
+}
+
+.state-btn.active {
+    background-color: hsl(115, 60%, 60%);
+}

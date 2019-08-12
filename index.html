@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="virgule.css">
+
+<title>Virgule</title>
+
+<div>
+    <input id="hex-input"    type="file">
+
+    <label for="speed">Speed</label>
+    <input id="speed"     type="number" step="1" value="5">
+    <input id="reset-btn" type="button" value="Reset">
+    <input id="run-btn"   type="button" value="Run">
+    <input id="step-btn"  type="button" value="Step">
+
+    <input id="fetch-btn"  class="state-btn" type="button" value="Fetch">
+    <input id="decode-btn" class="state-btn" type="button" value="Decode">
+    <input id="alu-btn"    class="state-btn" type="button" value="ALU">
+    <input id="branch-btn" class="state-btn" type="button" value="Compare">
+    <input id="write-btn"  class="state-btn" type="button" value="Mem/Reg">
+    <input id="pc-btn"     class="state-btn" type="button" value="PC">
+</div>
+
+<div class="datapath">
+    <div id="col-memory" class="col">
+        <h1>Memory</h1>
+        <div class="tbl-wrapper">
+            <table>
+                <tr class="heading">
+                    <th></th>
+                    <th>Asm</th>
+                    <th>0</th> <th>1</th> <th>2</th> <th>3</th>
+                </tr>
+                <tr class="reg">
+                    <th>00000000</th>
+                    <td class="asm">&mdash;</td>
+                    <td>00</td> <td>00</td> <td>00</td> <td>00</td>
+                </tr>
+            </table>
+        </div>
+
+        <h1>Input</h1>
+        <table>
+            <tr class="reg">
+                <th>B0000000</th>
+                <td id="memb0000000"></td>
+                <td id="memb0000001"></td>
+            </tr>
+        </table>
+
+        <input id="text-input">
+
+        <h1>Output</h1>
+        <table>
+            <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
+        </table>
+
+        <pre id="text-output">
+        </pre>
+    </div>
+    <div id="col-bus" class="col">
+        <h1>Bus</h1>
+        <table>
+            <tr class="bus"> <th>addr</th> <td id="addr" colspan="4"></td> </tr>
+            <tr class="bus, overlay"> <th>data</th> <!-- Affecte la ligne suivante -->
+                <td id="data3"></td>
+                <td id="data2"></td>
+                <td id="data1"></td>
+                <td id="data0"></td>
+            </tr>
+            <tr class="bus"> <th>data</th> <td id="data" colspan="4"></td> </tr>
+            <tr class="bus"> <th>irq</th> <td id="irq" colspan="4"></td> </tr>
+        </table>
+    </div>
+    <div id="col-pc" class="col">
+        <h1>Program counter</h1>
+        <table>
+            <tr class="reg"> <th>pc</th>   <td id="pc"></td>   </tr>
+            <tr class="reg"> <th>mepc</th> <td id="mepc"></td> </tr>
+            <tr class="bus"> <th>pc+4</th> <td id="pc-i"></td> </tr>
+        </table>
+
+        <div class="spacer"></div>
+
+        <h1>Instruction reg.</h1>
+        <table>
+            <tr class="reg"> <th>instr</th> <td id="instr"></td> </tr>
+            <tr class="bus"> <th>fn</th>    <td id="fn"></td>    </tr>
+            <tr class="bus"> <th>rs1</th>   <td id="rs1"></td>   </tr>
+            <tr class="bus"> <th>rs2</th>   <td id="rs2"></td>   </tr>
+            <tr class="bus"> <th>rd</th>    <td id="rd"></td>    </tr>
+            <tr class="bus"> <th>imm</th>   <td id="imm"></td>   </tr>
+        </table>
+    </div>
+    <div id="col-x" class="col">
+        <h1>General-purpose regs</h1>
+        <table>
+            <tr class="reg"> <th>x0</th>  <td id="x0"></td>  </tr>
+            <tr class="reg"> <th>x1</th>  <td id="x1"></td>  </tr>
+            <tr class="reg"> <th>x2</th>  <td id="x2"></td>  </tr>
+            <tr class="reg"> <th>x3</th>  <td id="x3"></td>  </tr>
+            <tr class="reg"> <th>x4</th>  <td id="x4"></td>  </tr>
+            <tr class="reg"> <th>x5</th>  <td id="x5"></td>  </tr>
+            <tr class="reg"> <th>x6</th>  <td id="x6"></td>  </tr>
+            <tr class="reg"> <th>x7</th>  <td id="x7"></td>  </tr>
+            <tr class="reg"> <th>x8</th>  <td id="x8"></td>  </tr>
+            <tr class="reg"> <th>x9</th>  <td id="x9"></td>  </tr>
+            <tr class="reg"> <th>x10</td> <td id="x10"></td> </tr>
+            <tr class="reg"> <th>x11</td> <td id="x11"></td> </tr>
+            <tr class="reg"> <th>x12</td> <td id="x12"></td> </tr>
+            <tr class="reg"> <th>x13</td> <td id="x13"></td> </tr>
+            <tr class="reg"> <th>x14</td> <td id="x14"></td> </tr>
+            <tr class="reg"> <th>x15</td> <td id="x15"></td> </tr>
+        </table>
+    </div>
+    <div id="col-alu" class="col">
+        <h1>ALU</h1>
+        <table>
+            <tr class="bus"> <th>op</th> <td id="alu-op"></td> </tr>
+            <tr class="bus"> <th>a</th>  <td id="alu-a"></td>  </tr>
+            <tr class="bus"> <th>b</th>  <td id="alu-b"></td>  </tr>
+            <tr class="bus"> <th>r</th>  <td id="alu-r"></td>  </tr>
+        </table>
+
+        <div class="spacer"></div>
+
+        <h1>Comparator</h1>
+        <table>
+            <tr class="bus"> <th>op</th>    <td id="cmp-op"></td>    </tr>
+            <tr class="bus"> <th>a</th>     <td id="cmp-a"></td>     </tr>
+            <tr class="bus"> <th>b</th>     <td id="cmp-b"></td>     </tr>
+            <tr class="bus"> <th>taken</th> <td id="cmp-taken"></td> </tr>
+        </table>
+    </div>
+    <div class="moving-value">X</div>
+    <div class="moving-value">X</div>
+    <div class="moving-value">X</div>
+    <div class="moving-value">X</div>
+</div>
+
+<script src="js/index.js" type="module"></script>
