@@ -51,14 +51,18 @@ window.addEventListener("load", evt => {
         }
     });
 
+    async function stageTrace(evt) {
+        await ctrl.trace(true, true);
+    }
+
     document.getElementById("reset-btn").addEventListener("click", evt => ctrl.reset());
     document.getElementById("step-btn").addEventListener("click", evt => ctrl.run(true));
-    document.getElementById("fetch-btn").addEventListener("click", evt => ctrl.traceFetch());
-    document.getElementById("decode-btn").addEventListener("click", evt => ctrl.traceDecode());
-    document.getElementById("alu-btn").addEventListener("click", evt => ctrl.traceALU());
-    document.getElementById("branch-btn").addEventListener("click", evt => ctrl.traceBranch());
-    document.getElementById("write-btn").addEventListener("click", evt => ctrl.traceWriteBack());
-    document.getElementById("pc-btn").addEventListener("click", evt => ctrl.tracePC());
+    document.getElementById("fetch-btn").addEventListener("click", stageTrace);
+    document.getElementById("decode-btn").addEventListener("click", stageTrace);
+    document.getElementById("alu-btn").addEventListener("click", stageTrace);
+    document.getElementById("branch-btn").addEventListener("click", stageTrace);
+    document.getElementById("write-btn").addEventListener("click", stageTrace);
+    document.getElementById("pc-btn").addEventListener("click", stageTrace);
 
     document.getElementById("animate-cb").addEventListener("click", evt => {
         if (evt.target.checked && ctrl.running) {

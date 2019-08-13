@@ -96,19 +96,19 @@ export class Controller {
         this.stopRequest = true;
     }
 
-    async run(once = false) {
+    async run(single = false) {
         view.setButtonLabel("run", "Pause");
 
         this.running     = true;
         this.stopRequest = false;
 
         do {
-            await this.trace(once);
-        } while (!once && !this.stopRequest);
+            await this.trace(single, false);
+        } while (!this.stopRequest && !(single && this.state === "fetch"));
 
         this.running = false;
 
-        if (!once && !view.animate()) {
+        if (!single && !view.animate()) {
             this.forceUpdate();
         }
 
@@ -305,6 +305,8 @@ export class Controller {
                 break;
         }
 
+        // TODO Update assembly view after writing to memory.
+
         // IRQ status
         if (this.traceData.irqChanged) {
             view.update("irq", this.bus.irq());
@@ -351,69 +353,43 @@ export class Controller {
         this.setNextState("fetch");
     }
 
-    async trace(once) {
-        if (this.state === "fetch") {
-            const savedIrq = this.bus.irq();
-            this.traceData = this.cpu.step();
-            this.traceData.irqChanged = this.bus.irq() !== savedIrq;
+    async trace(single, oneStage) {
+        switch (this.state) {
+            case "fetch":
+                const savedIrq = this.bus.irq();
+                this.traceData = this.cpu.step();
+                this.traceData.irqChanged = this.bus.irq() !== savedIrq;
 
-            if (once || view.animate()) {
-                await this.traceFetch();
-            }
-            else {
-                view.updateDevices();
-            }
+                if (single || view.animate()) {
+                    await this.traceFetch();
+                }
+                else {
+                    view.updateDevices();
+                }
+                break;
 
-            if (this.stopRequest) {
-                return;
-            }
-            else {
-                await view.delay(STEP_DELAY);
-            }
+            case "decode":
+                await this.traceDecode();
+                break;
+
+            case "alu":
+                await this.traceALU();
+                break;
+
+            case "branch":
+                await this.traceBranch();
+                break;
+
+            case "write":
+                await this.traceWriteBack();
+                break;
+
+            case "pc":
+                await this.tracePC();
         }
 
-        if (this.state === "decode") {
-            await this.traceDecode();
-            if (this.stopRequest) {
-                return;
-            }
-            else {
-                await view.delay(STEP_DELAY);
-            }
-        }
-
-        if (this.state === "alu") {
-            await this.traceALU();
-            if (this.stopRequest) {
-                return;
-            }
-            else {
-                await view.delay(STEP_DELAY);
-            }
-        }
-
-        if (this.state === "branch") {
-            await this.traceBranch();
-            if (this.stopRequest) {
-                return;
-            }
-            else {
-                await view.delay(STEP_DELAY);
-            }
-        }
-
-        if (this.state === "write") {
-            await this.traceWriteBack();
-            if (this.stopRequest) {
-                return;
-            }
-            else {
-                await view.delay(STEP_DELAY);
-            }
-        }
-
-        if (this.state === "pc") {
-            await this.tracePC();
+        if (!oneStage && !this.stopRequest && !(single && this.state === "fetch")) {
+            await view.delay(STEP_DELAY);
         }
     }
 
