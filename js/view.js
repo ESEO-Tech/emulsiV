@@ -1,6 +1,8 @@
 
-import {getSlice} from "./decoder.js";
-import * as i32   from "./i32.js";
+import {getSlice}     from "./decoder.js";
+import * as i32       from "./i32.js";
+import {TextOutput}   from "./textio.js";
+import {BitmapOutput} from "./bitmap.js";
 
 const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
@@ -181,18 +183,33 @@ export function waitUpdate() {
     return delay(2 * WRITE_DELAY_MAX);
 }
 
-export function updateOutput(dev) {
-    if (dev.hasData()) {
-        document.getElementById("text-output").innerHTML += dev.getData();
+const deviceViews = [];
+
+export function registerView(id, dev) {
+    deviceViews.push({id, dev});
+}
+
+export function updateDevices() {
+    for (let {id, dev} of deviceViews) {
+        if (!dev.hasData()) {
+            continue;
+        }
+        if (dev instanceof TextOutput) {
+            updateTextOutput(id, dev);
+        }
+        else if (dev instanceof BitmapOutput) {
+            updateBitmapOutput(id, dev);
+        }
     }
 }
 
-export function updateBitmap(dev) {
-    if (!dev.hasData()) {
-        return;
-    }
+function updateTextOutput(id, dev) {
+    document.getElementById(id).innerHTML += dev.getData();
+}
+
+function updateBitmapOutput(id, dev) {
     const pixels = dev.getData();
-    const canvas = document.getElementById("bitmap-output");
+    const canvas = document.getElementById(id);
     const scaleX = canvas.width / dev.width;
     const scaleY = canvas.height / dev.height;
     const ctx = canvas.getContext("2d");

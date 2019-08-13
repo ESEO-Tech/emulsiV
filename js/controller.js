@@ -8,13 +8,10 @@ import {decode}     from "./decoder.js";
 const STEP_DELAY = 2500
 
 export class Controller {
-    constructor(cpu, bus, mem, text_in, text_out, bitmap_out) {
+    constructor(cpu, bus, mem) {
         this.cpu         = cpu;
         this.bus         = bus;
         this.mem         = mem;
-        this.text_in     = text_in;
-        this.text_out    = text_out;
-        this.bitmap_out  = bitmap_out;
         this.running     = false;
         this.stepping    = false;
         this.stopRequest = false;
@@ -78,7 +75,7 @@ export class Controller {
             view.simpleUpdate("asm" + i32.toHex(a), instr.name ? toAssembly(instr) : "&mdash;");
         }
 
-        view.updateBitmap(this.bitmap_out);
+        view.updateDevices();
     }
 
     stop () {
@@ -296,13 +293,11 @@ export class Controller {
 
         // IRQ status
         if (this.traceData.irqChanged) {
-            view.update("irq", this.text_in.irq());
+            view.update("irq", this.bus.irq());
             await view.waitUpdate();
         }
 
-        // Output devices.
-        view.updateOutput(this.text_out);
-        view.updateBitmap(this.bitmap_out);
+        view.updateDevices();
 
         this.setNextState("pc");
     }
@@ -344,16 +339,15 @@ export class Controller {
 
     async trace() {
         if (this.state === "fetch") {
-            const savedIrq = this.text_in.irq();
+            const savedIrq = this.bus.irq();
             this.traceData = this.cpu.step();
-            this.traceData.irqChanged = this.text_in.irq() !== savedIrq;
+            this.traceData.irqChanged = this.bus.irq() !== savedIrq;
 
             if (view.animate()) {
                 await this.traceFetch();
             }
             else {
-                view.updateOutput(this.text_out);
-                view.updateBitmap(this.bitmap_out);
+                view.updateDevices();
             }
 
             if (this.stopRequest) {
@@ -409,10 +403,10 @@ export class Controller {
         }
     }
 
-    onKeyDown(code) {
-        this.text_in.onKeyDown(code);
-        view.update("memb0000000", i32.toHex(this.text_in.localRead(0, 1), 2));
-        view.update("memb0000001", i32.toHex(this.text_in.localRead(1, 1), 2));
-        view.update("irq", this.text_in.irq());
+    onKeyDown(dev, code) {
+        dev.onKeyDown(code);
+        view.update("mem" + i32.toHex(dev.firstAddress),     i32.toHex(dev.localRead(0, 1), 2));
+        view.update("mem" + i32.toHex(dev.firstAddress + 1), i32.toHex(dev.localRead(1, 1), 2));
+        view.update("irq", this.bus.irq());
     }
 }

@@ -200,6 +200,16 @@ export class Device {
         // Abstract
     }
 
+    hasData() {
+        // Abstract
+        return false;
+    }
+
+    getData() {
+        // Abstract
+        return 0;
+    }
+
     irq() {
         return false;
     }

@@ -3,6 +3,7 @@ import * as v       from "./virgule.js";
 import {Controller} from "./controller.js";
 import {TextInput, TextOutput} from "./textio.js";
 import {BitmapOutput} from "./bitmap.js";
+import * as view    from "./view.js";
 
 window.addEventListener("load", evt => {
     const memSize = 4096;
@@ -18,7 +19,10 @@ window.addEventListener("load", evt => {
     bus.addDevice(bitmap_out);
     const cpu = new v.Virgule(16, bus);
 
-    const ctrl = new Controller(cpu, bus, mem, text_in, text_out, bitmap_out);
+    view.registerView("text-output", text_out);
+    view.registerView("bitmap-output", bitmap_out);
+
+    const ctrl = new Controller(cpu, bus, mem);
 
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
@@ -35,7 +39,7 @@ window.addEventListener("load", evt => {
         if (code > 255) {
             return;
         }
-        ctrl.onKeyDown(code);
+        ctrl.onKeyDown(text_in, code);
     });
 
     document.getElementById("run-btn").addEventListener("click", evt => {
