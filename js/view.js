@@ -164,7 +164,7 @@ export function delay(ms) {
     if (!animate()) {
         ms = 0;
     }
-    return new Promise(resolve => setTimeout(() => resolve(), ms / document.getElementById("speed").value));
+    return new Promise(resolve => setTimeout(resolve, ms / document.getElementById("speed").value));
 }
 
 export function simpleUpdate(id, value) {
