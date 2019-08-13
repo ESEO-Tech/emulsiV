@@ -39,10 +39,13 @@ const ASM_TABLE = {
     sra   : "d12",
     or    : "d12",
     and   : "d12",
-    mret  : "",
+    mret  : ""
 };
 
 export function toAssembly({name, rd, rs1, rs2, imm}) {
+    if (!(name in ASM_TABLE)) {
+        return "-";
+    }
     const reg = (n) => "x" + n;
     const ival = Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
 

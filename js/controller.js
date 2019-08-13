@@ -21,8 +21,9 @@ export class Controller {
 
     reset() {
         this.cpu.reset();
-        this.setNextState("fetch");
+        this.traceData = null;
         this.forceUpdate();
+        this.setNextState("fetch");
     }
 
     forceUpdate() {
@@ -30,38 +31,48 @@ export class Controller {
         for (let i = 0; i < this.cpu.x.length; i ++) {
             view.simpleUpdate("x" + i, i32.toHex(this.cpu.x[i]));
         }
-        view.simpleUpdate("pc", i32.toHex(this.cpu.pc));
-        view.simpleUpdate("pc-i", i32.toHex(this.cpu.pc + 4));
-        view.simpleUpdate("mepc", i32.toHex(this.cpu.mepc));
-        view.simpleUpdate("addr", "-");
-        view.simpleUpdate("data", "-");
-        view.simpleUpdate("irq", "-");
-        view.simpleUpdate("instr", i32.toHex(0));
-        view.simpleUpdate("rs1", "-");
-        view.simpleUpdate("rs2", "-");
-        view.simpleUpdate("rd", "-");
-        view.simpleUpdate("imm", "-");
-        view.simpleUpdate("alu-op", "-");
-        view.simpleUpdate("alu-a", "-");
-        view.simpleUpdate("alu-b", "-");
-        view.simpleUpdate("alu-r", "-");
-        view.simpleUpdate("cmp-op", "-");
-        view.simpleUpdate("cmp-a", "-");
-        view.simpleUpdate("cmp-b", "-");
-        view.simpleUpdate("cmp-taken", false);
+        view.simpleUpdate("pc",        i32.toHex(this.cpu.pc));
+        view.simpleUpdate("pc-i",      i32.toHex(this.cpu.pc + 4));
+        view.simpleUpdate("mepc",      i32.toHex(this.cpu.mepc));
+        view.simpleUpdate("addr",      "-");
+        view.simpleUpdate("data",      "-");
+        view.simpleUpdate("irq",       "-");
+        view.simpleUpdate("instr",     "-");
+        view.simpleUpdate("fn",        "-");
+        view.simpleUpdate("rs1",       "-");
+        view.simpleUpdate("rs2",       "-");
+        view.simpleUpdate("rd",        "-");
+        view.simpleUpdate("imm",       "-");
+        view.simpleUpdate("alu-op",    "-");
+        view.simpleUpdate("alu-a",     "-");
+        view.simpleUpdate("alu-b",     "-");
+        view.simpleUpdate("alu-r",     "-");
+        view.simpleUpdate("cmp-op",    "-");
+        view.simpleUpdate("cmp-a",     "-");
+        view.simpleUpdate("cmp-b",     "-");
+        view.simpleUpdate("cmp-taken", "-");
 
+        // Update memory view.
         for (let a = 0; a < this.mem.size; a ++) {
             view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
         }
 
+        // Update assembly view.
+        for (let a = 0; a < this.mem.size; a += 4) {
+            const word = this.bus.read(a, 4, false);
+            const instr = decode(word);
+            view.simpleUpdate("asm" + i32.toHex(a), toAssembly(instr));
+        }
+
+        // Update text input register view.
         for (let i = 0; i < 2; i ++) {
             view.simpleUpdate(`memb000000${i}`, i32.toHex(this.bus.read(0xB0000000 + i, 1, false), 2));
         }
 
+        // Update text output register view.
         view.simpleUpdate("memc0000000", "-");
 
         view.highlightAsm(this.cpu.pc);
-        this.highlightCurrentState();
     }
 
     loadHex(data) {
@@ -73,18 +84,10 @@ export class Controller {
         // Copy hex file to memory
         hex.parse(data, this.bus);
 
-        // Update memory view
-        for (let a = 0; a < this.mem.size; a ++) {
-            view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
-        }
+        // Reset processor.
+        this.reset();
 
-        // Update assembly view
-        for (let a = 0; a < this.mem.size; a += 4) {
-            const word = this.bus.read(a, 4, false);
-            const instr = decode(word);
-            view.simpleUpdate("asm" + i32.toHex(a), instr.name ? toAssembly(instr) : "&mdash;");
-        }
-
+        // Update device outputs.
         view.updateDevices();
     }
 
@@ -100,12 +103,14 @@ export class Controller {
         this.stopRequest = false;
 
         do {
-            await this.trace();
+            await this.trace(once);
         } while (!once && !this.stopRequest);
 
         this.running = false;
 
-        this.forceUpdate();
+        if (!once && !view.animate()) {
+            this.forceUpdate();
+        }
 
         view.setButtonLabel("run", "Run");
         view.enableButton(this.state);
@@ -346,13 +351,13 @@ export class Controller {
         this.setNextState("fetch");
     }
 
-    async trace() {
+    async trace(once) {
         if (this.state === "fetch") {
             const savedIrq = this.bus.irq();
             this.traceData = this.cpu.step();
             this.traceData.irqChanged = this.bus.irq() !== savedIrq;
 
-            if (view.animate()) {
+            if (once || view.animate()) {
                 await this.traceFetch();
             }
             else {

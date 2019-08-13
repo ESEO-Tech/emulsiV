@@ -15,7 +15,7 @@ function resize() {
         elt.style.height = (elt.clientHeight + delta) + "px";
     }
 
-    let delta = window.innerHeight - document.getElementById("text-output").getBoundingClientRect().bottom;
+    let delta = window.innerHeight - document.getElementById("bitmap-output").getBoundingClientRect().bottom;
     resizeElt(document.querySelector("#col-memory .tbl-wrapper"), delta - MARGIN);
 
     const regBottom = document.querySelector("#col-x table:last-child").getBoundingClientRect().bottom;
@@ -168,6 +168,9 @@ export function delay(ms) {
 }
 
 export function simpleUpdate(id, value) {
+    if (value === "-") {
+        value = "&mdash;";
+    }
     const cell = document.getElementById(id);
     cell.innerHTML = value;
     return cell;

@@ -95,46 +95,47 @@ const DECODE_TABLE = {
 };
 
 const ACTION_TABLE = {
-    //       a     b      r       x[rd]* branch
-    //                            mem
-    lui   : ["-",  "imm", "b",    "r",   "-"],
-    auipc : ["pc", "imm", "add",  "r",   "-"],
-    jal   : ["pc", "imm", "add",  "pc+", "al"],
-    jalr  : ["x1", "imm", "add",  "pc+", "al"],
-    beq   : ["pc", "imm", "add",  "-",   "eq"],
-    bne   : ["pc", "imm", "add",  "-",   "ne"],
-    blt   : ["pc", "imm", "add",  "-",   "lt"],
-    bge   : ["pc", "imm", "add",  "-",   "ge"],
-    bltu  : ["pc", "imm", "add",  "-",   "ltu"],
-    bgeu  : ["pc", "imm", "add",  "-",   "geu"],
-    lb    : ["x1", "imm", "add",  "lb",  "-"],
-    lh    : ["x1", "imm", "add",  "lh",  "-"],
-    lw    : ["x1", "imm", "add",  "lw",  "-"],
-    lbu   : ["x1", "imm", "add",  "lbu", "-"],
-    lhu   : ["x1", "imm", "add",  "lhu", "-"],
-    sb    : ["x1", "imm", "add",  "sb",  "-"],
-    sh    : ["x1", "imm", "add",  "sh",  "-"],
-    sw    : ["x1", "imm", "add",  "sw",  "-"],
-    addi  : ["x1", "imm", "add",  "r",   "-"],
-    slli  : ["x1", "imm", "sll",  "r",   "-"],
-    slti  : ["x1", "imm", "slt",  "r",   "-"],
-    sltiu : ["x1", "imm", "sltu", "r",   "-"],
-    xori  : ["x1", "imm", "xor",  "r",   "-"],
-    srli  : ["x1", "imm", "srl",  "r",   "-"],
-    srai  : ["x1", "imm", "sra",  "r",   "-"],
-    ori   : ["x1", "imm", "or",   "r",   "-"],
-    andi  : ["x1", "imm", "and",  "r",   "-"],
-    add   : ["x1", "x2",  "add",  "r",   "-"],
-    sub   : ["x1", "x2",  "sub",  "r",   "-"],
-    sll   : ["x1", "x2",  "sll",  "r",   "-"],
-    slt   : ["x1", "x2",  "slt",  "r",   "-"],
-    sltu  : ["x1", "x2",  "sltu", "r",   "-"],
-    xor   : ["x1", "x2",  "xor",  "r",   "-"],
-    srl   : ["x1", "x2",  "srl",  "r",   "-"],
-    sra   : ["x1", "x2",  "sra",  "r",   "-"],
-    or    : ["x1", "x2",  "or",   "r",   "-"],
-    and   : ["x1", "x2",  "and",  "r",   "-"],
-    mret  : ["-",  "-",   "-",    "-",   "-"]
+    //         a     b      r       x[rd]* branch
+    //                              mem
+    lui     : ["-",  "imm", "b",    "r",   "-"],
+    auipc   : ["pc", "imm", "add",  "r",   "-"],
+    jal     : ["pc", "imm", "add",  "pc+", "al"],
+    jalr    : ["x1", "imm", "add",  "pc+", "al"],
+    beq     : ["pc", "imm", "add",  "-",   "eq"],
+    bne     : ["pc", "imm", "add",  "-",   "ne"],
+    blt     : ["pc", "imm", "add",  "-",   "lt"],
+    bge     : ["pc", "imm", "add",  "-",   "ge"],
+    bltu    : ["pc", "imm", "add",  "-",   "ltu"],
+    bgeu    : ["pc", "imm", "add",  "-",   "geu"],
+    lb      : ["x1", "imm", "add",  "lb",  "-"],
+    lh      : ["x1", "imm", "add",  "lh",  "-"],
+    lw      : ["x1", "imm", "add",  "lw",  "-"],
+    lbu     : ["x1", "imm", "add",  "lbu", "-"],
+    lhu     : ["x1", "imm", "add",  "lhu", "-"],
+    sb      : ["x1", "imm", "add",  "sb",  "-"],
+    sh      : ["x1", "imm", "add",  "sh",  "-"],
+    sw      : ["x1", "imm", "add",  "sw",  "-"],
+    addi    : ["x1", "imm", "add",  "r",   "-"],
+    slli    : ["x1", "imm", "sll",  "r",   "-"],
+    slti    : ["x1", "imm", "slt",  "r",   "-"],
+    sltiu   : ["x1", "imm", "sltu", "r",   "-"],
+    xori    : ["x1", "imm", "xor",  "r",   "-"],
+    srli    : ["x1", "imm", "srl",  "r",   "-"],
+    srai    : ["x1", "imm", "sra",  "r",   "-"],
+    ori     : ["x1", "imm", "or",   "r",   "-"],
+    andi    : ["x1", "imm", "and",  "r",   "-"],
+    add     : ["x1", "x2",  "add",  "r",   "-"],
+    sub     : ["x1", "x2",  "sub",  "r",   "-"],
+    sll     : ["x1", "x2",  "sll",  "r",   "-"],
+    slt     : ["x1", "x2",  "slt",  "r",   "-"],
+    sltu    : ["x1", "x2",  "sltu", "r",   "-"],
+    xor     : ["x1", "x2",  "xor",  "r",   "-"],
+    srl     : ["x1", "x2",  "srl",  "r",   "-"],
+    sra     : ["x1", "x2",  "sra",  "r",   "-"],
+    or      : ["x1", "x2",  "or",   "r",   "-"],
+    and     : ["x1", "x2",  "and",  "r",   "-"],
+    mret    : ["-",  "-",   "-",    "-",   "-"],
+    invalid : ["-",  "-",   "-",    "-",   "-"]
 };
 
 export function getSlice(word, left, right, signed=false) {
@@ -204,7 +205,6 @@ export function decode(word) {
     const row = [opcode, funct3, funct7, rs2, rs1, rd];
     const name = Object.keys(DECODE_TABLE).find(name =>
         DECODE_TABLE[name].every((v, i) => v < 0 || v === row[i])
-    );
-
+    ) || "invalid";
     return {name, rd, rs1, rs2, imm, actions: ACTION_TABLE[name], raw: word};
 }
