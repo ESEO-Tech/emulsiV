@@ -8,8 +8,9 @@ import {decode}     from "./decoder.js";
 const STEP_DELAY = 2500
 
 export class Controller {
-    constructor(cpu, mem, text_in, text_out, bitmap_out) {
+    constructor(cpu, bus, mem, text_in, text_out, bitmap_out) {
         this.cpu         = cpu;
+        this.bus         = bus;
         this.mem         = mem;
         this.text_in     = text_in;
         this.text_out    = text_out;
@@ -59,23 +60,25 @@ export class Controller {
     loadHex(data) {
         // Clear memory
         for (let a = 0; a < this.mem.size; a += 4) {
-            this.mem.write(a, 4, 0);
+            this.bus.write(a, 4, 0);
         }
 
         // Copy hex file to memory
-        hex.parse(data, this.mem);
+        hex.parse(data, this.bus);
 
         // Update memory view
         for (let a = 0; a < this.mem.size; a ++) {
-            view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.mem.read(a, 1, false), 2))
+            view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
         }
 
         // Update assembly view
         for (let a = 0; a < this.mem.size; a += 4) {
-            const word = this.mem.read(a, 4, false);
+            const word = this.bus.read(a, 4, false);
             const instr = decode(word);
             view.simpleUpdate("asm" + i32.toHex(a), instr.name ? toAssembly(instr) : "&mdash;");
         }
+
+        view.updateBitmap(this.bitmap_out);
     }
 
     stop () {

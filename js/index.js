@@ -18,7 +18,7 @@ window.addEventListener("load", evt => {
     bus.addDevice(bitmap_out);
     const cpu = new v.Virgule(16, bus);
 
-    const ctrl = new Controller(cpu, mem, text_in, text_out, bitmap_out);
+    const ctrl = new Controller(cpu, bus, mem, text_in, text_out, bitmap_out);
 
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
