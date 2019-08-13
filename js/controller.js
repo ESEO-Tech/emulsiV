@@ -21,7 +21,11 @@ export class Controller {
 
     reset() {
         this.cpu.reset();
+        this.setNextState("fetch");
+        this.forceUpdate();
+    }
 
+    forceUpdate() {
         view.reset();
         for (let i = 0; i < this.cpu.x.length; i ++) {
             view.simpleUpdate("x" + i, i32.toHex(this.cpu.x[i]));
@@ -45,13 +49,19 @@ export class Controller {
         view.simpleUpdate("cmp-a", "-");
         view.simpleUpdate("cmp-b", "-");
         view.simpleUpdate("cmp-taken", false);
-        view.simpleUpdate("memc0000000", "-");
-        for (let i = 0; i < 2; i ++) {
-            view.simpleUpdate(`memb000000${i}`, "00");
+
+        for (let a = 0; a < this.mem.size; a ++) {
+            view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
         }
 
+        for (let i = 0; i < 2; i ++) {
+            view.simpleUpdate(`memb000000${i}`, i32.toHex(this.bus.read(0xB0000000 + i, 1, false), 2));
+        }
+
+        view.simpleUpdate("memc0000000", "-");
+
         view.highlightAsm(this.cpu.pc);
-        this.setNextState("fetch");
+        this.highlightCurrentState();
     }
 
     loadHex(data) {
@@ -95,8 +105,7 @@ export class Controller {
 
         this.running = false;
 
-        // TODO when checking "animate", update memory and register views.
-        // TODO update memory and register views in case animation was disabled.
+        this.forceUpdate();
 
         view.setButtonLabel("run", "Run");
         view.enableButton(this.state);

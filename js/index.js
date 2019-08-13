@@ -59,4 +59,10 @@ window.addEventListener("load", evt => {
     document.getElementById("branch-btn").addEventListener("click", evt => ctrl.traceBranch());
     document.getElementById("write-btn").addEventListener("click", evt => ctrl.traceWriteBack());
     document.getElementById("pc-btn").addEventListener("click", evt => ctrl.tracePC());
+
+    document.getElementById("animate-cb").addEventListener("click", evt => {
+        if (evt.target.checked && ctrl.running) {
+            ctrl.forceUpdate();
+        }
+    });
 });
