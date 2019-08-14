@@ -1,9 +1,7 @@
 
-import * as view    from "./view.js";
-import * as hex     from "./hex.js";
-import * as i32     from "./i32.js";
-import {toAssembly} from "./disassembler.js";
-import {decode}     from "./decoder.js";
+import * as view from "./view.js";
+import * as hex  from "./hex.js";
+import * as i32  from "./i32.js";
 
 const STEP_DELAY = 2500
 
@@ -15,6 +13,7 @@ export class Controller {
         this.running     = false;
         this.stepping    = false;
         this.stopRequest = false;
+        this.breakpoints = {};
         view.init(mem.size);
         this.reset();
     }
@@ -57,13 +56,6 @@ export class Controller {
             view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
         }
 
-        // Update assembly view.
-        for (let a = 0; a < this.mem.size; a += 4) {
-            const word = this.bus.read(a, 4, false);
-            const instr = decode(word);
-            view.simpleUpdate("asm" + i32.toHex(a), toAssembly(instr));
-        }
-
         // Update text input register view.
         for (let i = 0; i < 2; i ++) {
             view.simpleUpdate(`memb000000${i}`, i32.toHex(this.bus.read(0xB0000000 + i, 1, false), 2));
@@ -71,6 +63,8 @@ export class Controller {
 
         // Update text output register view.
         view.simpleUpdate("memc0000000", "-");
+
+        view.updateDevices(true);
 
         view.highlightAsm(this.cpu.pc);
     }
@@ -88,12 +82,24 @@ export class Controller {
         this.reset();
 
         // Update device outputs.
-        view.updateDevices();
+        view.updateDevices(true);
     }
 
     stop () {
         view.setButtonLabel("run", "Please wait");
         this.stopRequest = true;
+    }
+
+    toggleBreakpoint(addr) {
+        const key = i32.toHex(addr);
+        if (this.breakpoints[key]) {
+            this.breakpoints[key] = false;
+            view.disableBreakpoint("asm" + key);
+        }
+        else {
+            this.breakpoints[key] = true;
+            view.enableBreakpoint("asm" + key);
+        }
     }
 
     async run(single = false) {
@@ -104,11 +110,13 @@ export class Controller {
 
         do {
             await this.trace(single, false);
-        } while (!this.stopRequest && !(single && this.state === "fetch"));
+        } while (!this.stopRequest &&
+                 !(single && this.state === "fetch") &&
+                 !this.breakpoints[i32.toHex(this.cpu.pc)]);
 
         this.running = false;
 
-        if (!single && !view.animate()) {
+        if (!single && !view.animationsEnabled()) {
             this.forceUpdate();
         }
 
@@ -239,10 +247,10 @@ export class Controller {
     async traceWriteBack() {
         this.highlightCurrentState();
 
-        const x2x = i32.toHex(this.traceData.x2);
-        const rx  = i32.toHex(this.traceData.r);
-        const lx  = i32.toHex(this.traceData.l);
-        const fmt = this.traceData.instr.actions[3].slice(1);
+        const x2x   = i32.toHex(this.traceData.x2);
+        const rx    = i32.toHex(this.traceData.r);
+        const lx    = i32.toHex(this.traceData.l);
+        const fmt   = this.traceData.instr.actions[3].slice(1);
         switch (this.traceData.instr.actions[3]) {
             case "r":   if (this.traceData.instr.rd) await view.move("alu-r", "x" + this.traceData.instr.rd, rx); break;
             case "pc+": if (this.traceData.instr.rd) await view.move("pc-i", "x" + this.traceData.instr.rd, i32.toHex(this.traceData.incPc)); break;
@@ -305,15 +313,13 @@ export class Controller {
                 break;
         }
 
-        // TODO Update assembly view after writing to memory.
-
         // IRQ status
         if (this.traceData.irqChanged) {
             view.update("irq", this.bus.irq());
             await view.waitUpdate();
         }
 
-        view.updateDevices();
+        view.updateDevices(true);
 
         this.setNextState("pc");
     }
@@ -360,11 +366,11 @@ export class Controller {
                 this.traceData = this.cpu.step();
                 this.traceData.irqChanged = this.bus.irq() !== savedIrq;
 
-                if (single || view.animate()) {
+                if (single || view.animationsEnabled()) {
                     await this.traceFetch();
                 }
                 else {
-                    view.updateDevices();
+                    view.updateDevices(false);
                 }
                 break;
 

@@ -1,6 +1,6 @@
 
-import {getSlice} from "./decoder.js";
-import {Device}   from "./virgule.js";
+import {getSlice} from "../decoder.js";
+import {Device}   from "../virgule.js";
 
 export class BitmapOutput extends Device {
     constructor(firstAddress, width, height) {

@@ -1,5 +1,5 @@
 
-import {Device, Memory} from "./virgule.js";
+import {Device, Memory} from "../virgule.js";
 
 export class TextOutput extends Device {
     constructor(...args) {

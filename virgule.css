@@ -125,6 +125,10 @@ body {
     white-space: nowrap;
 }
 
+.asm.break {
+    border-left: 3px solid red;
+}
+
 .state-btn {
     border: none;
     background-color: hsl(35, 100%, 60%);

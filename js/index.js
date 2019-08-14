@@ -1,9 +1,10 @@
 
-import * as v       from "./virgule.js";
-import {Controller} from "./controller.js";
-import {TextInput, TextOutput} from "./textio.js";
-import {BitmapOutput} from "./bitmap.js";
-import * as view    from "./view.js";
+import * as v                  from "./virgule.js";
+import {Controller}            from "./controller.js";
+import {TextInput, TextOutput} from "./devices/text.js";
+import {BitmapOutput}          from "./devices/bitmap.js";
+import {AsmOutput}             from "./devices/asm.js";
+import * as view               from "./view.js";
 
 window.addEventListener("load", evt => {
     const memSize = 4096;
@@ -11,6 +12,8 @@ window.addEventListener("load", evt => {
     const bus = new v.Bus();
     const mem = new v.Memory(0, memSize);
     bus.addDevice(mem);
+    const asm_out = new AsmOutput(mem);
+    bus.addDevice(asm_out);
     const text_in = new TextInput(0xB0000000);
     bus.addDevice(text_in);
     const text_out = new TextOutput(0xC0000000, 4);
@@ -19,8 +22,9 @@ window.addEventListener("load", evt => {
     bus.addDevice(bitmap_out);
     const cpu = new v.Virgule(16, bus);
 
-    view.registerView("text-output", text_out);
-    view.registerView("bitmap-output", bitmap_out);
+    view.registerView("asm", asm_out, false);
+    view.registerView("text-output", text_out, true);
+    view.registerView("bitmap-output", bitmap_out, true);
 
     const ctrl = new Controller(cpu, bus, mem);
 
@@ -68,5 +72,10 @@ window.addEventListener("load", evt => {
         if (evt.target.checked && ctrl.running) {
             ctrl.forceUpdate();
         }
+    });
+
+    document.querySelectorAll(".asm").forEach(elt => {
+        const addr = parseInt(elt.id.slice(3), 16)
+        elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
     });
 });

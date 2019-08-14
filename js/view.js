@@ -1,8 +1,9 @@
 
 import {getSlice}     from "./decoder.js";
 import * as i32       from "./i32.js";
-import {TextOutput}   from "./textio.js";
-import {BitmapOutput} from "./bitmap.js";
+import {TextOutput}   from "./devices/text.js";
+import {BitmapOutput} from "./devices/bitmap.js";
+import {AsmOutput}    from "./devices/asm.js";
 
 const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
@@ -91,7 +92,7 @@ export function activateButton(name, active=true) {
     }
 }
 
-export function animate() {
+export function animationsEnabled() {
     return document.getElementById("animate-cb").checked;
 }
 
@@ -110,7 +111,7 @@ export function highlightAsm(address) {
 }
 
 export function move(fromId, toId, value, slot=0) {
-    if (!animate()) {
+    if (!animationsEnabled()) {
         this.simpleUpdate(toId, value);
         return Promise.resolve();
     }
@@ -161,7 +162,7 @@ export function move(fromId, toId, value, slot=0) {
 }
 
 export function delay(ms) {
-    if (!animate()) {
+    if (!animationsEnabled()) {
         ms = 0;
     }
     return new Promise(resolve => setTimeout(resolve, ms / document.getElementById("speed").value));
@@ -188,13 +189,13 @@ export function waitUpdate() {
 
 const deviceViews = [];
 
-export function registerView(id, dev) {
-    deviceViews.push({id, dev});
+export function registerView(id, dev, always) {
+    deviceViews.push({id, dev, always});
 }
 
-export function updateDevices() {
-    for (let {id, dev} of deviceViews) {
-        if (!dev.hasData()) {
+export function updateDevices(all) {
+    for (let {id, dev, always} of deviceViews) {
+        if (!dev.hasData() || (!all && !always)) {
             continue;
         }
         if (dev instanceof TextOutput) {
@@ -202,6 +203,9 @@ export function updateDevices() {
         }
         else if (dev instanceof BitmapOutput) {
             updateBitmapOutput(id, dev);
+        }
+        else if (dev instanceof AsmOutput) {
+            updateAsmOutput(id, dev);
         }
     }
 }
@@ -223,4 +227,19 @@ function updateBitmapOutput(id, dev) {
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(p.x * scaleX, p.y * scaleY, scaleX, scaleY);
     }
+}
+
+function updateAsmOutput(id, dev) {
+    const instrs = dev.getData();
+    for (let [addr, asm] of Object.entries(instrs)) {
+        simpleUpdate(id + addr, asm);
+    }
+}
+
+export function enableBreakpoint(id) {
+    document.getElementById(id).classList.add("break");
+}
+
+export function disableBreakpoint(id) {
+    document.getElementById(id).classList.remove("break");
 }
