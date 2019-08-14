@@ -3,6 +3,15 @@
     .set TEXT_IN_IRQ_MASK,   0x0040
     .set TEXT_IN_IRQ_ENABLE, 0x0080
 
+    .set DIR_HORIZONTAL, 0
+    .set DIR_VERTICAL,   1
+    .set DIR_BACKWARDS,  2
+
+    .set DIR_RIGHT, DIR_HORIZONTAL
+    .set DIR_LEFT,  DIR_HORIZONTAL | DIR_BACKWARDS
+    .set DIR_DOWN,  DIR_VERTICAL
+    .set DIR_UP,    DIR_VERTICAL | DIR_BACKWARDS
+
     .text
 
     .global __reset
@@ -12,13 +21,10 @@ __reset:
 
 __irq:
     /* Save all used registers to the stack */
-    addi sp, sp, -24
+    addi sp, sp, -12
     sw t0, 0(sp)
     sw t1, 4(sp)
     sw t2, 8(sp)
-    sw a0, 12(sp)
-    sw a1, 16(sp)
-    sw ra, 20(sp)
 
     /* Clear the interrupt flag */
     li t0, TEXT_IN
@@ -27,71 +33,57 @@ __irq:
     sh t1, (t0)
     srli t1, t1, 8
 
-    /* Read the current cursor location */
-    la t0, cursor_index
-    lw a0, (t0)
+    /* If the previous movement has not been processed yet, do nothing. */
+    lw t2, cursor_index
+    lw t0, cursor_index_next
+    bne t0, t2, irq_end
 
-check_move_left:
-    li t2, '4'
-    bne t1, t2, check_move_right
+irq_check_move_left:
+    li t0, '4'
+    bne t1, t0, irq_check_move_right
+    addi t2, t2, -1
+    li t1, DIR_LEFT
+    j irq_store
 
-    addi a0, a0, -1
-    andi a0, a0, 1023
-    sw a0, (t0)
-    la a1, left_right_mask
-    jal draw
+irq_check_move_right:
+    li t0, '6'
+    bne t1, t0, irq_check_move_up
+    addi t2, t2, 1
+    li t1, DIR_RIGHT
+    j irq_store
 
-    j irq_end
+irq_check_move_up:
+    li t0, '8'
+    bne t1, t0, irq_check_move_down
+    addi t2, t2, -32
+    li t1, DIR_UP
+    j irq_store
 
-check_move_right:
-    li t2, '6'
-    bne t1, t2, check_move_up
+irq_check_move_down:
+    li t0, '2'
+    bne t1, t0, irq_end
+    addi t2, t2, 32
+    li t1, DIR_DOWN
 
-    addi t2, a0, 1
-    andi a0, a0, 1023
-    sw t2, (t0)
-    la a1, left_right_mask
-    jal draw
-
-    j irq_end
-
-check_move_up:
-    li t2, '8'
-    bne t1, t2, check_move_down
-
-    addi a0, a0, -32
-    andi a0, a0, 1023
-    sw a0, (t0)
-    la a1, up_down_mask
-    jal draw
-
-    j irq_end
-
-check_move_down:
-    li t2, '2'
-    bne t1, t2, irq_end
-
-    addi t2, a0, 32
-    andi a0, a0, 1023
-    sw t2, (t0)
-    la a1, up_down_mask
-    jal draw
+irq_store:
+    /* Store the new location */
+    andi t2, t2, 1023
+    sw t2, cursor_index_next, t0
+    sw t1, cursor_direction, t0
 
 irq_end:
     /* Restore all registers from the stack */
     lw t0, 0(sp)
     lw t1, 4(sp)
     lw t2, 8(sp)
-    lw a0, 12(sp)
-    lw a1, 16(sp)
-    lw ra, 20(sp)
-    addi sp, sp, 24
+    addi sp, sp, 12
     mret
 
 start:
+    la sp, __stack_pointer
+
     /* Draw cursor */
-    la a0, cursor_index
-    lw a0, (a0)
+    lw a0, cursor_index
     la a1, cursor_mask
     jal draw
 
@@ -100,7 +92,34 @@ start:
     li t1, TEXT_IN_IRQ_ENABLE
     sh t1, (t0)
 
-    j .
+main_loop:
+    /* By default, we will draw at the current cursor location */
+    lw a0, cursor_index
+
+    /* Loop until the location changes */
+main_polling_loop:
+    lw t0, cursor_index_next
+    beq a0, t0, main_polling_loop
+
+    /* Check the direction, if backwards, use the new location when drawing */
+    lw t1, cursor_direction
+    andi t2, t1, DIR_BACKWARDS
+    beqz t2, main_select_mask
+    mv a0, t0
+
+main_select_mask:
+    la a1, left_right_mask
+    andi t2, t1, DIR_VERTICAL
+    beqz t2, main_draw
+    la a1, up_down_mask
+
+main_draw:
+    /* Store the new location */
+    sw t0, cursor_index, t1
+
+    jal draw
+
+    j main_loop
 
 /*
     Args:
@@ -111,8 +130,6 @@ draw:
     addi sp, sp, -8
     sw s0, 0(sp)
     sw s1, 4(sp)
-
-    la s0, background
 
     /* t0: end mask address */
     addi t0, a1, 16
@@ -144,7 +161,9 @@ draw_for_each_column:
 
     .data
 
-cursor_index: .word 0
+cursor_index:      .word 0
+cursor_index_next: .word 0
+cursor_direction:  .word 0
 
 cursor_mask:
     .byte 0x00, 0xff, 0x00, 0x00
