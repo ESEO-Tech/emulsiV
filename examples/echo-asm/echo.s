@@ -1,4 +1,9 @@
 
+    .set TEXT_OUT,           0xc0000000
+    .set TEXT_IN,            0xb0000000
+    .set TEXT_IN_IRQ_MASK,   0x0040
+    .set TEXT_IN_IRQ_ENABLE, 0x0080
+
     .text
 
     .global __reset
@@ -7,16 +12,16 @@ __reset:
     j start
 
 __irq:
-    lhu x4, (x1)
-    xor x4, x4, x3
-    sh x4, (x1)
-    sb x4, (x2)
+    lhu x3, (x1)
+    xor x3, x3, TEXT_IN_IRQ_MASK
+    sh x3, (x1)
+    srli x3, x3, 8
+    sb x3, (x2)
     mret
 
 start:
-    li x1, 0xb0000000
-    li x2, 0xc0000000
-    li x3, 0x00004000
-    li x4, 0x00008000
-    sh x4, (x1)
+    li x1, TEXT_IN
+    li x2, TEXT_OUT
+    li x3, TEXT_IN_IRQ_ENABLE
+    sh x3, (x1)
     j .

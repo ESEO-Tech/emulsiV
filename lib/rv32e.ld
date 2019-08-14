@@ -32,4 +32,11 @@ SECTIONS {
         . += STACK_SIZE;
         __stack_pointer = .;
     }
+
+    .bitmap ALIGN(4) : {
+        __bitmap_start = .;
+        *(bitmap)
+    }
+
+    __bitmap_end = __bitmap_start + BITMAP_SIZE;
 }

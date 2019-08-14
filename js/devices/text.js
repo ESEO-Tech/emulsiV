@@ -28,14 +28,14 @@ export class TextInput extends Memory {
     }
 
     onKeyDown(code) {
-        // Data reg.
-        this.localWrite(0, 1, code);
         // Status reg.
-        this.localWrite(1, 1, this.localRead(1, 1) | 0x40);
+        this.localWrite(0, 1, this.localRead(0, 1) | 0x40);
+        // Data reg.
+        this.localWrite(1, 1, code);
     }
 
     irq() {
-        const status = this.localRead(1, 1);
+        const status = this.localRead(0, 1);
         return !!(status & 0x40) && !!(status & 0x80);
     }
 }
