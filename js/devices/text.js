@@ -4,7 +4,11 @@ import {Device, Memory} from "../virgule.js";
 export class TextOutput extends Device {
     constructor(...args) {
         super(...args);
-        this.data = ""
+        this.reset();
+    }
+
+    reset() {
+        this.data = "";
     }
 
     localWrite(address, count, value) {
@@ -27,6 +31,10 @@ export class TextInput extends Memory {
         super(firstAddress, 2);
     }
 
+    reset() {
+        this.localWrite(0, 2, 0);
+    }
+    
     onKeyDown(code) {
         // Status reg.
         this.localWrite(0, 1, this.localRead(0, 1) | 0x40);

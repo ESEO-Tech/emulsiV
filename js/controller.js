@@ -20,6 +20,7 @@ export class Controller {
 
     reset() {
         this.cpu.reset();
+        this.bus.reset();
         this.traceData = null;
         this.forceUpdate();
         this.setNextState("fetch");
@@ -35,7 +36,7 @@ export class Controller {
         view.simpleUpdate("mepc",      i32.toHex(this.cpu.mepc));
         view.simpleUpdate("addr",      "-");
         view.simpleUpdate("data",      "-");
-        view.simpleUpdate("irq",       "-");
+        view.simpleUpdate("irq",       this.bus.irq());
         view.simpleUpdate("instr",     "-");
         view.simpleUpdate("fn",        "-");
         view.simpleUpdate("rs1",       "-");
@@ -69,7 +70,18 @@ export class Controller {
         view.highlightAsm(this.cpu.pc);
     }
 
-    loadHex(data) {
+    async loadHex(data) {
+        if (this.running) {
+            this.stop();
+            while (this.running) {
+                await view.delay(0);
+            }
+        }
+
+        // Reset processor.
+        this.reset();
+        this.bus.reset();
+
         // Clear memory
         for (let a = 0; a < this.mem.size; a += 4) {
             this.bus.write(a, 4, 0);
@@ -78,14 +90,11 @@ export class Controller {
         // Copy hex file to memory
         hex.parse(data, this.bus);
 
-        // Reset processor.
-        this.reset();
-
-        // Update device outputs.
+        // Reset devices and update device outputs.
         view.updateDevices(true);
     }
 
-    stop () {
+    stop() {
         view.setButtonLabel("run", "Please wait");
         this.stopRequest = true;
     }
@@ -104,6 +113,9 @@ export class Controller {
 
     async run(single = false) {
         view.setButtonLabel("run", "Pause");
+        view.enableInput("hex-input", false);
+        view.enableInput("step-btn", false);
+        view.enableInput("reset-btn", false);
 
         this.running     = true;
         this.stopRequest = false;
@@ -114,32 +126,35 @@ export class Controller {
                  !(single && this.state === "fetch") &&
                  !this.breakpoints[i32.toHex(this.cpu.pc)]);
 
-        this.running = false;
-
         if (!single && !view.animationsEnabled()) {
             this.forceUpdate();
         }
 
         view.setButtonLabel("run", "Run");
-        view.enableButton(this.state);
-        view.enableButton("step");
-        view.enableButton("reset");
+        view.enableInput(this.state + "-btn");
+        view.enableInput("hex-input");
+        view.enableInput("step-btn");
+        view.enableInput("reset-btn");
+
+        this.running = false;
     }
 
     highlightCurrentState() {
         view.activateButton(this.state);
-        view.enableButton(this.state, false);
-        view.enableButton("step", false);
-        view.enableButton("reset", false);
+        view.enableInput(this.state + "-btn", false);
+        view.enableInput("hex-input",         false);
+        view.enableInput("step-btn",          false);
+        view.enableInput("reset-btn",         false);
     }
 
     setNextState(name) {
         if (this.state) {
             view.activateButton(this.state, false);
         }
-        view.enableButton(name, !this.running);
-        view.enableButton("step", !this.running);
-        view.enableButton("reset", !this.running);
+        view.enableInput(name + "-btn", !this.running);
+        view.enableInput("hex-input",   !this.running);
+        view.enableInput("step-btn",    !this.running);
+        view.enableInput("reset-btn",   !this.running);
         this.state = name;
     }
 

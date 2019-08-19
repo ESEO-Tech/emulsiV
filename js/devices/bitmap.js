@@ -7,6 +7,10 @@ export class BitmapOutput extends Device {
         super(firstAddress, width * height);
         this.width   = width;
         this.height  = height;
+        this.reset();
+    }
+
+    reset() {
         this.pixels  = [];
     }
 

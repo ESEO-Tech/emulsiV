@@ -7,8 +7,12 @@ import * as i32 from "../i32.js";
 export class AsmOutput extends Device {
     constructor(mem) {
         super(mem.firstAddress, mem.size);
-        this.mem    = mem;
-        this.instrs = [];
+        this.mem = mem;
+        this.reset();
+    }
+
+    reset() {
+        this.instrs = {};
     }
 
     hasData() {

@@ -143,6 +143,12 @@ export class Bus {
         this.devices = [];
     }
 
+    reset() {
+        for (let d of this.devices) {
+            d.reset();
+        }
+    }
+
     addDevice(device) {
         this.devices.push(device);
     }
@@ -176,6 +182,10 @@ export class Device {
         this.size         = size;
         this.firstAddress = i32.u(firstAddress);
         this.lastAddress  = i32.u(firstAddress + size - 1);
+    }
+
+    reset() {
+        // Abstract
     }
 
     accepts(address, size) {

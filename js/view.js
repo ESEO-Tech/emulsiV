@@ -74,8 +74,8 @@ export function reset() {
     });
 }
 
-export function enableButton(name, enable=true) {
-    document.getElementById(name + "-btn").disabled = !enable;
+export function enableInput(name, enable=true) {
+    document.getElementById(name).disabled = !enable;
 }
 
 export function setButtonLabel(name, label) {
