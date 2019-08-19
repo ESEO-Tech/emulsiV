@@ -16,24 +16,37 @@ function resize() {
         elt.style.height = (elt.clientHeight + delta) + "px";
     }
 
-    let delta = window.innerHeight - document.getElementById("bitmap-output").getBoundingClientRect().bottom;
-    resizeElt(document.querySelector("#col-memory .tbl-wrapper"), delta - MARGIN);
+    // Set memory table height to its maximum to compute the overflow.
+    const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
+    tblWrapper.style.height = "auto";
 
-    const regBottom = document.querySelector("#col-x table:last-child").getBoundingClientRect().bottom;
+    // Resize the memory table wrapper so that the "devices" section does not overflow.
+    const devicesBottom = Math.max(document.querySelector("#bitmap-output").getBoundingClientRect().bottom,
+                                   document.querySelector("#text-output").getBoundingClientRect().bottom);
+    resizeElt(tblWrapper, window.innerHeight - devicesBottom - MARGIN);
 
-    delta = regBottom - document.querySelector("#col-pc table:last-child").getBoundingClientRect().bottom;
-    resizeElt(document.querySelector("#col-pc .spacer"), delta);
+    // Make sure the memory table is not shorter than the register table.
+    const regBottom  = document.querySelector("#cell-x table:last-child").getBoundingClientRect().bottom;
+    const memBottom = tblWrapper.getBoundingClientRect().bottom;
+    if (memBottom < regBottom) {
+        resizeElt(tblWrapper, regBottom - memBottom);
+    }
 
-    delta = regBottom - document.querySelector("#col-alu table:last-child").getBoundingClientRect().bottom;
-    resizeElt(document.querySelector("#col-alu .spacer"), delta);
+    // Resize the spacer in the "PC" cell to justify its contents vertically.
+    let delta = regBottom - document.querySelector("#cell-pc table:last-child").getBoundingClientRect().bottom;
+    resizeElt(document.querySelector("#cell-pc .spacer"), delta);
 
-    delta = regBottom - document.querySelector("#col-bus table:last-child").getBoundingClientRect().bottom;
-    document.querySelector("#col-bus h1").style["padding-top"] = (delta / 2) + "px";
+    // Resize the spacer in the "ALU" cell to justify its contents vertically.
+    delta = regBottom - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom;
+    resizeElt(document.querySelector("#cell-alu .spacer"), delta);
 
+    // Center the contents of the "bus" cell vertically.
+    delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
+    document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
 }
 
 export function init(memSize) {
-    const row = document.querySelector("#col-memory tr:nth-child(2)");
+    const row = document.querySelector("#cell-memory tr:nth-child(2)");
     for (let i = 0; i < Math.ceil(memSize / MEMORY_BYTES_PER_ROW); i ++) {
         let currentRow = row;
         if (i !== 0) {
@@ -52,7 +65,7 @@ export function init(memSize) {
 
     document.getElementById("speed").addEventListener("change", evt => {
         const duration = WRITE_DELAY_MAX / evt.target.value;
-        document.querySelectorAll(".datapath td").forEach(r => r.style.transition = `background-color ${duration}ms`);
+        document.querySelectorAll(".cell td").forEach(r => r.style.transition = `background-color ${duration}ms`);
     });
 
     window.addEventListener("resize", resize);

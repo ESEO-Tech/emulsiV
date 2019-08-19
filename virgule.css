@@ -1,62 +1,70 @@
 
 body {
     font-family: "Droid Sans", sans-serif;
+    overflow: hidden;
 }
 
 .tbl-wrapper {
-    height: 16em;
     overflow-y: scroll;
 }
 
-.datapath {
+.main {
+    width: 100vw;
+    height: 100vh;
     display: grid;
+    grid-template-rows: auto 1fr auto;
     grid-template-columns: repeat(5, 1fr);
 }
 
-.datapath .col {
+.toolbar {
+    grid-row: 1;
+    grid-column: 1 / span 5;
+}
+
+.cell {
     padding: 0 1em;
 }
 
-.datapath h1 {
+.cell h1 {
     font-size: 100%;
     text-align: center;
     margin-top: 2em;
 }
 
-.datapath h1:first-child {
+.cell h1:first-child {
     margin-top: 0.5em;
 }
 
-.datapath table:first-child {
+.cell table:first-child {
     margin-top: 0;
 }
 
-.datapath table {
+.cell table {
     border-collapse: collapse;
     margin: 0.5em auto;
 }
 
-.datapath th,
-.datapath td {
+.cell th,
+.cell td {
     padding: 0.2em 0.5em;
     vertical-align: middle;
 }
 
-.datapath th {
+.cell th {
     text-align: right;
     font-weight: normal;
 }
 
-.datapath .heading th {
+.cell .heading th {
     text-align: center;
 }
 
-.datapath td {
+.cell td {
     transition: background-color 0.25s; /* TODO configurable */
     text-align: center;
 }
 
-.datapath th {
+.cell th {
     border: none;
 }
 
@@ -77,15 +85,15 @@ body {
     box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
 }
 
-.datapath .written {
+.cell .written {
     background-color: hsl(20, 100%, 70%);
 }
 
-.datapath .selected {
+.cell .selected {
     background-color: hsl(180, 100%, 90%);
 }
 
-.datapath .moving-value {
+.moving-value {
     font-family: "Droid Sans Mono", monospace;
     display: none;
     position: absolute;
@@ -109,11 +117,11 @@ body {
     visibility: collapse;
 }
 
-.datapath input {
+.cell input {
     width: 100%;
 }
 
-.datapath pre {
+.cell pre {
     font-family: "Droid Sans Mono", monospace;
     background: black;
     color: lightgreen;

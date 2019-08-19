@@ -5,27 +5,27 @@
 
 <title>Virgule</title>
 
-<div>
-    <input id="hex-input"    type="file">
+<div class="main">
+    <div class="toolbar">
+        <input id="hex-input"    type="file">
 
-    <label for="animate-cb">Animation</label>
-    <input id="animate-cb" type="checkbox" checked>
-    <label for="speed">Speed</label>
-    <input id="speed"     type="number" step="1" value="5">
-    <input id="reset-btn" type="button" value="Reset">
-    <input id="run-btn"   type="button" value="Run">
-    <input id="step-btn"  type="button" value="Step">
+        <label for="animate-cb">Animation</label>
+        <input id="animate-cb" type="checkbox" checked>
+        <label for="speed">Speed</label>
+        <input id="speed"     type="number" step="1" value="5">
+        <input id="reset-btn" type="button" value="Reset">
+        <input id="run-btn"   type="button" value="Run">
+        <input id="step-btn"  type="button" value="Step">
 
-    <input id="fetch-btn"  class="state-btn" type="button" value="Fetch">
-    <input id="decode-btn" class="state-btn" type="button" value="Decode">
-    <input id="alu-btn"    class="state-btn" type="button" value="ALU">
-    <input id="branch-btn" class="state-btn" type="button" value="Compare">
-    <input id="write-btn"  class="state-btn" type="button" value="Mem/Reg">
-    <input id="pc-btn"     class="state-btn" type="button" value="PC">
-</div>
+        <input id="fetch-btn"  class="state-btn" type="button" value="Fetch">
+        <input id="decode-btn" class="state-btn" type="button" value="Decode">
+        <input id="alu-btn"    class="state-btn" type="button" value="ALU">
+        <input id="branch-btn" class="state-btn" type="button" value="Compare">
+        <input id="write-btn"  class="state-btn" type="button" value="Mem/Reg">
+        <input id="pc-btn"     class="state-btn" type="button" value="PC">
+    </div>
 
-<div class="datapath">
-    <div id="col-memory" class="col">
+    <div id="cell-memory" class="cell">
         <h1>Memory</h1>
         <div class="tbl-wrapper">
             <table>
@@ -41,26 +41,8 @@
                 </tr>
             </table>
         </div>
-
-        <h1>Text I/O</h1>
-        <table>
-            <tr class="reg">
-                <th>B0000000</th>
-                <td id="memb0000000"></td>
-                <td id="memb0000001"></td>
-            </tr>
-        </table>
-
-        <input id="text-input">
-
-        <table>
-            <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
-        </table>
-
-        <pre id="text-output">
-        </pre>
     </div>
-    <div id="col-bus" class="col">
+    <div id="cell-bus" class="cell">
         <h1>Bus</h1>
         <table>
             <tr class="bus"> <th>addr</th> <td id="addr" colspan="4"></td> </tr>
@@ -73,12 +55,8 @@
             <tr class="bus"> <th>data</th> <td id="data" colspan="4"></td> </tr>
             <tr class="bus"> <th>irq</th> <td id="irq" colspan="4"></td> </tr>
         </table>
-        
-        <h1>Bitmap output (00000C00&ndash;00000FFF)</h1>
-
-        <canvas id="bitmap-output" width="160" height="160"></canvas>
     </div>
-    <div id="col-pc" class="col">
+    <div id="cell-pc" class="cell">
         <h1>Program counter</h1>
         <table>
             <tr class="reg"> <th>pc</th>   <td id="pc"></td>   </tr>
@@ -98,7 +76,7 @@
             <tr class="bus"> <th>imm</th>   <td id="imm"></td>   </tr>
         </table>
     </div>
-    <div id="col-x" class="col">
+    <div id="cell-x" class="cell">
         <h1>General-purpose regs</h1>
         <table>
             <tr class="reg"> <th>x0</th>  <td id="x0"></td>  </tr>
@@ -119,7 +97,7 @@
             <tr class="reg"> <th>x15</td> <td id="x15"></td> </tr>
         </table>
     </div>
-    <div id="col-alu" class="col">
+    <div id="cell-alu" class="cell">
         <h1>ALU</h1>
         <table>
             <tr class="bus"> <th>op</th> <td id="alu-op"></td> </tr>
@@ -138,10 +116,35 @@
             <tr class="bus"> <th>taken</th> <td id="cmp-taken"></td> </tr>
         </table>
     </div>
-    <div class="moving-value">X</div>
-    <div class="moving-value">X</div>
-    <div class="moving-value">X</div>
-    <div class="moving-value">X</div>
+    <div class="cell">
+        <h1>Text I/O</h1>
+        <table>
+            <tr class="reg">
+                <th>B0000000</th>
+                <td id="memb0000000"></td>
+                <td id="memb0000001"></td>
+            </tr>
+        </table>
+
+        <input id="text-input">
+
+        <table>
+            <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
+        </table>
+
+        <pre id="text-output">
+        </pre>
+    </div>
+    <div class="cell">
+        <h1>Bitmap output (00000C00&ndash;00000FFF)</h1>
+
+        <canvas id="bitmap-output" width="160" height="160"></canvas>
+    </div>
 </div>
+
+<div class="moving-value">X</div>
+<div class="moving-value">X</div>
+<div class="moving-value">X</div>
+<div class="moving-value">X</div>
 
 <script src="js/index.js" type="module"></script>
