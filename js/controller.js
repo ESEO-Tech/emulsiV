@@ -268,7 +268,7 @@ export class Controller {
         const fmt   = this.traceData.instr.actions[3].slice(1);
         switch (this.traceData.instr.actions[3]) {
             case "r":   if (this.traceData.instr.rd) await view.move("alu-r", "x" + this.traceData.instr.rd, rx); break;
-            case "pc+": if (this.traceData.instr.rd) await view.move("pc-i", "x" + this.traceData.instr.rd, i32.toHex(this.traceData.incPc)); break;
+            case "pc+": if (this.traceData.instr.rd) await view.move("pc-i",  "x" + this.traceData.instr.rd, i32.toHex(this.traceData.incPc)); break;
 
             case "lb":
             case "lbu":

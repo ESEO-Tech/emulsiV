@@ -2,6 +2,7 @@
 body {
     font-family: "Droid Sans", sans-serif;
     overflow: hidden;
+    margin: 0;
 }
 
 .tbl-wrapper {
@@ -17,6 +18,7 @@ body {
 }
 
 .toolbar {
+    padding: 0.2em 1em;
     grid-row: 1;
     grid-column: 1 / span 5;
 }
@@ -109,7 +111,8 @@ body {
     background-color: white;
 }
 
-.reg .asm.active {
+.reg .asm.active,
+.reg th.active {
     background-color: hsl(288, 100%, 90%);
 }
 
@@ -157,4 +160,25 @@ canvas {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+svg {
+    z-index: -1;
+    top: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+}
+
+path {
+    stroke: rgb(200, 200, 200);
+    stroke-width: 4px;
+    fill: none;
+    marker-end: url(#arrow-marker);
+}
+
+marker path {
+    fill: rgb(200, 200, 200);
+    stroke: none;
 }

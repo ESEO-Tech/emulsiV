@@ -27,7 +27,7 @@
 
     <div id="cell-memory" class="cell">
         <h1>Memory</h1>
-        <div class="tbl-wrapper">
+        <div id="mem" class="tbl-wrapper">
             <table>
                 <tr class="heading">
                     <th></th>
@@ -76,27 +76,6 @@
             <tr class="bus"> <th>imm</th>   <td id="imm"></td>   </tr>
         </table>
     </div>
-    <div id="cell-x" class="cell">
-        <h1>General-purpose regs</h1>
-        <table>
-            <tr class="reg"> <th>x0</th>  <td id="x0"></td>  </tr>
-            <tr class="reg"> <th>x1</th>  <td id="x1"></td>  </tr>
-            <tr class="reg"> <th>x2</th>  <td id="x2"></td>  </tr>
-            <tr class="reg"> <th>x3</th>  <td id="x3"></td>  </tr>
-            <tr class="reg"> <th>x4</th>  <td id="x4"></td>  </tr>
-            <tr class="reg"> <th>x5</th>  <td id="x5"></td>  </tr>
-            <tr class="reg"> <th>x6</th>  <td id="x6"></td>  </tr>
-            <tr class="reg"> <th>x7</th>  <td id="x7"></td>  </tr>
-            <tr class="reg"> <th>x8</th>  <td id="x8"></td>  </tr>
-            <tr class="reg"> <th>x9</th>  <td id="x9"></td>  </tr>
-            <tr class="reg"> <th>x10</td> <td id="x10"></td> </tr>
-            <tr class="reg"> <th>x11</td> <td id="x11"></td> </tr>
-            <tr class="reg"> <th>x12</td> <td id="x12"></td> </tr>
-            <tr class="reg"> <th>x13</td> <td id="x13"></td> </tr>
-            <tr class="reg"> <th>x14</td> <td id="x14"></td> </tr>
-            <tr class="reg"> <th>x15</td> <td id="x15"></td> </tr>
-        </table>
-    </div>
     <div id="cell-alu" class="cell">
         <h1>ALU</h1>
         <table>
@@ -114,6 +93,29 @@
             <tr class="bus"> <th>a</th>     <td id="cmp-a"></td>     </tr>
             <tr class="bus"> <th>b</th>     <td id="cmp-b"></td>     </tr>
             <tr class="bus"> <th>taken</th> <td id="cmp-taken"></td> </tr>
+        </table>
+    </div>
+    <div id="cell-x" class="cell">
+        <h1>General-purpose regs</h1>
+        <table id="x">
+            <tr class="reg"> <th>x0</th>  <td id="x0"></td>  </tr>
+            <tr class="reg"> <th>x1</th>  <td id="x1"></td>  </tr>
+            <tr class="reg"> <th>x2</th>  <td id="x2"></td>  </tr>
+            <tr class="reg"> <th>x3</th>  <td id="x3"></td>  </tr>
+            <tr class="reg"> <th>x4</th>  <td id="x4"></td>  </tr>
+            <tr id="xrs" class="reg overlay"></tr>
+            <tr class="reg"> <th>x5</th>  <td id="x5"></td>  </tr>
+            <tr class="reg"> <th>x6</th>  <td id="x6"></td>  </tr>
+            <tr class="reg"> <th>x7</th>  <td id="x7"></td>  </tr>
+            <tr class="reg"> <th>x8</th>  <td id="x8"></td>  </tr>
+            <tr id="xrd" class="reg overlay"></tr>
+            <tr class="reg"> <th>x9</th>  <td id="x9"></td>  </tr>
+            <tr class="reg"> <th>x10</td> <td id="x10"></td> </tr>
+            <tr class="reg"> <th>x11</td> <td id="x11"></td> </tr>
+            <tr class="reg"> <th>x12</td> <td id="x12"></td> </tr>
+            <tr class="reg"> <th>x13</td> <td id="x13"></td> </tr>
+            <tr class="reg"> <th>x14</td> <td id="x14"></td> </tr>
+            <tr class="reg"> <th>x15</td> <td id="x15"></td> </tr>
         </table>
     </div>
     <div class="cell">
@@ -146,5 +148,12 @@
 <div class="moving-value">X</div>
 <div class="moving-value">X</div>
 <div class="moving-value">X</div>
+
+<svg xmlns="http://www.w3.org/2000/svg">
+    <marker id="arrow-marker" markerWidth="4" markerHeight="4" refX="2" refY="2"
+           orient="auto">
+        <path d="M0,0 L1,2 L0,4 L4,2z" />
+    </marker>
+</svg>
 
 <script src="js/index.js" type="module"></script>

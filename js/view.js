@@ -43,6 +43,80 @@ function resize() {
     // Center the contents of the "bus" cell vertically.
     delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
     document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
+
+    resizePath("pc",    "addr",  0, 0);
+    resizePath("pc",    "alu-a", -0.5, 0);
+
+    resizePath("xrs",  "alu-a", 0, 0);
+    resizePath("xrs",  "cmp-a", 0, 0);
+
+    resizePath("xrs",  "alu-b", 0, 0);
+    resizePath("xrs",  "cmp-b", 0, 0);
+    resizePath("xrs",  "data",  0, -0.5, 5, 8);
+
+    resizePath("alu-r", "xrd", 0, 0);
+    resizePath("pc-i",  "xrd", 0, 0, 4, 5);
+
+    resizePath("data",  "xrd",   0.5, 0, 5, 8);
+    resizePath("data",  "instr", 0.5, 0);
+
+    resizePath("data",  "mem",  0, 0);
+    resizePath("mem",   "data",  0, 0);
+    resizePath("imm",   "alu-b",  0, 0);
+    resizePath("alu-r", "addr",  0, 0);
+    resizePath("alu-r", "mepc",  0, 0);
+    resizePath("alu-r", "pc",  0, 0.5);
+}
+
+function resizePath(fromId, toId, fromOffset, toOffset, m=1, n=2) {
+    const pathOffset = 9;
+
+    let fromElt = document.getElementById(fromId);
+    if (fromElt.tagName === "TD") {
+        fromElt = fromElt.parentNode;
+    }
+    const fromRect = fromElt.getBoundingClientRect();
+
+    let toElt = document.getElementById(toId);
+    if (toElt.tagName === "TD") {
+        toElt = toElt.parentNode;
+    }
+    const toRect   = toElt.getBoundingClientRect();
+
+    let x1, x2;
+    if (fromRect.right < toRect.left) {
+        x1 = fromRect.right + pathOffset;
+        x2 = toRect.left - pathOffset;
+    }
+    else {
+        x1 = fromRect.left - pathOffset;
+        x2 = toRect.right + pathOffset;
+    }
+
+    let y1 = (fromRect.top + fromRect.bottom) / 2 + fromOffset * 10;
+    let y2 = (toRect.top + toRect.bottom) / 2 + toOffset * 10;
+    // if (y1 >= toRect.top && y1 <= toRect.bottom) {
+    //     y2 = y1;
+    // }
+    // else if (y2 >= fromRect.top && y2 <= fromRect.bottom) {
+    //     y1 = y2;
+    // }
+    const k = 2;
+    const xm = x1 * m / n + x2 * (n - m) / n;
+    const ym = (y1 + y2) / 2;
+    const d = Math.min(Math.abs(xm - x1), Math.abs(xm - x2)) / k;
+    const xa = x1 < x2 ? xm - d : xm + d;
+    const xb = x2 < x1 ? xm - d : xm + d;
+
+    const pathId = `${fromId}-${toId}-path`;
+    let pathElt  = document.getElementById(pathId);
+    if (!pathElt) {
+        pathElt = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        pathElt.setAttribute("id", pathId);
+        document.querySelector("svg").appendChild(pathElt);
+    }
+    // pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} L${xm} ${ym} L${xb} ${y2} L${x2} ${y2}`);
+    pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} Q${(xa+xm)/2} ${y1}, ${xm} ${ym} Q${(xb+xm)/2} ${y2}, ${xb} ${y2} L${x2} ${y2}`);
 }
 
 export function init(memSize) {
