@@ -44,31 +44,33 @@ function resize() {
     delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
     document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
 
-    resizePath("pc",    "addr",  0, 0);
-    resizePath("pc",    "alu-a", -0.5, 0);
+    resizePath("pc",    "addr");
+    resizePath("pc",    "alu-a", {fromYOffset: -0.5});
 
-    resizePath("xrs",  "alu-a", 0, 0);
-    resizePath("xrs",  "cmp-a", 0, 0);
+    resizePath("xrs",  "alu-a");
+    resizePath("xrs",  "cmp-a");
 
-    resizePath("xrs",  "alu-b", 0, 0);
-    resizePath("xrs",  "cmp-b", 0, 0);
-    resizePath("xrs",  "data",  0, -0.5, 5, 8);
+    resizePath("xrs",  "alu-b");
+    resizePath("xrs",  "cmp-b");
+    resizePath("xrs",  "data",   {toYOffset: -0.5, fromWeight: 5, toWeight: 3});
 
-    resizePath("alu-r", "xrd", 0, 0);
-    resizePath("pc-i",  "xrd", 0, 0, 4, 5);
+    resizePath("alu-r", "xrd");
+    resizePath("pc-i",  "xrd", {fromWeight: 4, toWeight: 1, slope:6});
 
-    resizePath("data",  "xrd",   0.5, 0, 5, 8);
-    resizePath("data",  "instr", 0.5, 0);
+    resizePath("data",  "xrd",   {fromYOffset: 0.5, fromWeight: 5, toWeight: 3});
+    resizePath("data",  "instr", {fromYOffset: 0.5});
 
-    resizePath("data",  "mem",  0, 0);
-    resizePath("mem",   "data",  0, 0);
-    resizePath("imm",   "alu-b",  0, 0);
-    resizePath("alu-r", "addr",  0, 0);
-    resizePath("alu-r", "mepc",  0, 0);
-    resizePath("alu-r", "pc",  0, 0.5);
+    resizePath("data",  "mem", {horizontalFrom: true});
+    resizePath("mem",   "data", {horizontalTo: true});
+    resizePath("imm",   "alu-b");
+    resizePath("alu-r", "addr");
+    resizePath("alu-r", "mepc");
+    resizePath("alu-r", "pc", {toYOffset: 0.5});
+
+    resizePath("memb0000001", "irq", {toWeight: 2});
 }
 
-function resizePath(fromId, toId, fromOffset, toOffset, m=1, n=2) {
+function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, horizontalFrom=false, horizontalTo=false, slope=4} = {}) {
     const pathOffset = 9;
 
     let fromElt = document.getElementById(fromId);
@@ -93,20 +95,19 @@ function resizePath(fromId, toId, fromOffset, toOffset, m=1, n=2) {
         x2 = toRect.right + pathOffset;
     }
 
-    let y1 = (fromRect.top + fromRect.bottom) / 2 + fromOffset * 10;
-    let y2 = (toRect.top + toRect.bottom) / 2 + toOffset * 10;
-    // if (y1 >= toRect.top && y1 <= toRect.bottom) {
-    //     y2 = y1;
-    // }
-    // else if (y2 >= fromRect.top && y2 <= fromRect.bottom) {
-    //     y1 = y2;
-    // }
-    const k = 2;
-    const xm = x1 * m / n + x2 * (n - m) / n;
+    let y1 = (fromRect.top + fromRect.bottom) / 2 + fromYOffset * 10;
+    let y2 = (toRect.top + toRect.bottom) / 2 + toYOffset * 10;
+    if (horizontalFrom) {
+        y2 = y1;
+    }
+    else if (horizontalTo) {
+        y1 = y2;
+    }
+    const xm = (x1 * fromWeight + x2 * toWeight) / (fromWeight + toWeight);
     const ym = (y1 + y2) / 2;
-    const d = Math.min(Math.abs(xm - x1), Math.abs(xm - x2)) / k;
-    const xa = x1 < x2 ? xm - d : xm + d;
-    const xb = x2 < x1 ? xm - d : xm + d;
+    const d = (x2 - x1) / slope;
+    const xa = xm - d;
+    const xb = xm + d;
 
     const pathId = `${fromId}-${toId}-path`;
     let pathElt  = document.getElementById(pathId);
@@ -117,6 +118,17 @@ function resizePath(fromId, toId, fromOffset, toOffset, m=1, n=2) {
     }
     // pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} L${xm} ${ym} L${xb} ${y2} L${x2} ${y2}`);
     pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} Q${(xa+xm)/2} ${y1}, ${xm} ${ym} Q${(xb+xm)/2} ${y2}, ${xb} ${y2} L${x2} ${y2}`);
+}
+
+export function clearPaths() {
+    document.querySelectorAll("path").forEach(e => e.classList.remove("active"));
+}
+
+export function highlightPath(fromId, toId) {
+    clearPaths();
+    const pathElt  = document.getElementById(`${fromId}-${toId}-path`);
+    pathElt.classList.add("active");
+    pathElt.parentNode.appendChild(pathElt);
 }
 
 export function init(memSize) {

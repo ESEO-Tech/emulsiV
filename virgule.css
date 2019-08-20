@@ -178,7 +178,17 @@ path {
     marker-end: url(#arrow-marker);
 }
 
+path.active {
+    stroke: hsl(180, 100%, 40%);
+    marker-end: url(#arrow-marker-active);
+}
+
 marker path {
     fill: rgb(200, 200, 200);
     stroke: none;
+    marker-end: none;
+}
+
+marker.active path {
+    fill: hsl(180, 100%, 40%);
 }
