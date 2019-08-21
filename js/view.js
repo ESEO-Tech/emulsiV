@@ -11,7 +11,7 @@ const WRITE_DELAY_MAX      = 5000;    // ms
 const ANIMATION_DELAY_MIN  = 1000/60; // ms
 const MARGIN               = 10;      // px
 
-function resize() {
+export function resize() {
     function resizeElt(elt, delta) {
         elt.style.height = (elt.clientHeight + delta) + "px";
     }
@@ -44,33 +44,36 @@ function resize() {
     delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
     document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
 
-    resizePath("pc",    "addr");
-    resizePath("pc",    "alu-a", {fromYOffset: -0.5});
+    // Bus: xrs
+    const xmXrs = resizePath("xrs", "alu-a", {fromWeight: 2});
+    resizePath("xrs",  "alu-b", {xm: xmXrs});
+    resizePath("xrs",  "cmp-a", {xm: xmXrs});
+    resizePath("xrs",  "cmp-b", {xm: xmXrs});
+    resizePath("xrs",  "data",  {xm: xmXrs, toYOffset: -0.6});
 
-    resizePath("xrs",  "alu-a");
-    resizePath("xrs",  "cmp-a");
+    // Bus: alu-r
+    const xmAluR = resizePath("alu-r", "pc", {toYOffset: 0.5, style: "style1"});
+    resizePath("alu-r", "mepc", {xm: xmAluR, style: "style1"});
+    resizePath("alu-r", "addr", {xm: xmAluR, toYOffset: 0.5, style: "style1"});
 
-    resizePath("xrs",  "alu-b");
-    resizePath("xrs",  "cmp-b");
-    resizePath("xrs",  "data",   {toYOffset: -0.5, fromWeight: 5, toWeight: 3});
+    const xmXrd = 2 * xmAluR - resizePath("pc", "alu-a", {fromYOffset: -0.5, toWeight: 2, style: "style3"});
 
-    resizePath("alu-r", "xrd");
-    resizePath("pc-i",  "xrd", {fromWeight: 4, toWeight: 1, slope:6});
+    // Bus: xrd
+    resizePath("alu-r", "xrd", {fromWeight: 2, style: "style2"});
+    resizePath("pc-i",  "xrd", {xm: xmXrd, style: "style2"});
+    resizePath("data",  "xrd", {xm: xmXrd, style: "style2"});
 
-    resizePath("data",  "xrd",   {fromYOffset: 0.5, fromWeight: 5, toWeight: 3});
-    resizePath("data",  "instr", {fromYOffset: 0.5});
+    resizePath("pc", "addr", {toYOffset: -0.5, style: "style3"});
+    resizePath("data",  "instr", {fromYOffset: 0.6, style: "style3"});
+    resizePath("imm",   "alu-b", {toWeight: 2, style: "style3"});
 
     resizePath("data",  "mem", {horizontalFrom: true});
     resizePath("mem",   "data", {horizontalTo: true});
-    resizePath("imm",   "alu-b");
-    resizePath("alu-r", "addr");
-    resizePath("alu-r", "mepc");
-    resizePath("alu-r", "pc", {toYOffset: 0.5});
 
     resizePath("memb0000001", "irq", {toWeight: 2});
 }
 
-function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, horizontalFrom=false, horizontalTo=false, slope=4} = {}) {
+function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, xm, horizontalFrom=false, horizontalTo=false, style} = {}) {
     const pathOffset = 9;
 
     let fromElt = document.getElementById(fromId);
@@ -103,11 +106,10 @@ function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toW
     else if (horizontalTo) {
         y1 = y2;
     }
-    const xm = (x1 * fromWeight + x2 * toWeight) / (fromWeight + toWeight);
-    const ym = (y1 + y2) / 2;
-    const d = (x2 - x1) / slope;
-    const xa = xm - d;
-    const xb = xm + d;
+
+    if (xm === undefined) {
+        xm = (x1 * fromWeight + x2 * toWeight) / (fromWeight + toWeight);
+    }
 
     const pathId = `${fromId}-${toId}-path`;
     let pathElt  = document.getElementById(pathId);
@@ -116,8 +118,12 @@ function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toW
         pathElt.setAttribute("id", pathId);
         document.querySelector("svg").appendChild(pathElt);
     }
-    // pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} L${xm} ${ym} L${xb} ${y2} L${x2} ${y2}`);
-    pathElt.setAttribute("d", `M${x1} ${y1} L${xa} ${y1} Q${(xa+xm)/2} ${y1}, ${xm} ${ym} Q${(xb+xm)/2} ${y2}, ${xb} ${y2} L${x2} ${y2}`);
+    pathElt.setAttribute("d", `M${x1} ${y1} L${xm} ${y1} L${xm} ${y2} L${x2} ${y2}`);
+
+    if (style) {
+        pathElt.classList.add(style);
+    }
+    return xm;
 }
 
 export function clearPaths() {

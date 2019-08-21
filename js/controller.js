@@ -92,6 +92,7 @@ export class Controller {
 
         // Reset devices and update device outputs.
         view.updateDevices(true);
+        view.resize();
     }
 
     stop() {
@@ -427,7 +428,7 @@ export class Controller {
         }
 
         view.clearPaths();
-        
+
         view.highlightAsm(this.cpu.pc);
 
         // Program counter increment.
