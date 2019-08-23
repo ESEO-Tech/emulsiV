@@ -18,9 +18,11 @@ export class Controller {
         this.reset();
     }
 
-    reset() {
+    reset(resetBus=true) {
         this.cpu.reset();
-        this.bus.reset();
+        if (resetBus) {
+            this.bus.reset();
+        }
         this.traceData = null;
         this.forceUpdate();
         this.setNextState("fetch");
@@ -78,9 +80,6 @@ export class Controller {
             }
         }
 
-        // Reset processor.
-        this.reset();
-
         // Clear memory
         for (let a = 0; a < this.mem.size; a += 4) {
             this.bus.write(a, 4, 0);
@@ -89,8 +88,8 @@ export class Controller {
         // Copy hex file to memory
         hex.parse(data, this.bus);
 
-        // Update device views.
-        this.forceUpdate(true);
+        // Reset processor and device views.
+        this.reset(false);
 
         // The assembly view may have changed size.
         view.resize();
