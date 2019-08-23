@@ -91,6 +91,14 @@ export class Controller {
         // Reset processor and device views.
         this.reset(false);
 
+        // Disable all breakpoints.
+        for (let [key, enabled] of Object.entries(this.breakpoints)) {
+            if (enabled) {
+                view.disableBreakpoint("brk" + key);
+            }
+        }
+        this.breakpoints = {};
+
         // The assembly view may have changed size.
         view.resize();
     }
@@ -104,11 +112,11 @@ export class Controller {
         const key = i32.toHex(addr);
         if (this.breakpoints[key]) {
             this.breakpoints[key] = false;
-            view.disableBreakpoint("asm" + key);
+            view.disableBreakpoint("brk" + key);
         }
         else {
             this.breakpoints[key] = true;
-            view.enableBreakpoint("asm" + key);
+            view.enableBreakpoint("brk" + key);
         }
     }
 

@@ -149,8 +149,10 @@ export function init(memSize) {
         const rowAddress = i * MEMORY_BYTES_PER_ROW;
         currentRow.querySelector("th").innerHTML = i32.toHex(rowAddress);
         currentRow.querySelectorAll("td").forEach((td, j) => {
-            const prefix = j == 0 ? "asm" : "mem";
-            const addr = j == 0 ? rowAddress : rowAddress + j - 1;
+            const prefix = j == 0 ? "brk" :
+                           j == 1 ? "asm" :
+                                    "mem";
+            const addr = j < 2 ? rowAddress : rowAddress + j - 2;
             td.setAttribute("id", prefix + i32.toHex(addr));
         });
     }
@@ -347,9 +349,9 @@ function updateAsmOutput(id, dev) {
 }
 
 export function enableBreakpoint(id) {
-    document.getElementById(id).classList.add("break");
+    document.getElementById(id).classList.add("enabled");
 }
 
 export function disableBreakpoint(id) {
-    document.getElementById(id).classList.remove("break");
+    document.getElementById(id).classList.remove("enabled");
 }

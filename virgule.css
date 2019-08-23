@@ -111,6 +111,21 @@ body {
     background-color: white;
 }
 
+.reg .brk {
+    background-color: white;
+    border: none;
+    color: rgb(220, 220, 220);
+    cursor: pointer;
+}
+
+.reg .brk:hover {
+    color: rgb(200, 200, 200);
+}
+
+.reg .brk.enabled {
+    color: rgb(255, 50, 50);
+}
+
 .reg .asm.active,
 .reg th.active {
     background-color: hsl(288, 100%, 90%);
@@ -118,6 +133,7 @@ body {
 
 .reg .asm abbr {
     font-style: italic;
+    cursor: help;
 }
 
 .overlay {
@@ -138,10 +154,6 @@ body {
 .asm {
     font-family: "Droid Sans Mono", monospace;
     white-space: nowrap;
-}
-
-.asm.break {
-    border-left: 3px solid red;
 }
 
 .state-btn {

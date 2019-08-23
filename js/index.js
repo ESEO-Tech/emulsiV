@@ -74,7 +74,7 @@ window.addEventListener("load", evt => {
         }
     });
 
-    document.querySelectorAll(".asm").forEach(elt => {
+    document.querySelectorAll(".brk").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16)
         elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
     });
