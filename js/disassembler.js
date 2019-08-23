@@ -39,14 +39,61 @@ const ASM_TABLE = {
     sra   : "d12",
     or    : "d12",
     and   : "d12",
-    mret  : ""
+    mret  : "",
+    // Pseudo-instructions
+    nop   : "",
+    li    : "di",
+    mv    : "d1",
+    not   : "d1",
+    neg   : "d2",
+    seqz  : "d1",
+    snez  : "d2",
+    sltz  : "d1",
+    sgtz  : "d2",
+    beqz  : "1i",
+    bnez  : "1i",
+    blez  : "2i",
+    bgez  : "1i",
+    bltz  : "1i",
+    bgtz  : "2i",
+    j     : "i",
+    _jal  : "i",
+    jr    : "1",
+    _jalr : "1",
+    ret   : "",
 };
+
+const PSEUDO_TABLE = {
+    nop:   {name: "addi",  rd:  0, rs1: 0, imm: 0},
+    li:    {name: "addi",  rs1: 0},
+    mv:    {name: "addi",  imm: 0},
+    not:   {name: "xori",  imm: -1},
+    neg:   {name: "sub",   rs1: 0},
+    seqz:  {name: "sltiu", imm: 1},
+    snez:  {name: "sltu",  rs1: 0},
+    sgtz:  {name: "slt",   rs1: 0},
+    sltz:  {name: "slt",   rs2: 0},
+    beqz:  {name: "beq",   rs2: 0},
+    bnez:  {name: "bne",   rs2: 0},
+    blez:  {name: "bge",   rs1: 0},
+    bgez:  {name: "bge",   rs2: 0},
+    bltz:  {name: "blt",   rs2: 0},
+    bgtz:  {name: "blt",   rs1: 0},
+    j:     {name: "jal",   rd:  0},
+    _jal:  {name: "jal",   rd:  1},
+    ret:   {name: "jalr",  rd:  0, rs1: 1, imm: 0},
+    jr:    {name: "jalr",  rd:  0, imm: 0},
+    _jalr: {name: "jalr",  rd:  1, imm: 0},
+}
 
 export function toAssembly({name, rd, rs1, rs2, imm}) {
     if (!(name in ASM_TABLE)) {
         return "-";
     }
+
     const reg = (n) => "x" + n;
+
+    // TODO In branch instructions, convert PC-relative offsets to addresses.
     const ival = Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
 
     const operands = ASM_TABLE[name].split("").map(c => {
@@ -57,9 +104,24 @@ export function toAssembly({name, rd, rs1, rs2, imm}) {
             case "i": return ival;
             case "a": return `${imm}(${reg(rs1)})`;
         }
-    })
+    });
+    // An '_' indicates a pseudo-instruction that has the same name as
+    // a regular instruction.
+    if (name[0] === '_') {
+        name = name.slice(1);
+    }
     if (operands.length) {
         return name + " " + operands.join(", ");
     }
     return name;
+}
+
+export function toPseudoAssembly(instr) {
+    for (let [pname, pinstr] of Object.entries(PSEUDO_TABLE)) {
+        if (Object.entries(pinstr).every(([key, value]) => instr[key] === value)) {
+            instr.name = pname;
+            return toAssembly(instr);
+        }
+    }
+    return null;
 }

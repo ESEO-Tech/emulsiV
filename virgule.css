@@ -116,6 +116,10 @@ body {
     background-color: hsl(288, 100%, 90%);
 }
 
+.reg .asm abbr {
+    font-style: italic;
+}
+
 .overlay {
     visibility: collapse;
 }
