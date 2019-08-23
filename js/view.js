@@ -149,10 +149,10 @@ export function init(memSize) {
         const rowAddress = i * MEMORY_BYTES_PER_ROW;
         currentRow.querySelector("th").innerHTML = i32.toHex(rowAddress);
         currentRow.querySelectorAll("td").forEach((td, j) => {
-            const prefix = j == 0 ? "brk" :
-                           j == 1 ? "asm" :
+            const prefix = j == 5 ? "brk" :
+                           j == 4 ? "asm" :
                                     "mem";
-            const addr = j < 2 ? rowAddress : rowAddress + j - 2;
+            const addr = j >= 4 ? rowAddress : rowAddress + j;
             td.setAttribute("id", prefix + i32.toHex(addr));
         });
     }
@@ -164,17 +164,13 @@ export function init(memSize) {
 
     window.addEventListener("resize", resize);
 
-    const canvas = document.getElementById("bitmap-output");
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    clearBitmapOutput("bitmap-output");
 
     resize();
 }
 
 export function reset() {
     document.querySelectorAll(".registers td").forEach(r => r.className = "");
-    document.getElementById("text-output").innerHTML = "";
     document.querySelectorAll(".state-btn").forEach(elt => {
         elt.disabled = true;
         elt.classList.remove("active");
@@ -346,6 +342,27 @@ function updateAsmOutput(id, dev) {
             simpleUpdate(id + addr, asm);
         }
     }
+}
+
+export function clearDevices() {
+    for (let {id, dev} of deviceViews) {
+        if (dev instanceof TextOutput) {
+            clearTextOutput(id);
+        }
+    }
+}
+
+function clearTextOutput(id) {
+    document.getElementById(id).innerHTML = "";
+}
+
+function clearAsmOutput(id) {}
+
+function clearBitmapOutput(id, dev) {
+    const canvas = document.getElementById(id);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 export function enableBreakpoint(id) {

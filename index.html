@@ -30,16 +30,16 @@
         <div id="mem" class="tbl-wrapper">
             <table>
                 <tr class="heading">
-                    <th></th>
-                    <th></th>
-                    <th>Asm</th>
+                    <th>Address</th>
                     <th>0</th> <th>1</th> <th>2</th> <th>3</th>
+                    <th>Instructions</th>
+                    <th></th>
                 </tr>
                 <tr class="reg">
                     <th>00000000</th>
-                    <td class="brk" title="Click to set/remove a breakpoint">&#x25cf;</td>
-                    <td class="asm">&mdash;</td>
                     <td>00</td> <td>00</td> <td>00</td> <td>00</td>
+                    <td class="asm">&mdash;</td>
+                    <td class="brk" title="Click to set/remove a breakpoint">&#x25cf;</td>
                 </tr>
             </table>
         </div>
@@ -136,8 +136,7 @@
             <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
         </table>
 
-        <pre id="text-output">
-        </pre>
+        <pre id="text-output"></pre>
     </div>
     <div class="cell">
         <h1>Bitmap output (00000C00&ndash;00000FFF)</h1>

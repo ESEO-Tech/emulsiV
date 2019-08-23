@@ -116,6 +116,7 @@ body {
     border: none;
     color: rgb(220, 220, 220);
     cursor: pointer;
+    box-shadow: none;
 }
 
 .reg .brk:hover {

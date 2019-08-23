@@ -23,6 +23,7 @@ export class Controller {
         if (resetBus) {
             this.bus.reset();
         }
+        view.clearDevices();
         this.traceData = null;
         this.forceUpdate();
         this.setNextState("fetch");
@@ -133,7 +134,7 @@ export class Controller {
             await this.trace(single, false);
         } while (!this.stopRequest &&
                  !(single && this.state === "fetch") &&
-                 !this.breakpoints[i32.toHex(this.cpu.pc)]);
+                 !(this.breakpoints[i32.toHex(this.cpu.pc)] && this.state === "fetch"));
 
         if (!single && !view.animationsEnabled()) {
             this.forceUpdate();
