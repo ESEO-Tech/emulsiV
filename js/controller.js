@@ -80,7 +80,6 @@ export class Controller {
 
         // Reset processor.
         this.reset();
-        this.bus.reset();
 
         // Clear memory
         for (let a = 0; a < this.mem.size; a += 4) {
@@ -90,8 +89,10 @@ export class Controller {
         // Copy hex file to memory
         hex.parse(data, this.bus);
 
-        // Reset devices and update device outputs.
-        view.updateDevices(true);
+        // Update device views.
+        this.forceUpdate(true);
+
+        // The assembly view may have changed size.
         view.resize();
     }
 
