@@ -217,14 +217,14 @@ export class Controller {
         view.update("rs2",    this.traceData.instr.rs2);
         view.update("rd",     this.traceData.instr.rd);
         view.update("imm",    i32.toHex(this.traceData.instr.imm));
-        view.update("alu-op", this.traceData.instr.actions[2]);
-        view.update("cmp-op", this.traceData.instr.actions[4]);
-        if (this.traceData.instr.actions[4] === "-" || this.traceData.instr.actions[4] === "al") {
+        view.update("alu-op", this.traceData.instr.aluOp);
+        view.update("cmp-op", this.traceData.instr.branch);
+        if (!this.traceData.instr.branch || this.traceData.instr.branch === "al") {
             view.update("cmp-taken", this.traceData.taken);
         }
         await view.waitUpdate();
 
-        if (this.traceData.instr.actions[2] !== "-") {
+        if (this.traceData.instr.aluOp) {
             this.setNextState("alu");
         }
         else {
@@ -236,7 +236,7 @@ export class Controller {
         this.highlightCurrentState();
 
         // ALU operand A
-        switch (this.traceData.instr.actions[0]) {
+        switch (this.traceData.instr.src1) {
             case "pc":
                 view.highlightPath("pc", "alu-a");
                 await view.move("pc", "alu-a", i32.toHex(this.traceData.pc));
@@ -248,7 +248,7 @@ export class Controller {
         }
 
         // ALU operand B
-        switch (this.traceData.instr.actions[1]) {
+        switch (this.traceData.instr.src2) {
             case "imm":
                 view.highlightPath("imm", "alu-b");
                 await view.move("imm", "alu-b", i32.toHex(this.traceData.instr.imm));
@@ -265,10 +265,10 @@ export class Controller {
         view.update("alu-r", i32.toHex(this.traceData.r));
         await view.waitUpdate();
 
-        if (this.traceData.instr.actions[4] !== "-" && this.traceData.instr.actions[4] !== "al") {
+        if (this.traceData.instr.branch && this.traceData.instr.branch !== "al") {
             this.setNextState("branch");
         }
-        else if (this.traceData.instr.actions[3] !== "r" && this.traceData.instr.actions[3] !== "pc+" || this.traceData.instr.rd) {
+        else if (this.traceData.instr.wbMem !== "r" && this.traceData.instr.wbMem !== "pc+" || this.traceData.instr.rd) {
             this.setNextState("write");
         }
         else {
@@ -297,8 +297,8 @@ export class Controller {
         const x2x   = i32.toHex(this.traceData.x2);
         const rx    = i32.toHex(this.traceData.r);
         const lx    = i32.toHex(this.traceData.l);
-        const fmt   = this.traceData.instr.actions[3].slice(1);
-        switch (this.traceData.instr.actions[3]) {
+        const fmt   = this.traceData.instr.wbMem.slice(1);
+        switch (this.traceData.instr.wbMem) {
             case "r":
                 if (this.traceData.instr.rd) {
                     view.highlightPath("alu-r", "xrd");

@@ -35,107 +35,99 @@ const F3_SR   = 5;
 const F3_OR   = 6;
 const F3_AND  = 7;
 const F3_MRET = 0;
-const F3_ANY  = -1;
 
 // Funct7 opcodes
 const F7_L    = 0;
 const F7_A    = 32;
 const F7_MRET = 24;
-const F7_ANY  = -1;
 
 // Rs2/rs1/rd opcodes
 const RS2_MRET = 2;
-const RS2_ANY  = -1;
-
 const RS1_MRET = 0;
-const RS1_ANY  = -1;
-
 const RD_MRET  = 0;
-const RD_ANY   = -1;
 
 const DECODE_TABLE = {
-    lui   : [OP_LUI,    F3_ANY,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    auipc : [OP_AUIPC,  F3_ANY,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    jal   : [OP_JAL,    F3_ANY,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    jalr  : [OP_JALR,   F3_JALR, F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    beq   : [OP_BRANCH, F3_BEQ,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    bne   : [OP_BRANCH, F3_BNE,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    blt   : [OP_BRANCH, F3_BLT,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    bge   : [OP_BRANCH, F3_BGE,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    bltu  : [OP_BRANCH, F3_BLTU, F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    bgeu  : [OP_BRANCH, F3_BGEU, F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    lb    : [OP_LOAD,   F3_B,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    lh    : [OP_LOAD,   F3_H,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    lw    : [OP_LOAD,   F3_W,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    lbu   : [OP_LOAD,   F3_BU,   F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    lhu   : [OP_LOAD,   F3_HU,   F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sb    : [OP_STORE,  F3_B,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sh    : [OP_STORE,  F3_H,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sw    : [OP_STORE,  F3_W,    F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    addi  : [OP_IMM,    F3_ADD,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    slli  : [OP_IMM,    F3_SL,   F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    slti  : [OP_IMM,    F3_SLT,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sltiu : [OP_IMM,    F3_SLTU, F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    xori  : [OP_IMM,    F3_XOR,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    srli  : [OP_IMM,    F3_SR,   F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    srai  : [OP_IMM,    F3_SR,   F7_A,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    ori   : [OP_IMM,    F3_OR,   F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    andi  : [OP_IMM,    F3_AND,  F7_ANY,  RS2_ANY,  RS1_ANY,  RD_ANY ],
-    add   : [OP_REG,    F3_ADD,  F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sub   : [OP_REG,    F3_ADD,  F7_A,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sll   : [OP_REG,    F3_SL,   F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    slt   : [OP_REG,    F3_SLT,  F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sltu  : [OP_REG,    F3_SLTU, F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    xor   : [OP_REG,    F3_XOR,  F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    srl   : [OP_REG,    F3_SR,   F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    sra   : [OP_REG,    F3_SR,   F7_A,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    or    : [OP_REG,    F3_OR,   F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
-    and   : [OP_REG,    F3_ADD,  F7_L,    RS2_ANY,  RS1_ANY,  RD_ANY ],
+    lui   : [OP_LUI   ,        ,        ,         ,         ,        ],
+    auipc : [OP_AUIPC ,        ,        ,         ,         ,        ],
+    jal   : [OP_JAL   ,        ,        ,         ,         ,        ],
+    jalr  : [OP_JALR  , F3_JALR,        ,         ,         ,        ],
+    beq   : [OP_BRANCH, F3_BEQ ,        ,         ,         ,        ],
+    bne   : [OP_BRANCH, F3_BNE ,        ,         ,         ,        ],
+    blt   : [OP_BRANCH, F3_BLT ,        ,         ,         ,        ],
+    bge   : [OP_BRANCH, F3_BGE ,        ,         ,         ,        ],
+    bltu  : [OP_BRANCH, F3_BLTU,        ,         ,         ,        ],
+    bgeu  : [OP_BRANCH, F3_BGEU,        ,         ,         ,        ],
+    lb    : [OP_LOAD  , F3_B   ,        ,         ,         ,        ],
+    lh    : [OP_LOAD  , F3_H   ,        ,         ,         ,        ],
+    lw    : [OP_LOAD  , F3_W   ,        ,         ,         ,        ],
+    lbu   : [OP_LOAD  , F3_BU  ,        ,         ,         ,        ],
+    lhu   : [OP_LOAD  , F3_HU  ,        ,         ,         ,        ],
+    sb    : [OP_STORE , F3_B   ,        ,         ,         ,        ],
+    sh    : [OP_STORE , F3_H   ,        ,         ,         ,        ],
+    sw    : [OP_STORE , F3_W   ,        ,         ,         ,        ],
+    addi  : [OP_IMM   , F3_ADD ,        ,         ,         ,        ],
+    slli  : [OP_IMM   , F3_SL  , F7_L   ,         ,         ,        ],
+    slti  : [OP_IMM   , F3_SLT ,        ,         ,         ,        ],
+    sltiu : [OP_IMM   , F3_SLTU,        ,         ,         ,        ],
+    xori  : [OP_IMM   , F3_XOR ,        ,         ,         ,        ],
+    srli  : [OP_IMM   , F3_SR  , F7_L   ,         ,         ,        ],
+    srai  : [OP_IMM   , F3_SR  , F7_A   ,         ,         ,        ],
+    ori   : [OP_IMM   , F3_OR  ,        ,         ,         ,        ],
+    andi  : [OP_IMM   , F3_AND ,        ,         ,         ,        ],
+    add   : [OP_REG   , F3_ADD , F7_L   ,         ,         ,        ],
+    sub   : [OP_REG   , F3_ADD , F7_A   ,         ,         ,        ],
+    sll   : [OP_REG   , F3_SL  , F7_L   ,         ,         ,        ],
+    slt   : [OP_REG   , F3_SLT , F7_L   ,         ,         ,        ],
+    sltu  : [OP_REG   , F3_SLTU, F7_L   ,         ,         ,        ],
+    xor   : [OP_REG   , F3_XOR , F7_L   ,         ,         ,        ],
+    srl   : [OP_REG   , F3_SR  , F7_L   ,         ,         ,        ],
+    sra   : [OP_REG   , F3_SR  , F7_A   ,         ,         ,        ],
+    or    : [OP_REG   , F3_OR  , F7_L   ,         ,         ,        ],
+    and   : [OP_REG   , F3_ADD , F7_L   ,         ,         ,        ],
     mret  : [OP_SYSTEM, F3_MRET, F7_MRET, RS2_MRET, RS1_MRET, RD_MRET]
 };
 
 const ACTION_TABLE = {
-    //         a     b      r       x[rd]* branch
-    //                              mem
-    lui     : ["-",  "imm", "b",    "r",   "-"],
-    auipc   : ["pc", "imm", "add",  "r",   "-"],
-    jal     : ["pc", "imm", "add",  "pc+", "al"],
-    jalr    : ["x1", "imm", "add",  "pc+", "al"],
-    beq     : ["pc", "imm", "add",  "-",   "eq"],
-    bne     : ["pc", "imm", "add",  "-",   "ne"],
-    blt     : ["pc", "imm", "add",  "-",   "lt"],
-    bge     : ["pc", "imm", "add",  "-",   "ge"],
-    bltu    : ["pc", "imm", "add",  "-",   "ltu"],
-    bgeu    : ["pc", "imm", "add",  "-",   "geu"],
-    lb      : ["x1", "imm", "add",  "lb",  "-"],
-    lh      : ["x1", "imm", "add",  "lh",  "-"],
-    lw      : ["x1", "imm", "add",  "lw",  "-"],
-    lbu     : ["x1", "imm", "add",  "lbu", "-"],
-    lhu     : ["x1", "imm", "add",  "lhu", "-"],
-    sb      : ["x1", "imm", "add",  "sb",  "-"],
-    sh      : ["x1", "imm", "add",  "sh",  "-"],
-    sw      : ["x1", "imm", "add",  "sw",  "-"],
-    addi    : ["x1", "imm", "add",  "r",   "-"],
-    slli    : ["x1", "imm", "sll",  "r",   "-"],
-    slti    : ["x1", "imm", "slt",  "r",   "-"],
-    sltiu   : ["x1", "imm", "sltu", "r",   "-"],
-    xori    : ["x1", "imm", "xor",  "r",   "-"],
-    srli    : ["x1", "imm", "srl",  "r",   "-"],
-    srai    : ["x1", "imm", "sra",  "r",   "-"],
-    ori     : ["x1", "imm", "or",   "r",   "-"],
-    andi    : ["x1", "imm", "and",  "r",   "-"],
-    add     : ["x1", "x2",  "add",  "r",   "-"],
-    sub     : ["x1", "x2",  "sub",  "r",   "-"],
-    sll     : ["x1", "x2",  "sll",  "r",   "-"],
-    slt     : ["x1", "x2",  "slt",  "r",   "-"],
-    sltu    : ["x1", "x2",  "sltu", "r",   "-"],
-    xor     : ["x1", "x2",  "xor",  "r",   "-"],
-    srl     : ["x1", "x2",  "srl",  "r",   "-"],
-    sra     : ["x1", "x2",  "sra",  "r",   "-"],
-    or      : ["x1", "x2",  "or",   "r",   "-"],
-    and     : ["x1", "x2",  "and",  "r",   "-"],
-    mret    : ["-",  "-",   "-",    "-",   "-"],
-    invalid : ["-",  "-",   "-",    "-",   "-"]
+    //         src1  src2   aluOp   wbMem  branch
+    lui     : [    , "imm", "b"   , "r"  ,      ],
+    auipc   : ["pc", "imm", "add" , "r"  ,      ],
+    jal     : ["pc", "imm", "add" , "pc+", "al" ],
+    jalr    : ["x1", "imm", "add" , "pc+", "al" ],
+    beq     : ["pc", "imm", "add" ,      , "eq" ],
+    bne     : ["pc", "imm", "add" ,      , "ne" ],
+    blt     : ["pc", "imm", "add" ,      , "lt" ],
+    bge     : ["pc", "imm", "add" ,      , "ge" ],
+    bltu    : ["pc", "imm", "add" ,      , "ltu"],
+    bgeu    : ["pc", "imm", "add" ,      , "geu"],
+    lb      : ["x1", "imm", "add" , "lb" ,      ],
+    lh      : ["x1", "imm", "add" , "lh" ,      ],
+    lw      : ["x1", "imm", "add" , "lw" ,      ],
+    lbu     : ["x1", "imm", "add" , "lbu",      ],
+    lhu     : ["x1", "imm", "add" , "lhu",      ],
+    sb      : ["x1", "imm", "add" , "sb" ,      ],
+    sh      : ["x1", "imm", "add" , "sh" ,      ],
+    sw      : ["x1", "imm", "add" , "sw" ,      ],
+    addi    : ["x1", "imm", "add" , "r"  ,      ],
+    slli    : ["x1", "imm", "sll" , "r"  ,      ],
+    slti    : ["x1", "imm", "slt" , "r"  ,      ],
+    sltiu   : ["x1", "imm", "sltu", "r"  ,      ],
+    xori    : ["x1", "imm", "xor" , "r"  ,      ],
+    srli    : ["x1", "imm", "srl" , "r"  ,      ],
+    srai    : ["x1", "imm", "sra" , "r"  ,      ],
+    ori     : ["x1", "imm", "or"  , "r"  ,      ],
+    andi    : ["x1", "imm", "and" , "r"  ,      ],
+    add     : ["x1", "x2" , "add" , "r"  ,      ],
+    sub     : ["x1", "x2" , "sub" , "r"  ,      ],
+    sll     : ["x1", "x2" , "sll" , "r"  ,      ],
+    slt     : ["x1", "x2" , "slt" , "r"  ,      ],
+    sltu    : ["x1", "x2" , "sltu", "r"  ,      ],
+    xor     : ["x1", "x2" , "xor" , "r"  ,      ],
+    srl     : ["x1", "x2" , "srl" , "r"  ,      ],
+    sra     : ["x1", "x2" , "sra" , "r"  ,      ],
+    or      : ["x1", "x2" , "or"  , "r"  ,      ],
+    and     : ["x1", "x2" , "and" , "r"  ,      ],
+    mret    : [    ,      ,       ,      ,      ],
+    invalid : [    ,      ,       ,      ,      ]
 };
 
 export function getSlice(word, left, right, signed=false) {
@@ -204,7 +196,12 @@ export function decode(word) {
     // Trouver le nom de l'instruction.
     const row = [opcode, funct3, funct7, rs2, rs1, rd];
     const name = Object.keys(DECODE_TABLE).find(name =>
-        DECODE_TABLE[name].every((v, i) => v < 0 || v === row[i])
-    ) || "invalid";
-    return {name, rd, rs1, rs2, imm, actions: ACTION_TABLE[name], raw: word};
+            DECODE_TABLE[name].every((v, i) => v === undefined || v === row[i])
+        ) || "invalid";
+    const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[name];
+    return {
+        name, raw: word,
+        rd, rs1, rs2, imm,
+        src1, src2, aluOp, wbMem, branch
+    };
 }

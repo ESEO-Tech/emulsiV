@@ -44,21 +44,21 @@ export class Virgule {
 
         // ALU operand A
         let a = 0;
-        switch (instr.actions[0]) {
+        switch (instr.src1) {
             case "pc": a = this.pc; break;
             case "x1": a = x1;      break;
         }
 
         // ALU operand B
         let b = 0;
-        switch (instr.actions[1]) {
+        switch (instr.src2) {
             case "imm": b = instr.imm; break;
             case "x2":  b = x2;        break;
         }
 
         // ALU operation
         let r = 0;
-        switch (instr.actions[2]) {
+        switch (instr.aluOp) {
             case "b":    r = b;                           break;
             case "add":  r = i32.s(a + b);                break;
             case "sll":  r = a << b;                      break;
@@ -74,7 +74,7 @@ export class Virgule {
 
         // Branch condition
         let taken = false;
-        switch (instr.actions[4]) {
+        switch (instr.branch) {
             case "al":  taken = true;                   break;
             case "eq":  taken = x1 === x2;              break;
             case "ne":  taken = x1 !== x2;              break;
@@ -86,7 +86,7 @@ export class Virgule {
 
         // Register/memory update
         let l = 0;
-        switch (instr.actions[3]) {
+        switch (instr.wbMem) {
             case "r":   this.setX(instr.rd, r);                                 break;
             case "pc+": this.setX(instr.rd, incPc);                             break;
             case "lb":  l = this.bus.read(r, 1, true);  this.setX(instr.rd, l); break;
