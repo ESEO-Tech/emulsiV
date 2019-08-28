@@ -46,6 +46,35 @@ const RS2_MRET = 2;
 const RS1_MRET = 0;
 const RD_MRET  = 0;
 
+const FIELDS = {
+    opcode : [6,  0],
+    funct3 : [14, 12],
+    funct7 : [31, 25],
+    rs2    : [24, 20],
+    rs1    : [19, 15],
+    rd     : [11, 7],
+};
+
+const OPCODE_TO_FORMAT_TABLE = {
+    [OP_LOAD]   : "I",
+    [OP_IMM]    : "I",
+    [OP_JALR]   : "I",
+    [OP_SYSTEM] : "I",
+    [OP_STORE]  : "S",
+    [OP_BRANCH] : "B",
+    [OP_AUIPC]  : "U",
+    [OP_LUI]    : "U",
+    [OP_JAL]    : "J",
+};
+
+const IMM_FORMAT_TABLE = {
+    I : [[31, 20, 0 ]                                         ],
+    S : [[31, 25, 5 ], [11, 7, 0  ]                           ],
+    B : [[31, 31, 12], [7 , 7, 11 ], [30, 25, 5 ], [11, 8 , 1]],
+    U : [[31, 12, 12]                                         ],
+    J : [[31, 31, 20], [19, 12, 12], [20, 20, 11], [30, 21, 1]],
+};
+
 const DECODE_TABLE = {
     lui   : [OP_LUI   ,        ,        ,         ,         ,        ],
     auipc : [OP_AUIPC ,        ,        ,         ,         ,        ],
@@ -127,7 +156,7 @@ const ACTION_TABLE = {
     or      : ["x1", "x2" , "or"  , "r"  ,      ],
     and     : ["x1", "x2" , "and" , "r"  ,      ],
     mret    : [    ,      ,       ,      ,      ],
-    invalid : [    ,      ,       ,      ,      ]
+    invalid : [    ,      ,       ,      ,      ],
 };
 
 export function getSlice(word, left, right, signed=false) {
@@ -144,61 +173,47 @@ export function getSlice(word, left, right, signed=false) {
     return signed ? i32.s(word >> right) : i32.u(word >>> right);
 }
 
+function decodeFields(word) {
+    const res = {};
+    for (let [key, [left, right]] of Object.entries(FIELDS)) {
+        res[key] = getSlice(word, left, right);
+    }
+    return res;
+}
+
+function decodeImmediate(opcode, word) {
+    if (!(opcode in OPCODE_TO_FORMAT_TABLE)) {
+        return 0;
+    }
+
+    const fmt    = OPCODE_TO_FORMAT_TABLE[opcode];
+    const slices = IMM_FORMAT_TABLE[fmt];
+
+    let signed   = true;
+    let res      = 0;
+    for (let [left, right, pos] of slices) {
+        res   |= getSlice(word, left, right, signed) << pos;
+        signed = false;
+    }
+
+    return res;
+}
+
+// TODO Mettre en cache les instructions déjà décodées.
 export function decode(word) {
     // Extraire les champs de l'instruction.
-    const opcode = getSlice(word, 6,  0);
-    const rd     = getSlice(word, 11, 7);
-    const funct3 = getSlice(word, 14, 12);
-    const rs1    = getSlice(word, 19, 15);
-    const rs2    = getSlice(word, 24, 20);
-    const funct7 = getSlice(word, 31, 25);
-
-    // Recomposer la valeur immédiate.
-    let imm = 0;
-
-    switch (opcode) {
-        // Format: I
-        case OP_LOAD:
-        case OP_IMM:
-        case OP_JALR:
-        case OP_SYSTEM:
-            imm = getSlice(word, 31, 20, true);
-            break;
-
-        // Format: S
-        case OP_STORE:
-            imm = getSlice(word, 31, 25, true) << 5
-                | getSlice(word, 11, 7);
-            break;
-
-        // Format: B
-        case OP_BRANCH:
-            imm = getSlice(word, 31, 31, true)  << 12
-                | getSlice(word, 7,  7)         << 11
-                | getSlice(word, 30, 25)        << 5
-                | getSlice(word, 11, 8)         << 1;
-            break;
-
-        // Format: U
-        case OP_AUIPC:
-        case OP_LUI:
-            imm = getSlice(word, 31, 12, true) << 12;
-            break;
-
-        // Format: J
-        case OP_JAL:
-            imm = getSlice(word, 31, 31, true) << 20
-                | getSlice(word, 19, 12)       << 12
-                | getSlice(word, 20, 20)       << 11
-                | getSlice(word, 30, 21)       << 1;
-    }
+    const {opcode, funct3, funct7, rs2, rs1, rd} = decodeFields(word);
+    const imm = decodeImmediate(opcode, word);
 
     // Trouver le nom de l'instruction.
     const row = [opcode, funct3, funct7, rs2, rs1, rd];
     const name = Object.keys(DECODE_TABLE).find(name =>
             DECODE_TABLE[name].every((v, i) => v === undefined || v === row[i])
         ) || "invalid";
+
+    // Trouver les actions associées à l'instruction.
     const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[name];
+
     return {
         name, raw: word,
         rd, rs1, rs2, imm,
