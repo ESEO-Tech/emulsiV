@@ -199,8 +199,13 @@ function decodeImmediate(opcode, word) {
     return res;
 }
 
-// TODO Mettre en cache les instructions déjà décodées.
+const cache = {};
+
 export function decode(word) {
+    // if (word in cache) {
+    //     return cache[word];
+    // }
+
     // Extraire les champs de l'instruction.
     const {opcode, funct3, funct7, rs2, rs1, rd} = decodeFields(word);
     const imm = decodeImmediate(opcode, word);
@@ -214,9 +219,13 @@ export function decode(word) {
     // Trouver les actions associées à l'instruction.
     const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[name];
 
-    return {
+    const res = {
         name, raw: word,
         rd, rs1, rs2, imm,
         src1, src2, aluOp, wbMem, branch
     };
+
+    // cache[word] = res;
+
+    return res;
 }

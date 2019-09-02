@@ -130,11 +130,17 @@ export class Controller {
         this.running     = true;
         this.stopRequest = false;
 
+        const startTime = Date.now();
+
         do {
             await this.trace(single, false);
         } while (!this.stopRequest &&
                  !(single && this.state === "fetch") &&
                  !(this.breakpoints[i32.toHex(this.cpu.pc)] && this.state === "fetch"));
+
+         const stopTime = Date.now();
+
+        console.log(`Execution time: ${stopTime - startTime} ms`);
 
         if (!single && !view.animationsEnabled()) {
             this.forceUpdate();
@@ -174,21 +180,18 @@ export class Controller {
         view.simpleUpdate("addr", "-");
         view.simpleUpdate("data", "-");
 
-        view.highlightPath("pc", "addr");
         await view.move("pc", "addr", i32.toHex(this.traceData.pc));
 
-        view.highlightPath("mem", "data");
         const irx = i32.toHex(this.traceData.instr.raw);
         await Promise.all([
-            view.move("mem" + i32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), 0),
-            view.move("mem" + i32.toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), 1),
-            view.move("mem" + i32.toHex(this.traceData.pc + 2), "data2", irx.slice(2, 4), 2),
-            view.move("mem" + i32.toHex(this.traceData.pc + 3), "data3", irx.slice(0, 2), 3)
+            view.move("mem" + i32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
+            view.move("mem" + i32.toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
+            view.move("mem" + i32.toHex(this.traceData.pc + 2), "data2", irx.slice(2, 4), {slot: 2}),
+            view.move("mem" + i32.toHex(this.traceData.pc + 3), "data3", irx.slice(0, 2), {slot: 3})
         ]);
         view.update("data", irx);
         await view.waitUpdate();
 
-        view.highlightPath("data", "instr");
         await view.move("data", "instr", irx);
         view.clearPaths();
 
@@ -238,24 +241,20 @@ export class Controller {
         // ALU operand A
         switch (this.traceData.instr.src1) {
             case "pc":
-                view.highlightPath("pc", "alu-a");
                 await view.move("pc", "alu-a", i32.toHex(this.traceData.pc));
                 break
             case "x1":
-                view.highlightPath("xrs", "alu-a");
-                await view.move("x" + this.traceData.instr.rs1, "alu-a", i32.toHex(this.traceData.x1));
+                await view.move("x" + this.traceData.instr.rs1, "alu-a", i32.toHex(this.traceData.x1), {path: "xrs1-alu-a"});
                 break;
         }
 
         // ALU operand B
         switch (this.traceData.instr.src2) {
             case "imm":
-                view.highlightPath("imm", "alu-b");
                 await view.move("imm", "alu-b", i32.toHex(this.traceData.instr.imm));
                 break
             case "x2":
-                view.highlightPath("xrs", "alu-b");
-                await view.move("x" + this.traceData.instr.rs2, "alu-b", i32.toHex(this.traceData.x2));
+                await view.move("x" + this.traceData.instr.rs2, "alu-b", i32.toHex(this.traceData.x2), {path: "xrs2-alu-b"});
                 break;
         }
 
@@ -279,10 +278,8 @@ export class Controller {
     async traceBranch() {
         this.highlightCurrentState();
 
-        view.highlightPath("xrs", "cmp-a");
-        await view.move("x" + this.traceData.instr.rs1, "cmp-a", i32.toHex(this.traceData.x1));
-        view.highlightPath("xrs", "cmp-b");
-        await view.move("x" + this.traceData.instr.rs2, "cmp-b", i32.toHex(this.traceData.x2));
+        await view.move("x" + this.traceData.instr.rs1, "cmp-a", i32.toHex(this.traceData.x1), {path: "xrs1-cmp-a"});
+        await view.move("x" + this.traceData.instr.rs2, "cmp-b", i32.toHex(this.traceData.x2), {path: "xrs2-cmp-b"});
         view.clearPaths();
         await view.delay(2 * STEP_DELAY);
         view.update("cmp-taken", this.traceData.taken);
@@ -301,96 +298,76 @@ export class Controller {
         switch (this.traceData.instr.wbMem) {
             case "r":
                 if (this.traceData.instr.rd) {
-                    view.highlightPath("alu-r", "xrd");
-                    await view.move("alu-r", "x" + this.traceData.instr.rd, rx);
+                    await view.move("alu-r", "x" + this.traceData.instr.rd, rx, {path: "alu-r-xrd"});
                 }
                 break;
 
             case "pc+":
                 if (this.traceData.instr.rd) {
-                    view.highlightPath("pc-i", "xrd");
-                    await view.move("pc-i",  "x" + this.traceData.instr.rd, i32.toHex(this.traceData.incPc));
+                    await view.move("pc-i",  "x" + this.traceData.instr.rd, i32.toHex(this.traceData.incPc), {path: "pc-i-xrd"});
                 }
                 break;
 
             case "lb":
             case "lbu":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("mem", "data");
-                await view.move("mem" + rx, "data0", lx.slice(6, 8));
+                await view.move("mem" + rx, "data0", lx.slice(6, 8), {path: "mem-data"});
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
-                    view.highlightPath("data", "xrd");
-                    await view.move("data", "x" + this.traceData.instr.rd, lx);
+                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "lh":
             case "lhu":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("mem", "data");
                 await Promise.all([
-                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), 0),
-                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), 1),
+                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
                 ]);
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
-                    view.highlightPath("data", "xrd");
-                    await view.move("data", "x" + this.traceData.instr.rd, lx);
+                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "lw":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("mem", "data");
                 await Promise.all([
-                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), 0),
-                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), 1),
-                    view.move("mem" + i32.toHex(this.traceData.r + 2), "data2", lx.slice(2, 4), 2),
-                    view.move("mem" + i32.toHex(this.traceData.r + 3), "data3", lx.slice(0, 2), 3)
+                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
+                    view.move("mem" + i32.toHex(this.traceData.r + 2), "data2", lx.slice(2, 4), {slot: 2}),
+                    view.move("mem" + i32.toHex(this.traceData.r + 3), "data3", lx.slice(0, 2), {slot: 3})
                 ]);
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
-                    view.highlightPath("data", "xrd");
-                    await view.move("data", "x" + this.traceData.instr.rd, lx);
+                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "sb":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("xrs", "data");
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x);
-                view.highlightPath("data", "mem");
-                await view.move("data0", "mem" + rx, x2x.slice(6, 8));
+                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
                 break;
 
             case "sh":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("xrs", "data");
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x);
-                view.highlightPath("data", "mem");
+                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
                 await Promise.all([
-                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), 0),
-                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), 1)
+                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1})
                 ]);
                 break;
 
             case "sw":
-                view.highlightPath("alu-r", "addr");
                 await view.move("alu-r", "addr", rx);
-                view.highlightPath("xrs", "data");
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x);
-                view.highlightPath("data", "mem");
+                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
                 await Promise.all([
-                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), 0),
-                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), 1),
-                    view.move("data2", "mem" + i32.toHex(this.traceData.r + 2), x2x.slice(2, 4), 2),
-                    view.move("data3", "mem" + i32.toHex(this.traceData.r + 3), x2x.slice(0, 2), 3)
+                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1}),
+                    view.move("data2", "mem" + i32.toHex(this.traceData.r + 2), x2x.slice(2, 4), {slot: 2}),
+                    view.move("data3", "mem" + i32.toHex(this.traceData.r + 3), x2x.slice(0, 2), {slot: 3})
                 ]);
                 break;
         }
@@ -418,7 +395,6 @@ export class Controller {
             view.update("pc", i32.toHex(this.cpu.pc));
             await view.waitUpdate();
             if (this.traceData.taken) {
-                view.highlightPath("alu-r", "mepc");
                 await view.move("alu-r", "mepc", rx);
             }
             else {
@@ -429,7 +405,6 @@ export class Controller {
             await view.move("mepc", "pc", i32.toHex(this.cpu.mepc));
         }
         else if (this.traceData.taken) {
-            view.highlightPath("alu-r", "pc");
             await view.move("alu-r", "pc", rx);
         }
         else {
