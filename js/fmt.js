@@ -178,7 +178,7 @@ function decodeImmediate(opcode, word) {
     let signed   = true;
     let res      = 0;
     for (let [left, right, pos] of slices) {
-        res   |= i32.getSlice(word, left, right, signed) << pos;
+        res   |= i32.getSlice(word, left, right, pos, signed);
         signed = false;
     }
 
@@ -195,7 +195,7 @@ function encodeImmediate(opcode, word) {
 
     let res = 0;
     for (let [left, right, pos] of slices) {
-        res |= i32.getSlice(word, left - right + pos, pos) << right;
+        res |= i32.getSlice(word, left - right + pos, pos, right);
     }
 
     return res;
@@ -237,7 +237,7 @@ export function toWord(instr) {
     const fields = DECODE_TABLE[instr.name];
     Object.entries(FIELDS).forEach(([fieldName, [l, r]], i) => {
         const v = fields[i] || instr[fieldName];
-        res |= i32.getSlice(v, l - r, 0) << r;
+        res |= i32.getSlice(v, l - r, 0, r);
     });
     res |= encodeImmediate(fields[0], instr.imm);
     return res;

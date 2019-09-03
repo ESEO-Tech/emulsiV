@@ -11,7 +11,7 @@ export function toHex(x, width=8) {
     return u(x).toString(16).padStart(width, "0");
 }
 
-export function getSlice(word, left, right, signed=false) {
+export function getSlice(word, left, right, pos=0, signed=false) {
     // Précondition : 0 <= right <= left < 32
 
     // Aligner le bit de gauche à conserver sur le bit 31.
@@ -22,5 +22,8 @@ export function getSlice(word, left, right, signed=false) {
     // Aligner le bit de droite à conserver sur le bit 0.
     // Cette opération élimine les bits à droite de right.
     // Effectuer une extension de bit de signe si nécessaire.
-    return signed ? s(word >> right) : u(word >>> right);
+    word = signed ? s(word >> right) : u(word >>> right);
+    // Décaler à nouveau vers la gauche pour amener le résultat
+    // à la position souhaitée.
+    return word << pos;
 }

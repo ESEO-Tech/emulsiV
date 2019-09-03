@@ -206,7 +206,7 @@ export class Device {
 
     read(address, size, signed) {
         const raw = this.localRead(i32.u(address - this.firstAddress), size);
-        return i32.getSlice(raw, size * 8 - 1, 0, signed);
+        return i32.getSlice(raw, size * 8 - 1, 0, 0, signed);
     }
 
     write(address, size, value) {
