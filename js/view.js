@@ -296,7 +296,7 @@ export function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms / document.getElementById("speed").value));
 }
 
-export function simpleUpdate(id, value) {
+export function simpleUpdate(id, value="-") {
     if (value === "-") {
         value = "&mdash;";
     }
