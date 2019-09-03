@@ -1,7 +1,7 @@
 
 import {Device} from "../virgule.js";
-import {decode} from "../decoder.js";
-import {toAssembly, toPseudoAssembly} from "../disassembler.js";
+import * as fmt from "../fmt.js";
+import * as asm from "../asm.js";
 import * as i32 from "../i32.js";
 
 export class AsmOutput extends Device {
@@ -28,9 +28,10 @@ export class AsmOutput extends Device {
     localWrite(address, size, value) {
         address -= address % 4;
         const word = this.mem.read(address, 4, false);
-        const instr = decode(word);
-        const asm = toAssembly(instr, address);
-        const pseudo = toPseudoAssembly(instr, address);
-        this.instrs[i32.toHex(address)] = {asm, pseudo};
+        const instr = fmt.fromWord(word);
+        this.instrs[i32.toHex(address)] = {
+            asm:    asm.toString(instr, address),
+            pseudo: asm.pseudoToString(instr, address)
+        };
     }
 }

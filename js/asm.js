@@ -86,7 +86,7 @@ const PSEUDO_TABLE = {
     jalr$1: {name: "jalr",  rd:  1, imm: 0},
 }
 
-export function toAssembly({name, rd, rs1, rs2, imm}, address) {
+export function toString({name, rd, rs1, rs2, imm}, address) {
     if (!(name in ASM_TABLE)) {
         return "-";
     }
@@ -112,12 +112,71 @@ export function toAssembly({name, rd, rs1, rs2, imm}, address) {
     return name;
 }
 
-export function toPseudoAssembly(instr, address) {
+export function pseudoToString(instr, address) {
     for (let [pname, pinstr] of Object.entries(PSEUDO_TABLE)) {
         if (Object.entries(pinstr).every(([key, value]) => instr[key] === value)) {
             instr.name = pname;
-            return toAssembly(instr, address);
+            return toString(instr, address);
         }
     }
     return null;
 }
+
+
+export function fromString(str, address) {
+    const fragments = str.trim().split(/\s+|\s*,\s*/);
+    if (!fragments.length) {
+        return null;
+    }
+
+    // TODO also match pseudo-instructions.
+    const [name, ...operands] = fragments;
+    if (!(name in ASM_TABLE)) {
+        return null;
+    }
+
+    const syntax = ASM_TABLE[name];
+    if (operands.length !== syntax.length) {
+        return null;
+    }
+
+    const reg = op => {
+        const m = /x([0-9]+)/.exec(op);
+        if (!m) {
+            return null;
+        }
+        return parseInt(m[1]);
+    }
+
+    const instr = {name};
+    operands.forEach((op, i) => {
+        switch (syntax[i]) {
+            case "d": instr.rd  = reg(op);      if (!instr.rd)        return null; break;
+            case "1": instr.rs1 = reg(op);      if (!instr.rs1)       return null; break;
+            case "2": instr.rs2 = reg(op);      if (!instr.rs2)       return null; break;
+            case "i": instr.imm = parseInt(op); if (isNaN(instr.imm)) return null; break;
+            case "p":
+                const target = parseInt(op);
+                if (isNaN(target)) return null;
+                instr.imm = target - address;
+                break;
+            case "a":
+                const addressSpec = op.split(/[()]/);
+                if (addressSpec.length !== 3) {
+                    return null;
+                }
+                instr.imm = parseInt(addressSpec[0] || "0");
+                if (isNaN(instr.imm)) return null;
+                instr.rs1 = reg(addressSpec[1]);
+                if (!instr.rs1) return null;
+                break;
+        }
+    });
+
+    return instr;
+}
+
+console.log(fromString("addi x5, x4, 12"));
+console.log(fromString("blt x5, x4, 0x400c", 0x4000));
+console.log(fromString("lb x5, 8(x4)"));
+console.log(fromString("sb x5, (x4)"));

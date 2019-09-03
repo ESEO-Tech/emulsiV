@@ -1,6 +1,6 @@
 
-import {getSlice} from "../decoder.js";
-import {Device}   from "../virgule.js";
+import * as i32 from "../i32.js";
+import {Device} from "../virgule.js";
 
 export class BitmapOutput extends Device {
     constructor(firstAddress, width, height) {
@@ -29,7 +29,7 @@ export class BitmapOutput extends Device {
             this.pixels.push({
                 x: (address + i) % this.width,
                 y: Math.floor((address + i) / this.width),
-                c: getSlice(value, 8 * i + 7, 8 * i)
+                c: i32.getSlice(value, 8 * i + 7, 8 * i)
             })
         }
     }

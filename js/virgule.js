@@ -1,6 +1,6 @@
 
-import {getSlice, decode} from "./decoder.js";
-import * as i32           from "./i32.js";
+import * as fmt from "./fmt.js";
+import * as i32 from "./i32.js";
 
 export class Virgule {
     /*
@@ -36,7 +36,7 @@ export class Virgule {
         const word = this.bus.read(this.pc, 4, false);
 
         // Decode
-        const instr = decode(word);
+        const instr = fmt.fromWord(word);
 
         // Execute
         const x1 = this.getX(instr.rs1);
@@ -194,7 +194,7 @@ export class Device {
 
     read(address, size, signed) {
         const raw = this.localRead(i32.u(address - this.firstAddress), size);
-        return getSlice(raw, size * 8 - 1, 0, signed);
+        return i32.getSlice(raw, size * 8 - 1, 0, signed);
     }
 
     write(address, size, value) {
@@ -241,7 +241,7 @@ export class Memory extends Device {
 
     localWrite(address, size, value) {
         for (let i = 0; i < size; i ++) {
-            this.data[address + i] = getSlice(value, 8 * i + 7, 8 * i);
+            this.data[address + i] = i32.getSlice(value, 8 * i + 7, 8 * i);
         }
     }
 }

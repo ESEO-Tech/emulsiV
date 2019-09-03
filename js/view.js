@@ -1,5 +1,4 @@
 
-import {getSlice}     from "./decoder.js";
 import * as i32       from "./i32.js";
 import {TextOutput}   from "./devices/text.js";
 import {BitmapOutput} from "./devices/bitmap.js";
@@ -350,9 +349,9 @@ function updateBitmapOutput(id, dev) {
     const scaleY = canvas.height / dev.height;
     const ctx = canvas.getContext("2d");
     for (let p of pixels) {
-        const red   = Math.floor(255 * getSlice(p.c, 7, 5) / 7);
-        const green = Math.floor(255 * getSlice(p.c, 4, 2) / 7);
-        const blue  = Math.floor(255 * getSlice(p.c, 1, 0) / 3);
+        const red   = Math.floor(255 * i32.getSlice(p.c, 7, 5) / 7);
+        const green = Math.floor(255 * i32.getSlice(p.c, 4, 2) / 7);
+        const blue  = Math.floor(255 * i32.getSlice(p.c, 1, 0) / 3);
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(p.x * scaleX, p.y * scaleY, scaleX, scaleY);
     }

@@ -159,24 +159,10 @@ const ACTION_TABLE = {
     invalid : [    ,      ,       ,      ,      ],
 };
 
-export function getSlice(word, left, right, signed=false) {
-    // Précondition : 0 <= right <= left < 32
-
-    // Aligner le bit de gauche à conserver sur le bit 31.
-    // Cette opération élimine les bits à gauche de left.
-    const sl = 31 - left;
-    word <<= sl;
-    right += sl;
-    // Aligner le bit de droite à conserver sur le bit 0.
-    // Cette opération élimine les bits à droite de right.
-    // Effectuer une extension de bit de signe si nécessaire.
-    return signed ? i32.s(word >> right) : i32.u(word >>> right);
-}
-
 function decodeFields(word) {
     const res = {};
     for (let [key, [left, right]] of Object.entries(FIELDS)) {
-        res[key] = getSlice(word, left, right);
+        res[key] = i32.getSlice(word, left, right);
     }
     return res;
 }
@@ -192,7 +178,7 @@ function decodeImmediate(opcode, word) {
     let signed   = true;
     let res      = 0;
     for (let [left, right, pos] of slices) {
-        res   |= getSlice(word, left, right, signed) << pos;
+        res   |= i32.getSlice(word, left, right, signed) << pos;
         signed = false;
     }
 
@@ -201,7 +187,7 @@ function decodeImmediate(opcode, word) {
 
 const cache = {};
 
-export function decode(word) {
+export function fromWord(word) {
     // if (word in cache) {
     //     return cache[word];
     // }
