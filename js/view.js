@@ -64,10 +64,10 @@ export function resize() {
     resizePath("pc-i", "xrd",   {style: "bus3", xm: xmXrd});
     resizePath("imm",  "alu-b", {style: "bus2", toWeight: 2});
 
-    resizePath("data",  "mem",  {style: "bus1", horizontalFrom: true});
-    resizePath("mem",   "data", {style: "bus1", horizontalTo: true});
+    const xmMem = resizePath("data",  "mem",  {style: "bus1", horizontalFrom: true});
+                  resizePath("mem",   "data", {style: "bus1", horizontalTo: true});
 
-    resizePath("memb0000001", "irq", {style: "bus1", toWeight: 2});
+    resizePath("memb0000001", "irq", {style: "bus1", xm: xmMem});
 }
 
 function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, xm, horizontalFrom=false, horizontalTo=false, style, labelFrom, labelTo} = {}) {
