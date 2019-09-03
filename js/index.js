@@ -28,14 +28,24 @@ window.addEventListener("load", async evt => {
 
     const ctrl = new Controller(cpu, bus, mem);
 
-    const xhr = new XMLHttpRequest();
-    xhr.addEventListener("load", evt => {
-        ctrl.loadHex(xhr.responseText);
-    });
-    xhr.overrideMimeType("text/plain");
-    xhr.open("GET", "examples/hello-asm/hello.hex");
-    xhr.send();
+    function loadExample(name) {
+        const xhr = new XMLHttpRequest();
+        xhr.addEventListener("load", evt => {
+            ctrl.loadHex(xhr.responseText);
+        });
+        xhr.overrideMimeType("text/plain");
+        xhr.open("GET", `examples/${name}`);
+        xhr.send();
+    }
 
+    await loadExample("hello-asm/hello.hex");
+
+    document.getElementById("examples-sel").addEventListener("change", async evt => {
+        if (evt.target.value) {
+            await loadExample(evt.target.value);
+            evt.target.value = "";
+        }
+    });
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
         const reader = new FileReader();
