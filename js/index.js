@@ -6,7 +6,7 @@ import {BitmapOutput}          from "./devices/bitmap.js";
 import {AsmOutput}             from "./devices/asm.js";
 import * as view               from "./view.js";
 
-window.addEventListener("load", evt => {
+window.addEventListener("load", async evt => {
     const memSize = 4096;
 
     const bus = new v.Bus();
@@ -27,6 +27,14 @@ window.addEventListener("load", evt => {
     view.registerView("bitmap-output", bitmap_out, true);
 
     const ctrl = new Controller(cpu, bus, mem);
+
+    const xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", evt => {
+        ctrl.loadHex(xhr.responseText);
+    });
+    xhr.overrideMimeType("text/plain");
+    xhr.open("GET", "examples/hello-asm/hello.hex");
+    xhr.send();
 
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
