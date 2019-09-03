@@ -4,14 +4,14 @@ import * as i32 from "./i32.js";
 const ASM_TABLE = {
     lui   : "di",
     auipc : "di",
-    jal   : "di",
+    jal   : "dp",
     jalr  : "d1i",
-    beq   : "12i",
-    bne   : "12i",
-    blt   : "12i",
-    bge   : "12i",
-    bltu  : "12i",
-    bgeu  : "12i",
+    beq   : "12p",
+    bne   : "12p",
+    blt   : "12p",
+    bge   : "12p",
+    bltu  : "12p",
+    bgeu  : "12p",
     lb    : "da",
     lh    : "da",
     lw    : "da",
@@ -50,14 +50,14 @@ const ASM_TABLE = {
     snez  : "d2",
     sltz  : "d1",
     sgtz  : "d2",
-    beqz  : "1i",
-    bnez  : "1i",
-    blez  : "2i",
-    bgez  : "1i",
-    bltz  : "1i",
-    bgtz  : "2i",
-    j     : "i",
-    _jal  : "i",
+    beqz  : "1p",
+    bnez  : "1p",
+    blez  : "2p",
+    bgez  : "1p",
+    bltz  : "1p",
+    bgtz  : "2p",
+    j     : "p",
+    _jal  : "p",
     jr    : "1",
     _jalr : "1",
     ret   : "",
@@ -86,22 +86,20 @@ const PSEUDO_TABLE = {
     _jalr: {name: "jalr",  rd:  1, imm: 0},
 }
 
-export function toAssembly({name, rd, rs1, rs2, imm}) {
+export function toAssembly({name, rd, rs1, rs2, imm}, address) {
     if (!(name in ASM_TABLE)) {
         return "-";
     }
 
     const reg = (n) => "x" + n;
 
-    // TODO In branch instructions, convert PC-relative offsets to addresses.
-    const ival = Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
-
     const operands = ASM_TABLE[name].split("").map(c => {
         switch (c) {
             case "d": return reg(rd);
             case "1": return reg(rs1);
             case "2": return reg(rs2);
-            case "i": return ival;
+            case "i": return Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
+            case "p": return `0x${i32.toHex(imm + address)} &lt;pc${imm >= 0 ? "+" : ""}${imm}>`;
             case "a": return `${imm}(${reg(rs1)})`;
         }
     });
@@ -116,11 +114,11 @@ export function toAssembly({name, rd, rs1, rs2, imm}) {
     return name;
 }
 
-export function toPseudoAssembly(instr) {
+export function toPseudoAssembly(instr, address) {
     for (let [pname, pinstr] of Object.entries(PSEUDO_TABLE)) {
         if (Object.entries(pinstr).every(([key, value]) => instr[key] === value)) {
             instr.name = pname;
-            return toAssembly(instr);
+            return toAssembly(instr, address);
         }
     }
     return null;

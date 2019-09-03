@@ -29,8 +29,8 @@ export class AsmOutput extends Device {
         address -= address % 4;
         const word = this.mem.read(address, 4, false);
         const instr = decode(word);
-        const asm = toAssembly(instr);
-        const pseudo = toPseudoAssembly(instr);
+        const asm = toAssembly(instr, address);
+        const pseudo = toPseudoAssembly(instr, address);
         this.instrs[i32.toHex(address)] = {asm, pseudo};
     }
 }
