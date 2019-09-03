@@ -41,49 +41,49 @@ const ASM_TABLE = {
     and   : "d12",
     mret  : "",
     // Pseudo-instructions
-    nop   : "",
-    li    : "di",
-    mv    : "d1",
-    not   : "d1",
-    neg   : "d2",
-    seqz  : "d1",
-    snez  : "d2",
-    sltz  : "d1",
-    sgtz  : "d2",
-    beqz  : "1p",
-    bnez  : "1p",
-    blez  : "2p",
-    bgez  : "1p",
-    bltz  : "1p",
-    bgtz  : "2p",
-    j     : "p",
-    _jal  : "p",
-    jr    : "1",
-    _jalr : "1",
-    ret   : "",
+    nop    : "",
+    li     : "di",
+    mv     : "d1",
+    not    : "d1",
+    neg    : "d2",
+    seqz   : "d1",
+    snez   : "d2",
+    sltz   : "d1",
+    sgtz   : "d2",
+    beqz   : "1p",
+    bnez   : "1p",
+    blez   : "2p",
+    bgez   : "1p",
+    bltz   : "1p",
+    bgtz   : "2p",
+    j      : "p",
+    jal$1  : "p",
+    jr     : "1",
+    jalr$1 : "1",
+    ret    : "",
 };
 
 const PSEUDO_TABLE = {
-    nop:   {name: "addi",  rd:  0, rs1: 0, imm: 0},
-    li:    {name: "addi",  rs1: 0},
-    mv:    {name: "addi",  imm: 0},
-    not:   {name: "xori",  imm: -1},
-    neg:   {name: "sub",   rs1: 0},
-    seqz:  {name: "sltiu", imm: 1},
-    snez:  {name: "sltu",  rs1: 0},
-    sgtz:  {name: "slt",   rs1: 0},
-    sltz:  {name: "slt",   rs2: 0},
-    beqz:  {name: "beq",   rs2: 0},
-    bnez:  {name: "bne",   rs2: 0},
-    blez:  {name: "bge",   rs1: 0},
-    bgez:  {name: "bge",   rs2: 0},
-    bltz:  {name: "blt",   rs2: 0},
-    bgtz:  {name: "blt",   rs1: 0},
-    j:     {name: "jal",   rd:  0},
-    _jal:  {name: "jal",   rd:  1},
-    ret:   {name: "jalr",  rd:  0, rs1: 1, imm: 0},
-    jr:    {name: "jalr",  rd:  0, imm: 0},
-    _jalr: {name: "jalr",  rd:  1, imm: 0},
+    nop:    {name: "addi",  rd:  0, rs1: 0, imm: 0},
+    li:     {name: "addi",  rs1: 0},
+    mv:     {name: "addi",  imm: 0},
+    not:    {name: "xori",  imm: -1},
+    neg:    {name: "sub",   rs1: 0},
+    seqz:   {name: "sltiu", imm: 1},
+    snez:   {name: "sltu",  rs1: 0},
+    sgtz:   {name: "slt",   rs1: 0},
+    sltz:   {name: "slt",   rs2: 0},
+    beqz:   {name: "beq",   rs2: 0},
+    bnez:   {name: "bne",   rs2: 0},
+    blez:   {name: "bge",   rs1: 0},
+    bgez:   {name: "bge",   rs2: 0},
+    bltz:   {name: "blt",   rs2: 0},
+    bgtz:   {name: "blt",   rs1: 0},
+    j:      {name: "jal",   rd:  0},
+    jal$1:  {name: "jal",   rd:  1},
+    ret:    {name: "jalr",  rd:  0, rs1: 1, imm: 0},
+    jr:     {name: "jalr",  rd:  0, imm: 0},
+    jalr$1: {name: "jalr",  rd:  1, imm: 0},
 }
 
 export function toAssembly({name, rd, rs1, rs2, imm}, address) {
@@ -103,11 +103,9 @@ export function toAssembly({name, rd, rs1, rs2, imm}, address) {
             case "a": return `${imm}(${reg(rs1)})`;
         }
     });
-    // An '_' indicates a pseudo-instruction that has the same name as
+    // A suffix '$n' indicates a pseudo-instruction that has the same name as
     // a regular instruction.
-    if (name[0] === '_') {
-        name = name.slice(1);
-    }
+    name = name.split('$')[0];
     if (operands.length) {
         return name + " " + operands.join(", ");
     }
