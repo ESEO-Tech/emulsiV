@@ -44,31 +44,31 @@ export function resize() {
     delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
     document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
 
-    const xmXrs1 = resizePath("xrs1", "alu-a", {fromWeight: 3, style: "style1", labelFrom: "x[rs1]"});
-                   resizePath("xrs1", "cmp-a", {xm: xmXrs1,    style: "style1"});
+    const xmXrs1 = resizePath("xrs1", "alu-a", {style: "bus2", fromWeight: 3, labelFrom: "x[rs1]"});
+                   resizePath("xrs1", "cmp-a", {style: "bus2", xm: xmXrs1});
 
-    const xmXrs2 = resizePath("xrs2",  "alu-b", {labelFrom: "x[rs2]"});
-                   resizePath("xrs2",  "cmp-b", {xm: xmXrs2});
-                   resizePath("xrs2",  "data",  {xm: xmXrs2, toYOffset: -0.5});
+    const xmXrs2 = resizePath("xrs2",  "alu-b", {style: "bus1", labelFrom: "x[rs2]"});
+                   resizePath("xrs2",  "cmp-b", {style: "bus1", xm: xmXrs2});
+                   resizePath("xrs2",  "data",  {style: "bus1", xm: xmXrs2, toYOffset: -0.5});
 
-    const xmAluR = resizePath("alu-r", "pc",   {toYOffset: 0.5});
-                   resizePath("alu-r", "mepc", {xm: xmAluR});
-                   resizePath("alu-r", "addr", {xm: xmAluR, toYOffset: 0.5});
-                   resizePath("alu-r", "xrd",  {fromWeight: 2, toYOffset: -0.6, style: "style2", labelTo: "x[rd]"});
+    const xmAluR = resizePath("alu-r", "pc",   {style: "bus1", toYOffset: 0.5});
+                   resizePath("alu-r", "mepc", {style: "bus1", xm: xmAluR});
+                   resizePath("alu-r", "addr", {style: "bus1", xm: xmAluR, toYOffset: 0.5});
+                   resizePath("alu-r", "xrd",  {style: "bus3", fromWeight: 2, toYOffset: -0.6, labelTo: "x[rd]"});
 
-    const xmXrd = 2 * xmAluR - resizePath("pc", "alu-a", {fromYOffset: -0.5, toWeight: 2, style: "style1"});
-                               resizePath("pc", "addr",  {toYOffset: -0.5});
+    const xmXrd = 2 * xmAluR - resizePath("pc", "alu-a", {style: "bus2", fromYOffset: -0.5, toWeight: 2});
+                               resizePath("pc", "addr",  {style: "bus1", toYOffset: -0.5});
 
-    resizePath("data", "xrd",   {xm: xmXrd - (xmAluR - xmXrd), fromYOffset: 0.5, toYOffset: 0.6, style: "style2"});
-    resizePath("data", "instr", {fromYOffset: 0.5, style: "style2"});
+    resizePath("data", "xrd",   {style: "bus3", xm: xmXrd - (xmAluR - xmXrd), fromYOffset: 0.5, toYOffset: 0.6});
+    resizePath("data", "instr", {style: "bus3", fromYOffset: 0.5});
 
-    resizePath("pc-i", "xrd",   {xm: xmXrd, style: "style2"});
-    resizePath("imm",  "alu-b", {toWeight: 2, style: "style1"});
+    resizePath("pc-i", "xrd",   {style: "bus3", xm: xmXrd});
+    resizePath("imm",  "alu-b", {style: "bus2", toWeight: 2});
 
-    resizePath("data",  "mem",  {horizontalFrom: true});
-    resizePath("mem",   "data", {horizontalTo: true});
+    resizePath("data",  "mem",  {style: "bus1", horizontalFrom: true});
+    resizePath("mem",   "data", {style: "bus1", horizontalTo: true});
 
-    resizePath("memb0000001", "irq", {toWeight: 2});
+    resizePath("memb0000001", "irq", {style: "bus1", toWeight: 2});
 }
 
 function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, xm, horizontalFrom=false, horizontalTo=false, style, labelFrom, labelTo} = {}) {

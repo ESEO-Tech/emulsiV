@@ -189,27 +189,26 @@ svg {
 }
 
 path {
-    stroke: hsl(180, 25%, 70%);
     stroke-width: 4px;
     fill: none;
-    marker-end: url(#arrow-marker);
 }
 
 marker path {
-    fill: hsl(180, 25%, 70%);
     stroke: none;
     marker-end: none;
 }
 
-path.active               { stroke: hsl(180, 100%, 40%); marker-end: url(#arrow-marker-active); }
-marker.active path        { fill:   hsl(180, 100%, 40%); }
+path.bus1               { stroke: hsl(180, 25%, 70%);  marker-end: url(#arrow-marker-bus1); }
+marker.bus1 path        { fill:   hsl(180, 25%, 70%); }
+path.bus1.active        { stroke: hsl(180, 100%, 40%); marker-end: url(#arrow-marker-active-bus1); }
+marker.bus1.active path { fill:   hsl(180, 100%, 40%); }
 
-path.style1               { stroke: hsl(60, 25%, 70%);  marker-end: url(#arrow-marker-style1); }
-marker.style1 path        { fill:   hsl(60, 25%, 70%); }
-path.style1.active        { stroke: hsl(60, 75%, 40%); marker-end: url(#arrow-marker-active-style1); }
-marker.style1.active path { fill:   hsl(60, 75%, 40%); }
+path.bus2               { stroke: hsl(60, 25%, 70%);  marker-end: url(#arrow-marker-bus2); }
+marker.bus2 path        { fill:   hsl(60, 25%, 70%); }
+path.bus2.active        { stroke: hsl(60, 75%, 40%); marker-end: url(#arrow-marker-active-bus2); }
+marker.bus2.active path { fill:   hsl(60, 75%, 40%); }
 
-path.style2               { stroke: hsl(30, 70%, 70%);   marker-end: url(#arrow-marker-style2); }
-marker.style2 path        { fill:   hsl(30, 70%, 70%); }
-path.style2.active        { stroke: hsl(30, 100%, 40%);  marker-end: url(#arrow-marker-active-style2); }
-marker.style2.active path { fill:   hsl(30, 100%, 40%); }
+path.bus3               { stroke: hsl(30, 70%, 70%);   marker-end: url(#arrow-marker-bus3); }
+marker.bus3 path        { fill:   hsl(30, 70%, 70%); }
+path.bus3.active        { stroke: hsl(30, 100%, 40%);  marker-end: url(#arrow-marker-active-bus3); }
+marker.bus3.active path { fill:   hsl(30, 100%, 40%); }
