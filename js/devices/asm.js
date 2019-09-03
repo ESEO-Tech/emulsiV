@@ -31,7 +31,8 @@ export class AsmOutput extends Device {
         const instr = fmt.fromWord(word);
         this.instrs[i32.toHex(address)] = {
             asm:    asm.toString(instr, address),
-            pseudo: asm.pseudoToString(instr, address)
+            pseudo: asm.pseudoToString(instr, address),
+            meta:   asm.metaToString(instr, address)
         };
     }
 }

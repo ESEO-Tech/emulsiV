@@ -75,7 +75,17 @@ window.addEventListener("load", evt => {
     });
 
     document.querySelectorAll(".brk").forEach(elt => {
-        const addr = parseInt(elt.id.slice(3), 16)
+        const addr = parseInt(elt.id.slice(3), 16);
         elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
     });
+
+    document.querySelectorAll(".asm").forEach(elt => {
+        const addr = parseInt(elt.id.slice(3), 16);
+        elt.addEventListener("focus", evt => ctrl.showAsm(addr));
+        elt.addEventListener("input", evt => ctrl.setAsm(addr, elt.innerHTML));
+        elt.addEventListener("blur", evt => {
+            ctrl.setAsm(addr, elt.innerHTML);
+            view.updateDevices(true);
+        });
+    })
 });

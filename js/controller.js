@@ -2,6 +2,8 @@
 import * as view from "./view.js";
 import * as hex  from "./hex.js";
 import * as i32  from "./i32.js";
+import * as fmt  from "./fmt.js";
+import * as asm  from "./asm.js";
 
 const STEP_DELAY = 2500
 
@@ -71,6 +73,23 @@ export class Controller {
         view.updateDevices(true);
 
         view.highlightAsm(this.cpu.pc);
+    }
+
+    setAsm(addr, str) {
+        const instr = asm.fromString(str, addr);
+        if (instr) {
+            const word = fmt.toWord(instr);
+            this.bus.write(addr, 4, word);
+            for (let a = addr; a < addr + 4; a ++) {
+                view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
+            }
+            view.updateDevices(false);
+        }
+    }
+
+    showAsm(addr) {
+        const str = asm.toString(fmt.fromWord(this.bus.read(addr, 4)), addr);
+        view.simpleUpdate("asm" + i32.toHex(addr), str);
     }
 
     async loadHex(data) {

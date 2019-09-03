@@ -234,11 +234,13 @@ export function fromWord(word) {
 
 export function toWord(instr) {
     let res = 0;
-    const fields = DECODE_TABLE[instr.name];
+    const fields = DECODE_TABLE[instr.name] || [];
     Object.entries(FIELDS).forEach(([fieldName, [l, r]], i) => {
-        const v = fields[i] || instr[fieldName];
+        const v = fields[i] || instr[fieldName] || 0;
         res |= i32.getSlice(v, l - r, 0, r);
     });
-    res |= encodeImmediate(fields[0], instr.imm);
+    if (fields[0]) {
+        res |= encodeImmediate(fields[0], instr.imm);
+    }
     return res;
 }

@@ -91,16 +91,16 @@ export function toString({name, rd, rs1, rs2, imm}, address) {
         return "-";
     }
 
-    const reg = (n) => "x" + n;
+    const emitReg = (n) => "x" + n;
 
     const operands = ASM_TABLE[name].split("").map(c => {
         switch (c) {
-            case "d": return reg(rd);
-            case "1": return reg(rs1);
-            case "2": return reg(rs2);
+            case "d": return emitReg(rd);
+            case "1": return emitReg(rs1);
+            case "2": return emitReg(rs2);
             case "i": return Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
-            case "p": return `0x${i32.toHex(imm + address)} &lt;pc${imm >= 0 ? "+" : ""}${imm}>`;
-            case "a": return `${imm}(${reg(rs1)})`;
+            case "p": return `0x${i32.toHex(imm + address)}`;
+            case "a": return `${imm}(${emitReg(rs1)})`;
         }
     });
     // A suffix '$n' indicates a pseudo-instruction that has the same name as
@@ -122,54 +122,63 @@ export function pseudoToString(instr, address) {
     return null;
 }
 
+export function metaToString({name, imm}, address) {
+    if (!(name in ASM_TABLE)) {
+        return null;
+    }
+    if (ASM_TABLE[name].endsWith("p")) {
+        return `pc${imm >= 0 ? "+" : ""}${imm}`;
+    }
+    return null;
+}
 
 export function fromString(str, address) {
+    const instr = {name: "invalid", rd: 0, rs1: 0, rs2: 0, imm: 0};
+
     const fragments = str.trim().split(/\s+|\s*,\s*/);
     if (!fragments.length) {
-        return null;
+        return instr;
     }
 
     // TODO also match pseudo-instructions.
     const [name, ...operands] = fragments;
-    if (!(name in ASM_TABLE)) {
-        return null;
+    if (!(name in ASM_TABLE) || (name in PSEUDO_TABLE)) {
+        return instr;
     }
+    instr.name = name;
 
     const syntax = ASM_TABLE[name];
-    if (operands.length !== syntax.length) {
-        return null;
-    }
 
-    const reg = op => {
+    function parseReg(op) {
         const m = /x([0-9]+)/.exec(op);
         if (!m) {
-            return null;
+            return 0;
         }
-        return parseInt(m[1]);
+        const res = parseInt(m[1]);
+        return isNaN(res) || res < 0 ? 0 :
+               res > 15 ? 15 :
+               res;
     }
 
-    const instr = {name, rd: 0, rs1: 0, rs2: 0, imm: 0};
+    function parseImm(op) {
+        const res = parseInt(op);
+        return isNaN(res) ? 0 : res;
+    }
+
     operands.forEach((op, i) => {
         switch (syntax[i]) {
-            case "d": instr.rd  = reg(op);      if (!instr.rd)        return null; break;
-            case "1": instr.rs1 = reg(op);      if (!instr.rs1)       return null; break;
-            case "2": instr.rs2 = reg(op);      if (!instr.rs2)       return null; break;
-            case "i": instr.imm = parseInt(op); if (isNaN(instr.imm)) return null; break;
-            case "p":
-                const target = parseInt(op);
-                if (isNaN(target)) return null;
-                instr.imm = target - address;
-                break;
+            case "d": instr.rd  = parseReg(op);           break;
+            case "1": instr.rs1 = parseReg(op);           break;
+            case "2": instr.rs2 = parseReg(op);           break;
+            case "i": instr.imm = parseImm(op);           break;
+            case "p": instr.imm = parseImm(op) - address; break;
             case "a":
                 const addressSpec = op.split(/[()]/);
                 if (addressSpec.length !== 3) {
-                    return null;
+                    return;
                 }
-                instr.imm = parseInt(addressSpec[0] || "0");
-                if (isNaN(instr.imm)) return null;
-                instr.rs1 = reg(addressSpec[1]);
-                if (!instr.rs1) return null;
-                break;
+                instr.imm = parseImm(addressSpec[0]);
+                instr.rs1 = parseReg(addressSpec[1]);
         }
     });
 

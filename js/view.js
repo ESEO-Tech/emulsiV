@@ -359,9 +359,15 @@ function updateBitmapOutput(id, dev) {
 
 function updateAsmOutput(id, dev) {
     const instrs = dev.getData();
-    for (let [addr, {asm, pseudo}] of Object.entries(instrs)) {
+    for (let [addr, {asm, pseudo, meta}] of Object.entries(instrs)) {
         if (pseudo) {
-            simpleUpdate(id + addr, `<abbr title="${asm}">${pseudo}</abbr>`);
+            const metaStr = meta ? ` <${meta}>` : "";
+            simpleUpdate(id + addr, `<abbr title="${asm}${metaStr}">${pseudo}</abbr>`);
+        }
+        else if (meta) {
+            const asml = asm.slice(0, -10);
+            const asmr = asm.slice(-10);
+            simpleUpdate(id + addr, `${asml} <abbr title="${meta}">${asmr}</abbr>`);
         }
         else {
             simpleUpdate(id + addr, asm);
