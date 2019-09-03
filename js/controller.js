@@ -29,6 +29,7 @@ export class Controller {
         this.traceData = null;
         this.forceUpdate();
         this.setNextState("fetch");
+        view.resize();
     }
 
     forceUpdate() {
