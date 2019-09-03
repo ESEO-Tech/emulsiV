@@ -212,3 +212,8 @@ path.bus3               { stroke: hsl(30, 70%, 70%);   marker-end: url(#arrow-ma
 marker.bus3 path        { fill:   hsl(30, 70%, 70%); }
 path.bus3.active        { stroke: hsl(30, 100%, 40%);  marker-end: url(#arrow-marker-active-bus3); }
 marker.bus3.active path { fill:   hsl(30, 100%, 40%); }
+
+/* Spell checkers like Grammalecte may add elements that mess the layout of tables */
+tr > div {
+    display: none !important;
+}

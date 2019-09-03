@@ -81,7 +81,15 @@ window.addEventListener("load", evt => {
 
     document.querySelectorAll(".asm").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
-        elt.addEventListener("focus", evt => ctrl.showAsm(addr));
+        elt.addEventListener("focus", evt => {
+            ctrl.showAsm(addr);
+
+            const range = document.createRange();
+            range.selectNodeContents(elt);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        });
         elt.addEventListener("input", evt => ctrl.setAsm(addr, elt.innerHTML));
         elt.addEventListener("blur", evt => {
             ctrl.setAsm(addr, elt.innerHTML);
