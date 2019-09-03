@@ -24,24 +24,35 @@ export function resize() {
                                    document.querySelector("#text-output").getBoundingClientRect().bottom);
     resizeElt(tblWrapper, window.innerHeight - devicesBottom - MARGIN);
 
+    // Reset the "register" cell to the top of the window.
+    const regH1 = document.querySelector("#cell-x h1");
+    regH1.style["padding-top"] = 0;
+
     // Make sure the memory table is not shorter than the register table.
-    const regBottom  = document.querySelector("#cell-x table:last-child").getBoundingClientRect().bottom;
-    const memBottom = tblWrapper.getBoundingClientRect().bottom;
+    const regBottom  = document.querySelector("#cell-x table").getBoundingClientRect().bottom;
+    let memBottom = tblWrapper.getBoundingClientRect().bottom;
     if (memBottom < regBottom) {
         resizeElt(tblWrapper, regBottom - memBottom);
+        memBottom += regBottom - memBottom;
     }
 
+    // Center the contents of the "register" cell vertically.
+    let delta = memBottom - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
+    regH1.style["padding-top"] = (delta / 2) + "px";
+
     // Resize the spacer in the "PC" cell to justify its contents vertically.
-    let delta = regBottom - document.querySelector("#cell-pc table:last-child").getBoundingClientRect().bottom;
+    delta = memBottom - document.querySelector("#cell-pc table:last-child").getBoundingClientRect().bottom;
     resizeElt(document.querySelector("#cell-pc .spacer"), delta);
 
     // Resize the spacer in the "ALU" cell to justify its contents vertically.
-    delta = regBottom - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom;
+    delta = memBottom - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom;
     resizeElt(document.querySelector("#cell-alu .spacer"), delta);
 
     // Center the contents of the "bus" cell vertically.
-    delta = regBottom - document.querySelector("#cell-bus table:last-child").getBoundingClientRect().bottom;
-    document.querySelector("#cell-bus h1").style["padding-top"] = (delta / 2) + "px";
+    const busH1 = document.querySelector("#cell-bus h1");
+    busH1.style["padding-top"] = 0;
+    delta = memBottom - document.querySelector("#cell-bus table").getBoundingClientRect().bottom;
+    busH1.style["padding-top"] = (delta / 2) + "px";
 
     const xmXrs1 = resizePath("xrs1", "alu-a", {style: "bus2", fromWeight: 3, labelFrom: "x[rs1]"});
                    resizePath("xrs1", "cmp-a", {style: "bus2", xm: xmXrs1});
