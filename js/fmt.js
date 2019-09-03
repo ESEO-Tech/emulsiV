@@ -185,6 +185,22 @@ function decodeImmediate(opcode, word) {
     return res;
 }
 
+function encodeImmediate(opcode, word) {
+    if (!(opcode in OPCODE_TO_FORMAT_TABLE)) {
+        return 0;
+    }
+
+    const fmt    = OPCODE_TO_FORMAT_TABLE[opcode];
+    const slices = IMM_FORMAT_TABLE[fmt];
+
+    let res = 0;
+    for (let [left, right, pos] of slices) {
+        res |= i32.getSlice(word, left - right + pos, pos) << right;
+    }
+
+    return res;
+}
+
 const cache = {};
 
 export function fromWord(word) {
@@ -213,5 +229,16 @@ export function fromWord(word) {
 
     // cache[word] = res;
 
+    return res;
+}
+
+export function toWord(instr) {
+    let res = 0;
+    const fields = DECODE_TABLE[instr.name];
+    Object.entries(FIELDS).forEach(([fieldName, [l, r]], i) => {
+        const v = fields[i] || instr[fieldName];
+        res |= i32.getSlice(v, l - r, 0) << r;
+    });
+    res |= encodeImmediate(fields[0], instr.imm);
     return res;
 }

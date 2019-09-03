@@ -148,7 +148,7 @@ export function fromString(str, address) {
         return parseInt(m[1]);
     }
 
-    const instr = {name};
+    const instr = {name, rd: 0, rs1: 0, rs2: 0, imm: 0};
     operands.forEach((op, i) => {
         switch (syntax[i]) {
             case "d": instr.rd  = reg(op);      if (!instr.rd)        return null; break;
@@ -175,8 +175,3 @@ export function fromString(str, address) {
 
     return instr;
 }
-
-console.log(fromString("addi x5, x4, 12"));
-console.log(fromString("blt x5, x4, 0x400c", 0x4000));
-console.log(fromString("lb x5, 8(x4)"));
-console.log(fromString("sb x5, (x4)"));

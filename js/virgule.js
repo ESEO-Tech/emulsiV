@@ -2,6 +2,18 @@
 import * as fmt from "./fmt.js";
 import * as i32 from "./i32.js";
 
+import * as asm from "./asm.js";
+
+function logAsm(str, addr) {
+    const w = fmt.toWord(asm.fromString(str, addr));
+    const s = asm.toString(fmt.fromWord(w), addr);
+    console.log(`${str} --> ${i32.toHex(w)} --> ${s}`)
+}
+logAsm("addi x5, x4, 12");
+logAsm("blt x5, x4, 0x400c", 0x4000);
+logAsm("lb x5, 8(x4)");
+logAsm("sb x5, (x4)");
+
 export class Virgule {
     /*
      * Registres :
