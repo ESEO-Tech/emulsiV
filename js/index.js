@@ -140,7 +140,14 @@ window.addEventListener("load", async evt => {
     // Assembly view.
     document.querySelectorAll(".asm").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
+        let changed = false;
+        let saved;
+
         elt.addEventListener("focus", evt => {
+            // Save the original content of this cell.
+            saved   = elt.innerHTML;
+            changed = false;
+
             // Show the raw instruction in the current cell,
             // removing any markup.
             ctrl.showAsm(addr);
@@ -153,12 +160,20 @@ window.addEventListener("load", async evt => {
         });
 
         // Update the memory content while typing.
-        elt.addEventListener("input", evt => ctrl.setAsm(addr, elt.innerHTML));
+        elt.addEventListener("input", evt => {
+            ctrl.setAsm(addr, elt.innerHTML);
+            changed = true;
+        });
 
         elt.addEventListener("blur", evt => {
-            // Update all devices that map to memory, inclding the assembly view.
-            view.updateDevices(true);
-
+            if (changed) {
+                // Update all devices that map to memory, inclding the assembly view.
+                view.updateDevices(true);
+            }
+            else {
+                // Restore the original content if no input occurred.
+                elt.innerHTML = saved;
+            }
             // Resize the view in case the instruction column width has changed.
             view.resize();
         });
