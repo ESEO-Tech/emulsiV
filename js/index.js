@@ -5,6 +5,7 @@ import {TextInput, TextOutput} from "./devices/text.js";
 import {BitmapOutput}          from "./devices/bitmap.js";
 import {AsmOutput}             from "./devices/asm.js";
 import * as view               from "./view.js";
+import * as i32                from "./i32.js";
 
 window.addEventListener("load", async evt => {
     const memSize = 4096;
@@ -22,11 +23,14 @@ window.addEventListener("load", async evt => {
     bus.addDevice(bitmap_out);
     const cpu = new v.Virgule(16, bus);
 
+    view.init(mem.size);
     view.registerView("asm", asm_out, false);
     view.registerView("text-output", text_out, true);
     view.registerView("bitmap-output", bitmap_out, true);
 
     const ctrl = new Controller(cpu, bus, mem);
+
+    window.addEventListener("resize", () => view.resize());
 
     function loadExample(name) {
         const xhr = new XMLHttpRequest();
@@ -40,6 +44,10 @@ window.addEventListener("load", async evt => {
 
     await loadExample("hello-asm/hello.hex");
 
+    /* ---------------------------------------------------------------------- *
+       Event handlers for toolbar elements.
+     * ---------------------------------------------------------------------- */
+
     document.getElementById("examples-sel").addEventListener("change", async evt => {
         if (evt.target.value) {
             await loadExample(evt.target.value);
@@ -52,6 +60,8 @@ window.addEventListener("load", async evt => {
         reader.addEventListener("load", evt => ctrl.loadHex(reader.result));
         reader.readAsText(file);
     });
+
+    document.getElementById("speed").addEventListener("change", evt => view.setAnimationSpeed(evt.target.value));
 
     document.getElementById("text-input").addEventListener("keydown", evt => {
         if (evt.key.length > 1) {
@@ -92,11 +102,42 @@ window.addEventListener("load", async evt => {
         }
     });
 
-    document.querySelectorAll(".brk").forEach(elt => {
+    /* ---------------------------------------------------------------------- *
+       Event handlers for content-editable elements.
+     * ---------------------------------------------------------------------- */
+
+     // Select all the text in the given element.
+    function selectAll(elt) {
+        const range = document.createRange();
+        range.selectNodeContents(elt);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    // Memory.
+    document.querySelectorAll("#mem .reg").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
-        elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
+        elt.addEventListener("focus", evt => {
+            selectAll(elt);
+        });
+
+        // Update the content of the current cell while typing.
+        elt.addEventListener("input", evt => {
+            const value = parseInt(elt.innerHTML, 16);
+            if (!isNaN(value)) {
+                bus.write(addr, 1, value);
+                view.updateDevices(true);
+            }
+        });
+
+        elt.addEventListener("blur", evt => {
+            // Accept the last content of the current cell.
+            view.simpleUpdate(elt.id, i32.toHex(bus.read(addr, 1), 2));
+        });
     });
 
+    // Assembly view.
     document.querySelectorAll(".asm").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
         elt.addEventListener("focus", evt => {
@@ -105,11 +146,7 @@ window.addEventListener("load", async evt => {
             ctrl.showAsm(addr);
 
             // Select the text in the current cell.
-            const range = document.createRange();
-            range.selectNodeContents(elt);
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
+            selectAll(elt);
 
             // Resize the view in case the instruction column width has changed.
             view.resize();
@@ -119,14 +156,74 @@ window.addEventListener("load", async evt => {
         elt.addEventListener("input", evt => ctrl.setAsm(addr, elt.innerHTML));
 
         elt.addEventListener("blur", evt => {
-            // Accept the last content of the current cell.
-            ctrl.setAsm(addr, elt.innerHTML);
-
             // Update all devices that map to memory, inclding the assembly view.
             view.updateDevices(true);
 
             // Resize the view in case the instruction column width has changed.
             view.resize();
         });
-    })
+    });
+
+    // General-purpose registers.
+    document.querySelectorAll("#x .reg").forEach(elt => {
+        const addr = parseInt(elt.id.slice(1));
+        elt.addEventListener("focus", evt => selectAll(elt));
+
+        // Update the content of the current register while typing.
+        elt.addEventListener("input", evt => {
+            const value = parseInt(elt.innerHTML, 16);
+            if (!isNaN(value)) {
+                cpu.setX(addr, value);
+            }
+        });
+
+        elt.addEventListener("blur", evt => {
+            // Accept the last content of the current cell.
+            view.simpleUpdate(elt.id, i32.toHex(cpu.x[addr]));
+        });
+    });
+
+    // Program counter.
+    document.querySelectorAll("#pc").forEach(elt => {
+        elt.addEventListener("focus", evt => selectAll(elt));
+
+        // Update the content of the register while typing.
+        elt.addEventListener("input", evt => {
+            const value = parseInt(elt.innerHTML, 16);
+            if (!isNaN(value)) {
+                cpu.setPc(value);
+                view.simpleUpdate("pc-i", i32.toHex(cpu.pc + 4));
+            }
+        });
+
+        elt.addEventListener("blur", evt => {
+            // Accept the last content of the current cell.
+            view.simpleUpdate(elt.id, i32.toHex(cpu.pc));
+            view.highlightAsm(cpu.pc);
+        });
+    });
+
+    // Machine exception return address.
+    document.querySelectorAll("#mepc").forEach(elt => {
+        elt.addEventListener("focus", evt => selectAll(elt));
+
+        // Update the content of the register while typing.
+        elt.addEventListener("input", evt => {
+            const value = parseInt(elt.innerHTML, 16);
+            if (!isNaN(value)) {
+                cpu.mepc = value;
+            }
+        });
+
+        elt.addEventListener("blur", evt => {
+            // Accept the last content of the current cell.
+            view.simpleUpdate(elt.id, i32.toHex(cpu.mepc));
+        });
+    });
+
+    // Toggle breakpoints.
+    document.querySelectorAll(".brk").forEach(elt => {
+        const addr = parseInt(elt.id.slice(3), 16);
+        elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
+    });
 });

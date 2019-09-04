@@ -16,7 +16,9 @@ export function resize() {
     }
 
     // Set memory table height to its maximum to compute the overflow.
+    // Preserve the scrolling.
     const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
+    const tblWrapperScrollTop = tblWrapper.scrollTop;
     tblWrapper.style.height = "auto";
 
     // Resize the memory table wrapper so that the "devices" section does not overflow.
@@ -35,6 +37,9 @@ export function resize() {
         resizeElt(tblWrapper, regBottom - memBottom);
         memBottom += regBottom - memBottom;
     }
+
+    // Restore the scrolling of the memory view.
+    tblWrapper.scrollTop = tblWrapperScrollTop;
 
     // Center the contents of the "register" cell vertically.
     let delta = memBottom - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
@@ -180,16 +185,23 @@ export function init(memSize) {
         });
     }
 
-    document.getElementById("speed").addEventListener("change", evt => {
-        const duration = WRITE_DELAY_MAX / evt.target.value;
-        document.querySelectorAll(".cell td").forEach(r => r.style.transition = `background-color ${duration}ms`);
+    // Make registers and assembly view editable.
+    // Omit the instruction register and the device registers.
+    document.querySelectorAll(".reg, .asm").forEach(elt => {
+        if (elt.id !== "instr" && (!elt.id.startsWith("mem") || elt.id < "mem" + i32.toHex(memSize))) {
+            elt.setAttribute("contenteditable", "true");
+            elt.setAttribute("spellcheck",      "false");
+        }
     });
-
-    window.addEventListener("resize", resize);
 
     clearBitmapOutput("bitmap-output");
 
     resize();
+}
+
+export function setAnimationSpeed(speed) {
+    const duration = WRITE_DELAY_MAX / speed;
+    document.querySelectorAll(".reg, .bus").forEach(elt => elt.style.transition = `background-color ${duration}ms`);
 }
 
 export function reset() {

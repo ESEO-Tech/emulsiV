@@ -16,7 +16,6 @@ export class Controller {
         this.stepping    = false;
         this.stopRequest = false;
         this.breakpoints = {};
-        view.init(mem.size);
         this.reset();
     }
 
