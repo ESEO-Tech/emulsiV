@@ -76,43 +76,43 @@ const IMM_FORMAT_TABLE = {
 };
 
 const DECODE_TABLE = {
-    lui   : [OP_LUI   ,        ,        ,         ,         ,        ],
-    auipc : [OP_AUIPC ,        ,        ,         ,         ,        ],
-    jal   : [OP_JAL   ,        ,        ,         ,         ,        ],
-    jalr  : [OP_JALR  , F3_JALR,        ,         ,         ,        ],
-    beq   : [OP_BRANCH, F3_BEQ ,        ,         ,         ,        ],
-    bne   : [OP_BRANCH, F3_BNE ,        ,         ,         ,        ],
-    blt   : [OP_BRANCH, F3_BLT ,        ,         ,         ,        ],
-    bge   : [OP_BRANCH, F3_BGE ,        ,         ,         ,        ],
-    bltu  : [OP_BRANCH, F3_BLTU,        ,         ,         ,        ],
-    bgeu  : [OP_BRANCH, F3_BGEU,        ,         ,         ,        ],
-    lb    : [OP_LOAD  , F3_B   ,        ,         ,         ,        ],
-    lh    : [OP_LOAD  , F3_H   ,        ,         ,         ,        ],
-    lw    : [OP_LOAD  , F3_W   ,        ,         ,         ,        ],
-    lbu   : [OP_LOAD  , F3_BU  ,        ,         ,         ,        ],
-    lhu   : [OP_LOAD  , F3_HU  ,        ,         ,         ,        ],
-    sb    : [OP_STORE , F3_B   ,        ,         ,         ,        ],
-    sh    : [OP_STORE , F3_H   ,        ,         ,         ,        ],
-    sw    : [OP_STORE , F3_W   ,        ,         ,         ,        ],
-    addi  : [OP_IMM   , F3_ADD ,        ,         ,         ,        ],
-    slli  : [OP_IMM   , F3_SL  , F7_L   ,         ,         ,        ],
-    slti  : [OP_IMM   , F3_SLT ,        ,         ,         ,        ],
-    sltiu : [OP_IMM   , F3_SLTU,        ,         ,         ,        ],
-    xori  : [OP_IMM   , F3_XOR ,        ,         ,         ,        ],
-    srli  : [OP_IMM   , F3_SR  , F7_L   ,         ,         ,        ],
-    srai  : [OP_IMM   , F3_SR  , F7_A   ,         ,         ,        ],
-    ori   : [OP_IMM   , F3_OR  ,        ,         ,         ,        ],
-    andi  : [OP_IMM   , F3_AND ,        ,         ,         ,        ],
-    add   : [OP_REG   , F3_ADD , F7_L   ,         ,         ,        ],
-    sub   : [OP_REG   , F3_ADD , F7_A   ,         ,         ,        ],
-    sll   : [OP_REG   , F3_SL  , F7_L   ,         ,         ,        ],
-    slt   : [OP_REG   , F3_SLT , F7_L   ,         ,         ,        ],
-    sltu  : [OP_REG   , F3_SLTU, F7_L   ,         ,         ,        ],
-    xor   : [OP_REG   , F3_XOR , F7_L   ,         ,         ,        ],
-    srl   : [OP_REG   , F3_SR  , F7_L   ,         ,         ,        ],
-    sra   : [OP_REG   , F3_SR  , F7_A   ,         ,         ,        ],
-    or    : [OP_REG   , F3_OR  , F7_L   ,         ,         ,        ],
-    and   : [OP_REG   , F3_ADD , F7_L   ,         ,         ,        ],
+    lui   : [OP_LUI],
+    auipc : [OP_AUIPC],
+    jal   : [OP_JAL],
+    jalr  : [OP_JALR  , F3_JALR],
+    beq   : [OP_BRANCH, F3_BEQ],
+    bne   : [OP_BRANCH, F3_BNE],
+    blt   : [OP_BRANCH, F3_BLT],
+    bge   : [OP_BRANCH, F3_BGE],
+    bltu  : [OP_BRANCH, F3_BLTU],
+    bgeu  : [OP_BRANCH, F3_BGEU],
+    lb    : [OP_LOAD  , F3_B],
+    lh    : [OP_LOAD  , F3_H],
+    lw    : [OP_LOAD  , F3_W],
+    lbu   : [OP_LOAD  , F3_BU],
+    lhu   : [OP_LOAD  , F3_HU],
+    sb    : [OP_STORE , F3_B],
+    sh    : [OP_STORE , F3_H],
+    sw    : [OP_STORE , F3_W],
+    addi  : [OP_IMM   , F3_ADD],
+    slli  : [OP_IMM   , F3_SL  , F7_L],
+    slti  : [OP_IMM   , F3_SLT],
+    sltiu : [OP_IMM   , F3_SLTU],
+    xori  : [OP_IMM   , F3_XOR],
+    srli  : [OP_IMM   , F3_SR  , F7_L],
+    srai  : [OP_IMM   , F3_SR  , F7_A],
+    ori   : [OP_IMM   , F3_OR],
+    andi  : [OP_IMM   , F3_AND],
+    add   : [OP_REG   , F3_ADD , F7_L],
+    sub   : [OP_REG   , F3_ADD , F7_A],
+    sll   : [OP_REG   , F3_SL  , F7_L],
+    slt   : [OP_REG   , F3_SLT , F7_L],
+    sltu  : [OP_REG   , F3_SLTU, F7_L],
+    xor   : [OP_REG   , F3_XOR , F7_L],
+    srl   : [OP_REG   , F3_SR  , F7_L],
+    sra   : [OP_REG   , F3_SR  , F7_A],
+    or    : [OP_REG   , F3_OR  , F7_L],
+    and   : [OP_REG   , F3_ADD , F7_L],
     mret  : [OP_SYSTEM, F3_MRET, F7_MRET, RS2_MRET, RS1_MRET, RD_MRET]
 };
 
@@ -215,7 +215,7 @@ export function fromWord(word) {
     // Trouver le nom de l'instruction.
     const row = [opcode, funct3, funct7, rs2, rs1, rd];
     const name = Object.keys(DECODE_TABLE).find(name =>
-            DECODE_TABLE[name].every((v, i) => v === undefined || v === row[i])
+            DECODE_TABLE[name].every((v, i) => v === row[i])
         ) || "invalid";
 
     // Trouver les actions associées à l'instruction.
@@ -239,7 +239,7 @@ export function toWord(instr) {
         const v = fields[i] || instr[fieldName] || 0;
         res |= i32.getSlice(v, l - r, 0, r);
     });
-    if (fields[0]) {
+    if (fields.length) {
         res |= encodeImmediate(fields[0], instr.imm);
     }
     return res;

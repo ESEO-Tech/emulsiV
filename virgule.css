@@ -61,27 +61,32 @@ body {
     text-align: center;
 }
 
-.cell td {
-    transition: background-color 0.25s; /* TODO configurable */
-    text-align: center;
-}
-
 .cell th {
     border: none;
 }
 
-.bus td, .reg td {
+.bus, .reg {
+    transition: background-color 1.25s; /* TODO configurable */
+    text-align: center;
     font-family: "Droid Sans Mono", monospace;
     font-size: 95%;
 }
 
-.bus td {
+.bus {
     border-top: 1px solid hsl(60, 80%, 40%);
     border-bottom: 1px solid hsl(60, 80%, 40%);
     width: 6em;
 }
 
-.reg td {
+.overlay {
+    visibility: collapse;
+}
+
+.overlay .bus {
+    width: auto;
+}
+
+.reg {
     border: 1px solid hsl(60, 80%, 40%);
     background-color: hsl(60, 80%, 90%);
     box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
@@ -106,12 +111,13 @@ body {
     box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
 }
 
-.reg .asm {
+.asm {
     text-align: left;
     background-color: white;
+    border: 1px solid hsl(60, 80%, 40%);
 }
 
-.reg .brk {
+.brk {
     background-color: white;
     border: none;
     color: rgb(220, 220, 220);
@@ -119,26 +125,21 @@ body {
     box-shadow: none;
 }
 
-.reg .brk:hover {
+.brk:hover {
     color: rgb(200, 200, 200);
 }
 
-.reg .brk.enabled {
+.brk.enabled {
     color: rgb(255, 50, 50);
 }
 
-.reg .asm.active,
-.reg th.active {
+.asm.active {
     background-color: hsl(288, 100%, 90%);
 }
 
-.reg .asm abbr {
+.asm abbr {
     font-style: italic;
     cursor: help;
-}
-
-.overlay {
-    visibility: collapse;
 }
 
 .cell input {

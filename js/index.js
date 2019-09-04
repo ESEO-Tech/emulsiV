@@ -100,18 +100,33 @@ window.addEventListener("load", async evt => {
     document.querySelectorAll(".asm").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
         elt.addEventListener("focus", evt => {
+            // Show the raw instruction in the current cell,
+            // removing any markup.
             ctrl.showAsm(addr);
 
+            // Select the text in the current cell.
             const range = document.createRange();
             range.selectNodeContents(elt);
             const sel = window.getSelection();
             sel.removeAllRanges();
             sel.addRange(range);
+
+            // Resize the view in case the instruction column width has changed.
+            view.resize();
         });
+
+        // Update the memory content while typing.
         elt.addEventListener("input", evt => ctrl.setAsm(addr, elt.innerHTML));
+
         elt.addEventListener("blur", evt => {
+            // Accept the last content of the current cell.
             ctrl.setAsm(addr, elt.innerHTML);
+
+            // Update all devices that map to memory, inclding the assembly view.
             view.updateDevices(true);
+
+            // Resize the view in case the instruction column width has changed.
+            view.resize();
         });
     })
 });

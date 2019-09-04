@@ -193,7 +193,7 @@ export function init(memSize) {
 }
 
 export function reset() {
-    document.querySelectorAll(".registers td").forEach(r => r.className = "");
+    document.querySelectorAll(".registers td").forEach(r => r.className = "reg");
     document.querySelectorAll(".state-btn").forEach(elt => {
         elt.disabled = true;
         elt.classList.remove("active");
@@ -267,7 +267,8 @@ export function move(fromId, toId, value, {slot=0, path=`${fromId}-${toId}`} = {
     const speed     = MOVE_SPEED_MIN * document.getElementById("speed").value;
 
     movingElt.innerHTML = value;
-    fromElt.className   = toElt.className = "selected";
+    fromElt.classList.add("selected");
+    toElt.classList.add("selected");
 
     const dx = toRect.left - fromRect.left;
     const dy = toRect.top  - fromRect.top;
@@ -290,7 +291,8 @@ export function move(fromId, toId, value, {slot=0, path=`${fromId}-${toId}`} = {
             }
             else {
                 movingElt.style.display = "none";
-                fromElt.className       = "";
+                fromElt.classList.remove("selected");
+                toElt.classList.remove("selected");
                 update(toId, value);
                 resolve();
             }
@@ -318,8 +320,8 @@ export function simpleUpdate(id, value="-") {
 
 export function update(id, value) {
     const cell  = simpleUpdate(id, value);
-    cell.className = "written";
-    setTimeout(() => cell.className = "", WRITE_DELAY_MAX / document.getElementById("speed").value);
+    cell.classList.add("written");
+    setTimeout(() => cell.classList.remove("written"), WRITE_DELAY_MAX / document.getElementById("speed").value);
 }
 
 export function waitUpdate() {

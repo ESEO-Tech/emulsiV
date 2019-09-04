@@ -44,9 +44,9 @@
                     <th>Instructions</th>
                     <th></th>
                 </tr>
-                <tr class="reg">
+                <tr>
                     <th>00000000</th>
-                    <td>00</td> <td>00</td> <td>00</td> <td>00</td>
+                    <td class="reg">00</td> <td class="reg">00</td> <td class="reg">00</td> <td class="reg">00</td>
                     <td class="asm" contenteditable="true" spellcheck="false">&mdash;</td>
                     <td class="brk" title="Click to set/remove a breakpoint">&#x25cf;</td>
                 </tr>
@@ -56,94 +56,94 @@
     <div id="cell-bus" class="cell">
         <h1>Bus</h1>
         <table>
-            <tr class="bus"> <th>addr</th> <td id="addr" colspan="4"></td> </tr>
-            <tr class="bus, overlay"> <th>data</th> <!-- Affecte la ligne suivante -->
-                <td id="data3">00</td>
-                <td id="data2">00</td>
-                <td id="data1">00</td>
-                <td id="data0">00</td>
+            <tr> <th>addr</th> <td class="bus" id="addr" colspan="4"></td> </tr>
+            <tr class="overlay"> <th>data</th> <!-- Affecte la ligne suivante -->
+                <td class="bus" id="data3">00</td>
+                <td class="bus" id="data2">00</td>
+                <td class="bus" id="data1">00</td>
+                <td class="bus" id="data0">00</td>
             </tr>
-            <tr class="bus"> <th>data</th> <td id="data" colspan="4"></td> </tr>
-            <tr class="bus"> <th>irq</th> <td id="irq" colspan="4"></td> </tr>
+            <tr> <th>data</th> <td class="bus" id="data" colspan="4"></td> </tr>
+            <tr> <th>irq</th>  <td class="bus" id="irq" colspan="4"></td> </tr>
         </table>
     </div>
     <div id="cell-pc" class="cell">
         <h1>Program counter</h1>
         <table>
-            <tr class="reg"> <th>pc</th>   <td id="pc"></td>   </tr>
-            <tr class="reg"> <th>mepc</th> <td id="mepc"></td> </tr>
-            <tr class="bus"> <th>pc+4</th> <td id="pc-i"></td> </tr>
+            <tr> <th>pc</th>   <td class="reg" id="pc"></td>   </tr>
+            <tr> <th>mepc</th> <td class="reg" id="mepc"></td> </tr>
+            <tr> <th>pc+4</th> <td class="bus" id="pc-i"></td> </tr>
         </table>
 
         <div class="spacer"></div>
 
         <h1>Instruction reg.</h1>
         <table>
-            <tr class="reg"> <th>instr</th> <td id="instr"></td> </tr>
-            <tr class="bus"> <th>fn</th>    <td id="fn"></td>    </tr>
-            <tr class="bus"> <th>rs1</th>   <td id="rs1"></td>   </tr>
-            <tr class="bus"> <th>rs2</th>   <td id="rs2"></td>   </tr>
-            <tr class="bus"> <th>rd</th>    <td id="rd"></td>    </tr>
-            <tr class="bus"> <th>imm</th>   <td id="imm"></td>   </tr>
+            <tr> <th>instr</th> <td class="reg" id="instr"></td> </tr>
+            <tr> <th>fn</th>    <td class="bus" id="fn"></td>    </tr>
+            <tr> <th>rs1</th>   <td class="bus" id="rs1"></td>   </tr>
+            <tr> <th>rs2</th>   <td class="bus" id="rs2"></td>   </tr>
+            <tr> <th>rd</th>    <td class="bus" id="rd"></td>    </tr>
+            <tr> <th>imm</th>   <td class="bus" id="imm"></td>   </tr>
         </table>
     </div>
     <div id="cell-alu" class="cell">
         <h1>ALU</h1>
         <table>
-            <tr class="bus"> <th>op</th> <td id="alu-op"></td> </tr>
-            <tr class="bus"> <th>a</th>  <td id="alu-a"></td>  </tr>
-            <tr class="bus"> <th>b</th>  <td id="alu-b"></td>  </tr>
-            <tr class="bus"> <th>r</th>  <td id="alu-r"></td>  </tr>
+            <tr> <th>op</th> <td class="bus" id="alu-op"></td> </tr>
+            <tr> <th>a</th>  <td class="bus" id="alu-a"></td>  </tr>
+            <tr> <th>b</th>  <td class="bus" id="alu-b"></td>  </tr>
+            <tr> <th>r</th>  <td class="bus" id="alu-r"></td>  </tr>
         </table>
 
         <div class="spacer"></div>
 
         <h1>Comparator</h1>
         <table>
-            <tr class="bus"> <th>op</th>    <td id="cmp-op"></td>    </tr>
-            <tr class="bus"> <th>a</th>     <td id="cmp-a"></td>     </tr>
-            <tr class="bus"> <th>b</th>     <td id="cmp-b"></td>     </tr>
-            <tr class="bus"> <th>taken</th> <td id="cmp-taken"></td> </tr>
+            <tr> <th>op</th>    <td class="bus" id="cmp-op"></td>    </tr>
+            <tr> <th>a</th>     <td class="bus" id="cmp-a"></td>     </tr>
+            <tr> <th>b</th>     <td class="bus" id="cmp-b"></td>     </tr>
+            <tr> <th>taken</th> <td class="bus" id="cmp-taken"></td> </tr>
         </table>
     </div>
     <div id="cell-x" class="cell">
         <h1>General-purpose regs</h1>
         <table id="x">
-            <tr class="reg"> <th>x0</th>  <td id="x0"></td>  </tr>
-            <tr class="reg"> <th>x1</th>  <td id="x1"></td>  </tr>
-            <tr class="reg"> <th>x2</th>  <td id="x2"></td>  </tr>
-            <tr class="reg"> <th>x3</th>  <td id="x3"></td>  </tr>
-            <tr class="reg"> <th>x4</th>  <td id="x4"></td>  </tr>
-            <tr id="xrs1" class="reg overlay"></tr>
-            <tr class="reg"> <th>x5</th>  <td id="x5"></td>  </tr>
-            <tr class="reg"> <th>x6</th>  <td id="x6"></td>  </tr>
-            <tr id="xrs2" class="reg overlay"></tr>
-            <tr class="reg"> <th>x7</th>  <td id="x7"></td>  </tr>
-            <tr class="reg"> <th>x8</th>  <td id="x8"></td>  </tr>
-            <tr id="xrd" class="reg overlay"></tr>
-            <tr class="reg"> <th>x9</th>  <td id="x9"></td>  </tr>
-            <tr class="reg"> <th>x10</td> <td id="x10"></td> </tr>
-            <tr class="reg"> <th>x11</td> <td id="x11"></td> </tr>
-            <tr class="reg"> <th>x12</td> <td id="x12"></td> </tr>
-            <tr class="reg"> <th>x13</td> <td id="x13"></td> </tr>
-            <tr class="reg"> <th>x14</td> <td id="x14"></td> </tr>
-            <tr class="reg"> <th>x15</td> <td id="x15"></td> </tr>
+            <tr> <th>x0</th>  <td class="reg" id="x0"></td>  </tr>
+            <tr> <th>x1</th>  <td class="reg" id="x1"></td>  </tr>
+            <tr> <th>x2</th>  <td class="reg" id="x2"></td>  </tr>
+            <tr> <th>x3</th>  <td class="reg" id="x3"></td>  </tr>
+            <tr> <th>x4</th>  <td class="reg" id="x4"></td>  </tr>
+            <tr id="xrs1" class="overlay"></tr>
+            <tr> <th>x5</th>  <td class="reg" id="x5"></td>  </tr>
+            <tr> <th>x6</th>  <td class="reg" id="x6"></td>  </tr>
+            <tr id="xrs2" class="overlay"></tr>
+            <tr> <th>x7</th>  <td class="reg" id="x7"></td>  </tr>
+            <tr> <th>x8</th>  <td class="reg" id="x8"></td>  </tr>
+            <tr id="xrd" class="overlay"></tr>
+            <tr> <th>x9</th>  <td class="reg" id="x9"></td>  </tr>
+            <tr> <th>x10</td> <td class="reg" id="x10"></td> </tr>
+            <tr> <th>x11</td> <td class="reg" id="x11"></td> </tr>
+            <tr> <th>x12</td> <td class="reg" id="x12"></td> </tr>
+            <tr> <th>x13</td> <td class="reg" id="x13"></td> </tr>
+            <tr> <th>x14</td> <td class="reg" id="x14"></td> </tr>
+            <tr> <th>x15</td> <td class="reg" id="x15"></td> </tr>
         </table>
     </div>
     <div class="cell">
         <h1>Text I/O</h1>
         <table>
-            <tr class="reg">
+            <tr>
                 <th>B0000000</th>
-                <td id="memb0000000"></td>
-                <td id="memb0000001"></td>
+                <td class="reg" id="memb0000000"></td>
+                <td class="reg" id="memb0000001"></td>
             </tr>
         </table>
 
         <input id="text-input">
 
         <table>
-            <tr class="reg"> <th>C0000000</th> <td id="memc0000000"></td> </tr>
+            <tr> <th>C0000000</th> <td class="reg" id="memc0000000"></td> </tr>
         </table>
 
         <pre id="text-output"></pre>
