@@ -25,6 +25,12 @@ export class AsmOutput extends Device {
         return result;
     }
 
+    refresh() {
+        for (let a = 0; a < this.mem.size; a += 4) {
+            this.localWrite(a, 1, 0);
+        }
+    }
+
     localWrite(address, size, value) {
         address -= address % 4;
         const word = this.mem.read(address, 4, false);
@@ -32,7 +38,7 @@ export class AsmOutput extends Device {
         this.instrs[i32.toHex(address)] = {
             asm:    asm.toString(instr, address),
             pseudo: asm.pseudoToString(instr, address),
-            meta:   asm.metaToString(instr, address)
+            meta:   asm.metaToString(instr, address),
         };
     }
 }

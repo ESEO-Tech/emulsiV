@@ -115,6 +115,15 @@ window.addEventListener("load", async evt => {
         sel.addRange(range);
     }
 
+    function blurOnEnter(elt) {
+        elt.addEventListener("keypress", evt => {
+            if (evt.which === 13) {
+                elt.blur();
+                evt.preventDefault();
+            }
+        });
+    }
+
     // Memory.
     document.querySelectorAll("#mem .reg").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
@@ -131,13 +140,15 @@ window.addEventListener("load", async evt => {
             }
         });
 
+        blurOnEnter(elt);
+
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
             view.simpleUpdate(elt.id, i32.toHex(bus.read(addr, 1), 2));
         });
     });
 
-    // Assembly view.
+    // Assembly/user-friendly view.
     document.querySelectorAll(".asm").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
         let changed = false;
@@ -165,6 +176,8 @@ window.addEventListener("load", async evt => {
             changed = true;
         });
 
+        blurOnEnter(elt);
+
         elt.addEventListener("blur", evt => {
             if (changed) {
                 // Update all devices that map to memory, inclding the assembly view.
@@ -179,6 +192,13 @@ window.addEventListener("load", async evt => {
         });
     });
 
+    // Alternative memory view format change
+    document.getElementById("alt-mem-view-sel").addEventListener("change", evt => {
+        asm_out.refresh();
+        view.updateDevices(true);
+        view.resize();
+    });
+
     // General-purpose registers.
     document.querySelectorAll("#x .reg").forEach(elt => {
         const addr = parseInt(elt.id.slice(1));
@@ -191,6 +211,8 @@ window.addEventListener("load", async evt => {
                 cpu.setX(addr, value);
             }
         });
+
+        blurOnEnter(elt);
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
@@ -211,6 +233,8 @@ window.addEventListener("load", async evt => {
             }
         });
 
+        blurOnEnter(elt);
+
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
             view.simpleUpdate(elt.id, i32.toHex(cpu.pc));
@@ -229,6 +253,8 @@ window.addEventListener("load", async evt => {
                 cpu.mepc = value;
             }
         });
+
+        blurOnEnter(elt);
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.

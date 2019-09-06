@@ -99,7 +99,7 @@ export function toString({name, rd, rs1, rs2, imm}, address) {
             case "1": return emitReg(rs1);
             case "2": return emitReg(rs2);
             case "i": return Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
-            case "p": return `0x${i32.toHex(imm + address)}`;
+            case "p": return (imm > 0 ? "+" : "") + imm;
             case "a": return `${imm}(${emitReg(rs1)})`;
         }
     });
@@ -127,7 +127,7 @@ export function metaToString({name, imm}, address) {
         return null;
     }
     if (ASM_TABLE[name].endsWith("p")) {
-        return `pc${imm >= 0 ? "+" : ""}${imm}`;
+        return "0x" + i32.toHex(imm + address);
     }
     return null;
 }
@@ -167,11 +167,11 @@ export function fromString(str, address) {
 
     operands.forEach((op, i) => {
         switch (syntax[i]) {
-            case "d": instr.rd  = parseReg(op);           break;
-            case "1": instr.rs1 = parseReg(op);           break;
-            case "2": instr.rs2 = parseReg(op);           break;
-            case "i": instr.imm = parseImm(op);           break;
-            case "p": instr.imm = parseImm(op) - address; break;
+            case "d": instr.rd  = parseReg(op); break;
+            case "1": instr.rs1 = parseReg(op); break;
+            case "2": instr.rs2 = parseReg(op); break;
+            case "i":
+            case "p": instr.imm = parseImm(op); break;
             case "a":
                 const addressSpec = op.split(/[()]/);
                 if (addressSpec.length !== 3) {
