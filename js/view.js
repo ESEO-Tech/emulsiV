@@ -8,34 +8,42 @@ const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
 const WRITE_DELAY_MAX      = 5000;    // ms
 const ANIMATION_DELAY_MIN  = 1000/60; // ms
-const MARGIN               = 10;      // px
+const MARGIN               = 30;      // px
 
 export function resize() {
     function resizeElt(elt, delta) {
         elt.style.height = (elt.clientHeight + delta) + "px";
     }
 
-    // Set memory table height to its maximum to compute the overflow.
-    // Preserve the scrolling.
+    // Preserve the scrolling in the memory table wrapper.
     const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
     const tblWrapperScrollTop = tblWrapper.scrollTop;
-    tblWrapper.style.height = "auto";
-
-    // Resize the memory table wrapper so that the "devices" section does not overflow.
-    const devicesBottom = Math.max(document.querySelector("#bitmap-output").getBoundingClientRect().bottom,
-                                   document.querySelector("#text-output").getBoundingClientRect().bottom);
-    resizeElt(tblWrapper, window.innerHeight - devicesBottom - MARGIN);
 
     // Reset the "register" cell to the top of the window.
     const regH1 = document.querySelector("#cell-x h1");
     regH1.style["padding-top"] = 0;
+    const regBottom = document.querySelector("#cell-x table").getBoundingClientRect().bottom;
 
-    // Make sure the memory table is not shorter than the register table.
-    const regBottom  = document.querySelector("#cell-x table").getBoundingClientRect().bottom;
+    // Reset all spacers.
+    document.querySelectorAll(".spacer").forEach(elt => elt.style.height = "0px");
+
+    // Make the memory table as high as the register table.
     let memBottom = tblWrapper.getBoundingClientRect().bottom;
-    if (memBottom < regBottom) {
-        resizeElt(tblWrapper, regBottom - memBottom);
-        memBottom += regBottom - memBottom;
+    resizeElt(tblWrapper, regBottom - memBottom);
+
+    // Set memory table height to its maximum in its parent grid cell.
+    const tblCell = document.getElementById("cell-memory")
+    const tblCellBottom = tblCell.getBoundingClientRect().bottom;
+    if (tblCellBottom > regBottom) {
+        resizeElt(tblWrapper, tblCellBottom - regBottom);
+    }
+
+    // Resize the memory table wrapper so that the "devices" section does not overflow.
+    const devicesBottom = Math.max(document.querySelector("#bitmap-output").getBoundingClientRect().bottom,
+                                   document.querySelector("#text-output").getBoundingClientRect().bottom);
+    if (devicesBottom < window.innerHeight) {
+        resizeElt(tblWrapper, window.innerHeight - devicesBottom - MARGIN);
+        memBottom = tblWrapper.getBoundingClientRect().bottom;
     }
 
     // Restore the scrolling of the memory view.

@@ -1,7 +1,8 @@
 
 body {
     font-family: "Droid Sans", sans-serif;
-    overflow: hidden;
+    font-size: 11pt;
+    overflow-x: hidden;
     margin: 0;
 }
 
