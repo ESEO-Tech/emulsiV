@@ -12,7 +12,8 @@ export class TextOutput extends Device {
     }
 
     localWrite(address, count, value) {
-        this.data = String.fromCharCode(value & 0xFF);
+        const charCode = value & 0xFF;
+        this.data = (charCode === 0x0a || charCode >= 0x20 && charCode < 0x7f || charCode >= 0xa1) ? String.fromCharCode(charCode) : "\ufffd";
     }
 
     hasData() {
@@ -34,7 +35,7 @@ export class TextInput extends Memory {
     reset() {
         this.localWrite(0, 2, 0);
     }
-    
+
     onKeyDown(code) {
         // Status reg.
         this.localWrite(0, 1, this.localRead(0, 1) | 0x40);

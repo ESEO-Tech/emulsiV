@@ -152,6 +152,9 @@ body {
     background: black;
     color: lightgreen;
     height: 5em;
+    overflow: scroll;
+    /* white-space: pre-wrap;
+    overflow-wrap: break-word; */
 }
 
 .asm {

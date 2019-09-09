@@ -61,6 +61,8 @@ export function resize() {
     delta = memBottom - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom;
     resizeElt(document.querySelector("#cell-alu .spacer"), delta);
 
+    document.getElementById("text-output").style.width = tblWrapper.clientWidth + "px";
+
     // Center the contents of the "bus" cell vertically.
     const busH1 = document.querySelector("#cell-bus h1");
     busH1.style["padding-top"] = 0;
@@ -394,24 +396,36 @@ function updateAsmOutput(id, dev) {
     const format = document.getElementById("alt-mem-view-sel").value;
 
     const instrs = dev.getData();
-    for (let [addr, {asm, pseudo, meta}] of Object.entries(instrs)) {
+    for (let [addr, {word, asm, pseudo, meta}] of Object.entries(instrs)) {
+        let res = "";
         switch (format) {
             case "asm":
             case "pseudo":
                 if (format === "pseudo" && pseudo) {
                     const metaStr = meta ? ` <${meta}>` : "";
-                    simpleUpdate(id + addr, `<abbr title="${asm}${metaStr}">${pseudo}</abbr>`);
+                    res = `<abbr title="${asm}${metaStr}">${pseudo}</abbr>`;
                 }
                 else if (meta) {
                     const s = asm.split(" ");
                     const asmr = s[s.length-1];
                     const asml = asm.slice(0, -asmr.length);
-                    simpleUpdate(id + addr, `${asml} <abbr title="${meta}">${asmr}</abbr>`);
+                    res = `${asml} <abbr title="${meta}">${asmr}</abbr>`;
                 }
                 else {
-                    simpleUpdate(id + addr, asm);
+                    res = asm;
                 }
                 break;
+
+            case "ascii":
+                for (let i = 0; i < 32; i += 8) {
+                    const charCode = i32.getSlice(word, i + 7, i);
+                    const char = (charCode >= 0x20 && charCode < 0x7f || charCode >= 0xa1) ? String.fromCharCode(charCode) : "\ufffd";
+                    res += char;
+                }
+                break;
+        }
+        if (res.length) {
+            simpleUpdate(id + addr, res);
         }
     }
 }

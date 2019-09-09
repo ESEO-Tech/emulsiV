@@ -36,6 +36,7 @@ export class AsmOutput extends Device {
         const word = this.mem.read(address, 4, false);
         const instr = fmt.fromWord(word);
         this.instrs[i32.toHex(address)] = {
+            word:   word,
             asm:    asm.toString(instr, address),
             pseudo: asm.pseudoToString(instr, address),
             meta:   asm.metaToString(instr, address),
