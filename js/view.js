@@ -423,6 +423,23 @@ function updateAsmOutput(id, dev) {
                     res += char;
                 }
                 break;
+
+            case "int32":  res = i32.s(word).toString(); break;
+            case "uint32": res = i32.u(word).toString(); break;
+            case "int16":
+                res = [i32.getSlice(word, 15, 0, 0, true), i32.getSlice(word, 31, 16, 0, true)].map(s => s.toString()).join(", ");
+                break;
+            case "uint16":
+                res = [i32.getSlice(word, 15, 0), i32.getSlice(word, 31, 16)].map(s => s.toString()).join(", ");
+                break;
+            case "int8":
+                res = [i32.getSlice(word, 7, 0, 0, true), i32.getSlice(word, 15, 8, 0, true),
+                       i32.getSlice(word, 23, 16, 0, true), i32.getSlice(word, 31, 24, 0, true),].map(s => s.toString()).join(", ");
+                break;
+            case "uint8":
+                res = [i32.getSlice(word, 7, 0), i32.getSlice(word, 15, 8),
+                       i32.getSlice(word, 23, 16), i32.getSlice(word, 31, 24),].map(s => s.toString()).join(", ");
+                break;
         }
         if (res.length) {
             simpleUpdate(id + addr, res);
