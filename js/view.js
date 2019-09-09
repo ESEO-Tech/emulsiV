@@ -186,7 +186,7 @@ export function init(memSize) {
 
         const rowAddress = i * MEMORY_BYTES_PER_ROW;
         const rowAddressX = i32.toHex(rowAddress);
-        currentRow.querySelector("th").innerHTML = i32.toHex(rowAddressX);
+        currentRow.querySelector("th").innerHTML = rowAddressX;
         currentRow.querySelectorAll("td.reg").forEach((td, j) => {
             td.setAttribute("id", "mem" + i32.toHex(rowAddress + j));
         });
