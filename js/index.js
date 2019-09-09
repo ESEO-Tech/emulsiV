@@ -267,4 +267,19 @@ window.addEventListener("load", async evt => {
         const addr = parseInt(elt.id.slice(3), 16);
         elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
     });
+
+    /* ---------------------------------------------------------------------- *
+       Event handlers for font size buttons.
+     * ---------------------------------------------------------------------- */
+
+    function updateFontSize(sel, factor) {
+        const elt = document.querySelector(sel);
+        const fontSizePx = parseFloat(window.getComputedStyle(elt)["font-size"].slice(0, -2));
+        console.log(fontSizePx);
+        elt.style["font-size"] = (fontSizePx * factor) + "px";
+        view.resize();
+    }
+
+    document.getElementById("font-plus-btn").addEventListener("click", evt => updateFontSize("body", 1.1));
+    document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
 });
