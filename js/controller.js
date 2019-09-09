@@ -76,9 +76,43 @@ export class Controller {
     }
 
     setAsm(addr, str) {
-        const instr = asm.fromString(str, addr);
-        if (instr) {
-            const word = fmt.toWord(instr);
+        function intListToWord(str, width) {
+            return str.trim().split(/\s+|\s*,\s*/).reduce((res, s,  i) => {
+                let v = parseInt(s);
+                if (isNaN(v)) {
+                    v = 0;
+                }
+                return res | i32.getSlice(v, width - 1, 0, i * width);
+            }, 0);
+        }
+
+        const format = document.getElementById("alt-mem-view-sel").value;
+        let word = null;
+        switch (format) {
+            case "asm":
+            case "pseudo":
+                const instr = asm.fromString(str, addr);
+                if (instr) {
+                    word = fmt.toWord(instr);
+                }
+                break;
+
+            case "ascii":
+                word = str.split("").reduce((res, s, i) => {
+                    const v = s.charCodeAt(0);
+                    return res | i32.getSlice(v, 7, 0, i * 8);
+                }, 0);
+                break;
+
+            case "int32":
+            case "uint32": word = intListToWord(str, 32); break;
+            case "int16":
+            case "uint16": word = intListToWord(str, 16); break;
+            case "int8":
+            case "uint8": word = intListToWord(str, 8); break;
+        }
+
+        if (word !== null) {
             this.bus.write(addr, 4, word);
             for (let a = addr; a < addr + 4; a ++) {
                 view.simpleUpdate("mem" + i32.toHex(a), i32.toHex(this.bus.read(a, 1, false), 2))
@@ -88,8 +122,11 @@ export class Controller {
     }
 
     showAsm(addr) {
-        const str = asm.toString(fmt.fromWord(this.bus.read(addr, 4)), addr);
-        view.simpleUpdate("asm" + i32.toHex(addr), str);
+        const format = document.getElementById("alt-mem-view-sel").value;
+        if (format === "asm" || format === "pseudo") {
+            const str = asm.toString(fmt.fromWord(this.bus.read(addr, 4)), addr);
+            view.simpleUpdate("asm" + i32.toHex(addr), str);
+        }
     }
 
     async loadHex(data) {

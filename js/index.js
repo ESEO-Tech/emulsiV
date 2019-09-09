@@ -133,7 +133,7 @@ window.addEventListener("load", async evt => {
 
         // Update the content of the current cell while typing.
         elt.addEventListener("input", evt => {
-            const value = parseInt(elt.innerHTML, 16);
+            const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 bus.write(addr, 1, value);
                 view.updateDevices(true);
@@ -172,7 +172,7 @@ window.addEventListener("load", async evt => {
 
         // Update the memory content while typing.
         elt.addEventListener("input", evt => {
-            ctrl.setAsm(addr, elt.innerHTML);
+            ctrl.setAsm(addr, elt.innerText);
             changed = true;
         });
 
@@ -206,7 +206,7 @@ window.addEventListener("load", async evt => {
 
         // Update the content of the current register while typing.
         elt.addEventListener("input", evt => {
-            const value = parseInt(elt.innerHTML, 16);
+            const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.setX(addr, value);
             }
@@ -226,7 +226,7 @@ window.addEventListener("load", async evt => {
 
         // Update the content of the register while typing.
         elt.addEventListener("input", evt => {
-            const value = parseInt(elt.innerHTML, 16);
+            const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.setPc(value);
                 view.simpleUpdate("pc-i", i32.toHex(cpu.pc + 4));
@@ -248,7 +248,7 @@ window.addEventListener("load", async evt => {
 
         // Update the content of the register while typing.
         elt.addEventListener("input", evt => {
-            const value = parseInt(elt.innerHTML, 16);
+            const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.mepc = value;
             }
