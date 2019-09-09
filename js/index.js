@@ -172,7 +172,7 @@ window.addEventListener("load", async evt => {
 
         // Update the memory content while typing.
         elt.addEventListener("input", evt => {
-            ctrl.setAsm(addr, elt.innerText);
+            ctrl.setAsm(addr, elt.innerText.replace(/\u00a0/g, " ").replace(/\ufffd/g, "\u0000"));
             changed = true;
         });
 

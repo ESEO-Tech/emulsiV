@@ -185,14 +185,13 @@ export function init(memSize) {
         }
 
         const rowAddress = i * MEMORY_BYTES_PER_ROW;
-        currentRow.querySelector("th").innerHTML = i32.toHex(rowAddress);
-        currentRow.querySelectorAll("td").forEach((td, j) => {
-            const prefix = j == 5 ? "brk" :
-                           j == 4 ? "asm" :
-                                    "mem";
-            const addr = j >= 4 ? rowAddress : rowAddress + j;
-            td.setAttribute("id", prefix + i32.toHex(addr));
+        const rowAddressX = i32.toHex(rowAddress);
+        currentRow.querySelector("th").innerHTML = i32.toHex(rowAddressX);
+        currentRow.querySelectorAll("td.reg").forEach((td, j) => {
+            td.setAttribute("id", "mem" + i32.toHex(rowAddress + j));
         });
+        currentRow.querySelector("td.brk").setAttribute("id", "brk" + rowAddressX);
+        currentRow.querySelector("td.asm").setAttribute("id", "asm" + rowAddressX);
     }
 
     // Make registers and assembly view editable.

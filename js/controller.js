@@ -77,7 +77,7 @@ export class Controller {
 
     setAsm(addr, str) {
         function intListToWord(str, width) {
-            return str.trim().split(/\s+|\s*,\s*/).reduce((res, s,  i) => {
+            return str.trim().split(/\s+|\s*,\s*/).slice(0, 32 / width).reduce((res, s,  i) => {
                 let v = parseInt(s);
                 if (isNaN(v)) {
                     v = 0;
@@ -98,7 +98,7 @@ export class Controller {
                 break;
 
             case "ascii":
-                word = str.split("").reduce((res, s, i) => {
+                word = str.slice(0, 4).split("").reduce((res, s, i) => {
                     const v = s.charCodeAt(0);
                     return res | i32.getSlice(v, 7, 0, i * 8);
                 }, 0);
