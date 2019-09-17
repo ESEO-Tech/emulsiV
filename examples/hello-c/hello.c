@@ -1,12 +1,12 @@
 
-#define CONSOLE (*(char*)0xC0000000)
+#define TEXT_OUT (*(char*)0xC0000000)
 
-void display(const char *str) {
+void print(const char *str) {
     while (*str) {
-        CONSOLE = *str++;
+        TEXT_OUT = *str++;
     }
 }
 
 void main(void) {
-    display("Virgule says\n<< Hello! >>\n");
+    print("Virgule says\n<< Hello! >>\n");
 }
