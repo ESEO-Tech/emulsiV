@@ -135,13 +135,8 @@ export function metaToString({name, imm}, address) {
 export function fromString(str, address) {
     const instr = {name: "invalid", rd: 0, rs1: 0, rs2: 0, imm: 0};
 
-    const fragments = str.trim().split(/\s+|\s*,\s*/);
-    if (!fragments.length) {
-        return instr;
-    }
-
     // TODO also match pseudo-instructions.
-    const [name, ...operands] = fragments;
+    const [name, ...operands] = str.trim().split(/\s*[,\s]\s*/);
     if (!(name in ASM_TABLE) || (name in PSEUDO_TABLE)) {
         return instr;
     }
