@@ -132,11 +132,33 @@ export function metaToString({name, imm}, address) {
     return null;
 }
 
+function seq(...res) {
+    return new RegExp(res.map(e => `(?:${e.source})`).join(""));
+}
+
+function alt(...res) {
+    return new RegExp(res.map(e => `(?:${e.source})`).join("|"));
+}
+
+const instructionNameRe     = /\b[a-z]+\b/;
+const registerNameRe        = /\bx([0-9]+)\b/;
+const decimalLiteralRe      = /[+-]?[0-9]+\b/;
+const hexLiteralRe          = /[+-]?0x[0-9a-f]+\b/;
+const integerLiteralRe      = alt(decimalLiteralRe, hexLiteralRe);
+const indirectAddressRe     = seq(/\(\s*/, registerNameRe, /\s*\)/);
+const offsetAddressRe       = seq(integerLiteralRe, /\s*/, indirectAddressRe);
+const instructionFragmentRe = new RegExp(alt(instructionNameRe, registerNameRe, indirectAddressRe, offsetAddressRe, integerLiteralRe), "g");
+
 export function fromString(str, address) {
     const instr = {name: "invalid", rd: 0, rs1: 0, rs2: 0, imm: 0};
 
+    const fragments = str.toLowerCase().match(instructionFragmentRe);
+    if (!fragments) {
+        return instr;
+    }
+
     // TODO also match pseudo-instructions.
-    const [name, ...operands] = str.trim().split(/\s*[,\s]\s*/);
+    const [name, ...operands] = fragments;
     if (!(name in ASM_TABLE) || (name in PSEUDO_TABLE)) {
         return instr;
     }
@@ -145,7 +167,7 @@ export function fromString(str, address) {
     const syntax = ASM_TABLE[name];
 
     function parseReg(op) {
-        const m = /x([0-9]+)/.exec(op);
+        const m = registerNameRe.exec(op);
         if (!m) {
             return 0;
         }
