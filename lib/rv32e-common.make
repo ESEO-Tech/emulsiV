@@ -24,5 +24,8 @@ OBJ_DEPS = $(C_DEPS:.c=.o) $(ASM_DEPS:.s=.o)
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
 
+%.url: %.hex
+	$(LIB_DIR)/url-encode.js $< > $@
+
 clean:
 	rm -f *.o *.hex *.elf

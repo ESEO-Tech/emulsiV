@@ -6,6 +6,7 @@ import {BitmapOutput}          from "./devices/bitmap.js";
 import {AsmOutput}             from "./devices/asm.js";
 import * as view               from "./view.js";
 import * as i32                from "./i32.js";
+import * as url                from "./url.js";
 
 window.addEventListener("load", async evt => {
     const memSize = 4096;
@@ -42,7 +43,12 @@ window.addEventListener("load", async evt => {
         xhr.send();
     }
 
-    await loadExample("hello-asm/hello.hex");
+    if (window.location.hash.length) {
+        ctrl.loadHex(url.decode(window.location.hash));
+    }
+    else {
+        await loadExample("hello-asm/hello.hex");
+    }
 
     /* ---------------------------------------------------------------------- *
        Event handlers for toolbar elements.
