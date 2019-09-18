@@ -291,7 +291,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
 
     /* ---------------------------------------------------------------------- *
-       Link generation and download buttons.
+       Link generation and open/download buttons.
      * ---------------------------------------------------------------------- */
 
     const genLinkBtn = document.getElementById("gen-link-btn");
@@ -311,6 +311,10 @@ window.addEventListener("load", async evt => {
 
     document.getElementById("download-btn").addEventListener("click", evt => {
         window.open('data:text/plain;charset=utf-8,' + escape(hex.generate(bus, mem.size), "_blank"));
+    });
+
+    document.getElementById("open-btn").addEventListener("click", evt => {
+        document.getElementById("hex-input").click();
     });
 
     console.log("Ready");

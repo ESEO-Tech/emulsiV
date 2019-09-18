@@ -10,10 +10,12 @@
 
 <div class="main">
     <div class="toolbar">
-        <button id="font-plus-btn"  title="Increase font size"><i class="fas fa-search-plus"></i></button>
-        <button id="font-minus-btn" title="Decrease font size"><i class="fas fa-search-minus"></i></button>
-        <button id="gen-link-btn"   title="Create a link to this program and copy the address into the clipboard"><i class="fas fa-link"></i></button>
-        <button id="download-btn"   title="Download this program as an hex file (requires popup authorization; you may also need to disable your ad blocker)"><i class="fas fa-download"></i></button>
+        <button id="font-plus-btn"  title="Increase font size."><i class="fas fa-search-plus"></i></button>
+        <button id="font-minus-btn" title="Decrease font size."><i class="fas fa-search-minus"></i></button>
+        <button id="gen-link-btn"   title="Create a link to this program and copy the address into the clipboard."><i class="fas fa-link"></i></button>
+        <button id="download-btn"   title="Download this program as an hex file. Requires popup authorization. You may also need to disable your ad blocker."><i class="fas fa-download"></i></button>
+        <button id="open-btn"       title="Open an hex file from your computer."><i class="far fa-folder-open"></i></button>
+        <input  id="hex-input" type="file" accept=".hex" style="display:none;">
 
         <select id="examples-sel">
             <option value="" selected>Select an example</option>
@@ -25,22 +27,21 @@
             <option value="td-bitmap-base-asm/td-bitmap.hex">Image cachée</option>
             <option value="cursor-asm/cursor.hex">Cursor</option>
         </select>
-        <input id="hex-input" type="file" accept=".hex">
 
         <label for="animate-cb">Animation</label>
-        <input id="animate-cb" type="checkbox" checked>
+        <input id="animate-cb" type="checkbox" title="Animate data transfers during instruction execution." checked>
         <label for="speed">Speed</label>
-        <input id="speed"     type="number" step="1" value="5">
-        <input id="reset-btn" type="button" value="Reset">
-        <input id="run-btn"   type="button" value="Run">
-        <input id="step-btn"  type="button" value="Step">
+        <input id="speed"     type="number" step="1" value="5" title="Set the animation speed. Has no effect if animations are disabled.">
+        <input id="reset-btn" type="button" value="Reset"      title="Reset the processor and peripherals. Does not clear the memory.">
+        <input id="run-btn"   type="button" value="Run"        title="Execute the program forever or until a breakpoint is hit.">
+        <input id="step-btn"  type="button" value="Step"       title="Execute the current instruction.">
 
-        <input id="fetch-btn"  class="state-btn" type="button" value="Fetch">
-        <input id="decode-btn" class="state-btn" type="button" value="Decode">
-        <input id="alu-btn"    class="state-btn" type="button" value="ALU">
-        <input id="branch-btn" class="state-btn" type="button" value="Compare">
-        <input id="write-btn"  class="state-btn" type="button" value="Mem/Reg">
-        <input id="pc-btn"     class="state-btn" type="button" value="PC">
+        <input id="fetch-btn"  class="state-btn" type="button" value="Fetch"   title="Read an instruction from memory.">
+        <input id="decode-btn" class="state-btn" type="button" value="Decode"  title="Decode the current instruction.">
+        <input id="alu-btn"    class="state-btn" type="button" value="ALU"     title="Execute an arithmetic or logic operation.">
+        <input id="branch-btn" class="state-btn" type="button" value="Compare" title="Execute a comparison, if the current instruction is a conditional branch.">
+        <input id="write-btn"  class="state-btn" type="button" value="Mem/Reg" title="Write the ALU result to a register, or store data to a memory location.">
+        <input id="pc-btn"     class="state-btn" type="button" value="PC"      title="Update the program counter.">
     </div>
 
     <div id="cell-memory" class="cell">
