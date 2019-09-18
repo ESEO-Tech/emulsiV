@@ -291,7 +291,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
 
     /* ---------------------------------------------------------------------- *
-       Link generation and open/download buttons.
+       Event handlers for link generation and open/download buttons.
      * ---------------------------------------------------------------------- */
 
     const genLinkBtn = document.getElementById("gen-link-btn");
@@ -315,6 +315,16 @@ window.addEventListener("load", async evt => {
 
     document.getElementById("open-btn").addEventListener("click", evt => {
         document.getElementById("hex-input").click();
+    });
+
+    /* ---------------------------------------------------------------------- *
+       Event handlers for the canvas.
+     * ---------------------------------------------------------------------- */
+
+    document.getElementById("bitmap-output").addEventListener("click", evt => {
+        const {x, y} = view.getBitmapOutputXY("bitmap-output", bitmap_out, evt.clientX, evt.clientY);
+        const address = bitmap_out.firstAddress + x + y * bitmap_out.width;
+        view.highlightMemoryCell("mem" + i32.toHex(address));
     });
 
     console.log("Ready");

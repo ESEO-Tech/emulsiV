@@ -391,6 +391,19 @@ function updateBitmapOutput(id, dev) {
     }
 }
 
+export function getBitmapOutputXY(id, dev, clientX, clientY) {
+    const rect = document.getElementById(id).getBoundingClientRect();
+    let x = Math.floor((clientX - rect.left) * dev.width  / rect.width);
+    x = Math.max(x, 0);
+    x = Math.min(x, dev.width - 1);
+
+    let y = Math.floor((clientY - rect.top)  * dev.height / rect.height);
+    y = Math.max(y, 0);
+    y = Math.min(y, dev.height - 1);
+
+    return {x, y};
+}
+
 function updateAsmOutput(id, dev) {
     const format = document.getElementById("alt-mem-view-sel").value;
 
@@ -473,4 +486,15 @@ export function enableBreakpoint(id) {
 
 export function disableBreakpoint(id) {
     document.getElementById(id).classList.remove("enabled");
+}
+
+let highlightedCell = null;
+
+export function highlightMemoryCell(id) {
+    if (highlightedCell) {
+        highlightedCell.classList.remove("overview");
+    }
+    highlightedCell = document.getElementById(id);
+    scrollIntoView(highlightedCell);
+    highlightedCell.classList.add("overview");
 }

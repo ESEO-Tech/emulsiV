@@ -116,6 +116,10 @@ button {
     background-color: hsl(180, 100%, 90%);
 }
 
+.cell .overview {
+    background-color: hsl(60, 80%, 40%);
+}
+
 .moving-value {
     font-family: "Droid Sans Mono", monospace;
     display: none;
@@ -197,6 +201,10 @@ canvas {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+canvas:hover {
+    cursor: crosshair;
 }
 
 svg {
