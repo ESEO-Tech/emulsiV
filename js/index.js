@@ -291,7 +291,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
 
     /* ---------------------------------------------------------------------- *
-       Link generation button.
+       Link generation and download buttons.
      * ---------------------------------------------------------------------- */
 
     const genLinkBtn = document.getElementById("gen-link-btn");
@@ -307,6 +307,10 @@ window.addEventListener("load", async evt => {
             genLinkBtn.classList.remove("active");
             genLinkBtn.innerHTML = '<i class="fas fa-link"></i>';
         }, 500);
+    });
+
+    document.getElementById("download-btn").addEventListener("click", evt => {
+        window.open('data:text/plain;charset=utf-8,' + escape(hex.generate(bus, mem.size), "_blank"));
     });
 
     console.log("Ready");
