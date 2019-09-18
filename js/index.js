@@ -7,6 +7,7 @@ import {AsmOutput}             from "./devices/asm.js";
 import * as view               from "./view.js";
 import * as i32                from "./i32.js";
 import * as url                from "./url.js";
+import * as hex                from "./hex.js";
 
 window.addEventListener("load", async evt => {
     const memSize = 4096;
@@ -288,4 +289,25 @@ window.addEventListener("load", async evt => {
 
     document.getElementById("font-plus-btn").addEventListener("click", evt => updateFontSize("body", 1.1));
     document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
+
+    /* ---------------------------------------------------------------------- *
+       Link generation button.
+     * ---------------------------------------------------------------------- */
+
+    const genLinkBtn = document.getElementById("gen-link-btn");
+    genLinkBtn.addEventListener("click", async evt => {
+        const a = document.createElement("a");
+        a.href = window.location.toString();
+        a.hash = url.encode(hex.generate(bus, mem.size));
+
+        genLinkBtn.innerHTML = '<i class="far fa-clipboard"></i>';
+        genLinkBtn.classList.add("active");
+        await navigator.clipboard.writeText(a.href);
+        setTimeout(evt => {
+            genLinkBtn.classList.remove("active");
+            genLinkBtn.innerHTML = '<i class="fas fa-link"></i>';
+        }, 500);
+    });
+
+    console.log("Ready");
 });

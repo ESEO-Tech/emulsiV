@@ -1,4 +1,6 @@
 
+import * as i32 from "./i32.js";
+
 export function parse(text, dest) {
     text = text.toLowerCase();
 
@@ -61,7 +63,7 @@ export function parse(text, dest) {
         if (address + count > totalSize) {
             totalSize = address + count;
         }
-        
+
         if (recordType === 1) {
             break;
         }
@@ -70,4 +72,37 @@ export function parse(text, dest) {
     }
 
     return totalSize;
+}
+
+export function generate(src, size, bytesPerLine=16) {
+    let result = "";
+
+    for (let lineAddr = 0; lineAddr < size; lineAddr += bytesPerLine) {
+        // Compute the actual byte count for the current line.
+        const count = Math.min(bytesPerLine, size - lineAddr);
+        // Line header with ":", byte count, address and record type.
+        let line = ":" + i32.toHex(count, 2) + i32.toHex(lineAddr, 4) + "00";
+        // Initialize the checksum for this line.
+        let checksum = count + (lineAddr >> 8) + (lineAddr & 0xFF);
+        // This flag will be used to detect null lines.
+        let hasData = false;
+
+        for (let byteAddr = lineAddr; byteAddr < lineAddr + count; byteAddr ++) {
+            const byte = src.read(byteAddr, 1);
+            if (byte) {
+                hasData = true;
+            }
+            checksum += byte;
+            line += i32.toHex(byte, 2);
+        }
+
+        // If the line contains non-zero data, append it to the result
+        // with the final checksum byte.
+        if (hasData) {
+            result += line + i32.toHex(i32.getSlice(-checksum, 7, 0), 2) + "\n";
+        }
+    }
+
+    // Append the "end-of-file" record.
+    return result + ":00000001FF";
 }

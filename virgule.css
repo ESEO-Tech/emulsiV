@@ -24,6 +24,21 @@ body {
     grid-column: 1 / span 5;
 }
 
+button {
+    border: none;
+    padding: 0 0.5em;
+    font-size: 12pt;
+    background: transparent;
+}
+
+#gen-link-btn {
+    transition: background-color 0.25s;
+}
+
+#gen-link-btn.active {
+    background-color: rgb(200, 200, 200);
+}
+
 .cell {
     padding: 0 1em;
 }

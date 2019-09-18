@@ -4,13 +4,15 @@
 
 <meta charset="utf-8">
 <link rel="stylesheet" href="virgule.css">
+<link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/all.css">
 
 <title>Virgule</title>
 
 <div class="main">
     <div class="toolbar">
-        <input id="font-plus-btn" type="button" value="+" title="Increase font size">
-        <input id="font-minus-btn" type="button" value="-" title="Decrease font size">
+        <button id="font-plus-btn"  title="Increase font size"><i class="fas fa-search-plus"></i></button>
+        <button id="font-minus-btn" title="Decrease font size"><i class="fas fa-search-minus"></i></button>
+        <button id="gen-link-btn"   title="Create a link to this program and copy the address into the clipboard"><i class="fas fa-link"></i></button>
 
         <select id="examples-sel">
             <option value="" selected>Select an example</option>
