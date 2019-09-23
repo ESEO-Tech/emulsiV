@@ -295,14 +295,23 @@ window.addEventListener("load", async evt => {
      * ---------------------------------------------------------------------- */
 
     const genLinkBtn = document.getElementById("gen-link-btn");
+    if (!navigator.clipboard) {
+        genLinkBtn.setAttribute("title", "Create a link to this program and copy the address into the browser's location bar.")
+    }
     genLinkBtn.addEventListener("click", async evt => {
-        const a = document.createElement("a");
-        a.href = window.location.toString();
-        a.hash = url.encode(hex.generate(bus, mem.size));
-
-        genLinkBtn.innerHTML = '<i class="far fa-clipboard"></i>';
+        const hash = url.encode(hex.generate(bus, mem.size));
         genLinkBtn.classList.add("active");
-        await navigator.clipboard.writeText(a.href);
+        if (navigator.clipboard) {
+            const a = document.createElement("a");
+            a.href = window.location.toString();
+            a.hash = hash;
+
+            genLinkBtn.innerHTML = '<i class="far fa-clipboard"></i>';
+            await navigator.clipboard.writeText(a.href);
+        }
+        else {
+            window.location.hash = hash;
+        }
         setTimeout(evt => {
             genLinkBtn.classList.remove("active");
             genLinkBtn.innerHTML = '<i class="fas fa-link"></i>';
@@ -310,7 +319,8 @@ window.addEventListener("load", async evt => {
     });
 
     document.getElementById("download-btn").addEventListener("click", evt => {
-        window.open('data:text/plain;charset=utf-8,' + escape(hex.generate(bus, mem.size), "_blank"));
+        const blob = new Blob([hex.generate(bus, mem.size)], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, "program.hex");
     });
 
     document.getElementById("open-btn").addEventListener("click", evt => {
