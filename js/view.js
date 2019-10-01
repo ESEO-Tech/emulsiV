@@ -253,8 +253,10 @@ function scrollIntoView(elt) {
 export function highlightAsm(address) {
     document.querySelectorAll(".asm").forEach(e => e.classList.remove("active"));
     const cell = document.getElementById("asm" + i32.toHex(address));
-    cell.classList.add("active");
-    scrollIntoView(cell);
+    if (cell) {
+        cell.classList.add("active");
+        scrollIntoView(cell);
+    }
 }
 
 function highlightPath(pathPrefix) {

@@ -239,12 +239,14 @@ export class Controller {
         await view.move("pc", "addr", i32.toHex(this.traceData.pc));
 
         const irx = i32.toHex(this.traceData.instr.raw);
-        await Promise.all([
-            view.move("mem" + i32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
-            view.move("mem" + i32.toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
-            view.move("mem" + i32.toHex(this.traceData.pc + 2), "data2", irx.slice(2, 4), {slot: 2}),
-            view.move("mem" + i32.toHex(this.traceData.pc + 3), "data3", irx.slice(0, 2), {slot: 3})
-        ]);
+        if (!this.traceData.fetchError) {
+            await Promise.all([
+                view.move("mem" + i32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                view.move("mem" + i32.toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
+                view.move("mem" + i32.toHex(this.traceData.pc + 2), "data2", irx.slice(2, 4), {slot: 2}),
+                view.move("mem" + i32.toHex(this.traceData.pc + 3), "data3", irx.slice(0, 2), {slot: 3})
+            ]);
+        }
         view.update("data", irx);
         await view.waitUpdate();
 
@@ -367,7 +369,9 @@ export class Controller {
             case "lb":
             case "lbu":
                 await view.move("alu-r", "addr", rx);
-                await view.move("mem" + rx, "data0", lx.slice(6, 8), {path: "mem-data"});
+                if (!this.traceData.loadStoreError) {
+                    await view.move("mem" + rx, "data0", lx.slice(6, 8), {path: "mem-data"});
+                }
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
                     await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
@@ -377,10 +381,12 @@ export class Controller {
             case "lh":
             case "lhu":
                 await view.move("alu-r", "addr", rx);
-                await Promise.all([
-                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
-                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
-                ]);
+                if (!this.traceData.loadStoreError) {
+                    await Promise.all([
+                        view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                        view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
+                    ]);
+                }
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
                     await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
@@ -389,12 +395,14 @@ export class Controller {
 
             case "lw":
                 await view.move("alu-r", "addr", rx);
-                await Promise.all([
-                    view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
-                    view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
-                    view.move("mem" + i32.toHex(this.traceData.r + 2), "data2", lx.slice(2, 4), {slot: 2}),
-                    view.move("mem" + i32.toHex(this.traceData.r + 3), "data3", lx.slice(0, 2), {slot: 3})
-                ]);
+                if (!this.traceData.loadStoreError) {
+                    await Promise.all([
+                        view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                        view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
+                        view.move("mem" + i32.toHex(this.traceData.r + 2), "data2", lx.slice(2, 4), {slot: 2}),
+                        view.move("mem" + i32.toHex(this.traceData.r + 3), "data3", lx.slice(0, 2), {slot: 3})
+                    ]);
+                }
                 view.update("data", lx);
                 if (this.traceData.instr.rd) {
                     await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
@@ -404,27 +412,33 @@ export class Controller {
             case "sb":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
+                if (!this.traceData.loadStoreError) {
+                    await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
+                }
                 break;
 
             case "sh":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                await Promise.all([
-                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
-                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1})
-                ]);
+                if (!this.traceData.loadStoreError) {
+                    await Promise.all([
+                        view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                        view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1})
+                    ]);
+                }
                 break;
 
             case "sw":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                await Promise.all([
-                    view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
-                    view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1}),
-                    view.move("data2", "mem" + i32.toHex(this.traceData.r + 2), x2x.slice(2, 4), {slot: 2}),
-                    view.move("data3", "mem" + i32.toHex(this.traceData.r + 3), x2x.slice(0, 2), {slot: 3})
-                ]);
+                if (!this.traceData.loadStoreError) {
+                    await Promise.all([
+                        view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                        view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1}),
+                        view.move("data2", "mem" + i32.toHex(this.traceData.r + 2), x2x.slice(2, 4), {slot: 2}),
+                        view.move("data3", "mem" + i32.toHex(this.traceData.r + 3), x2x.slice(0, 2), {slot: 3})
+                    ]);
+                }
                 break;
         }
 

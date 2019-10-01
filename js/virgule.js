@@ -34,6 +34,7 @@ export class Virgule {
 
         // Fetch
         const word = this.bus.read(this.pc, 4, false);
+        const fetchError = this.bus.error;
 
         // Decode
         const instr = fmt.fromWord(word);
@@ -99,6 +100,10 @@ export class Virgule {
             case "sw":  this.bus.write(r, 4, x2);                               break;
         }
 
+        const loadStoreError = instr.wbMem &&
+                               (instr.wbMem[0] === 'l' || instr.wbMem[0] === 's') &&
+                               this.bus.error;
+
         // Program counter update
         const enteringIrq = irq && !this.irqState;
         if (enteringIrq) {
@@ -117,7 +122,7 @@ export class Virgule {
             this.setPc(incPc);
         }
 
-        return {instr, pc: savedPc, incPc, irq: enteringIrq, x1, x2, a, b, r, l, taken}
+        return {instr, pc: savedPc, incPc, irq: enteringIrq, x1, x2, a, b, r, l, taken, fetchError, loadStoreError};
     }
 
     setX(index, value) {
@@ -141,6 +146,7 @@ export class Virgule {
 export class Bus {
     constructor() {
         this.devices = [];
+        this.error = false;
     }
 
     reset() {
@@ -161,13 +167,14 @@ export class Bus {
     read(address, size, signed) {
         address = i32.u(address);
         const devices = this.getDevices(address, size);
-        if (devices.length) {
-            return devices[0].read(address, size, signed);
-        }
+        this.error = !devices.length;
+        return this.error ? 0 : devices[0].read(address, size, signed);
     }
 
     write(address, size, value) {
-        for (let d of this.getDevices(address, size)) {
+        const devices = this.getDevices(address, size);
+        this.error = !devices.length;
+        for (let d of devices) {
             d.write(address, size, value);
         }
     }
