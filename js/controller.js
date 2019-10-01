@@ -239,7 +239,7 @@ export class Controller {
         await view.move("pc", "addr", i32.toHex(this.traceData.pc));
 
         const irx = i32.toHex(this.traceData.instr.raw);
-        if (!this.traceData.fetchError) {
+        if (!this.traceData.fetchError) { // TODO Add error indicator
             await Promise.all([
                 view.move("mem" + i32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
                 view.move("mem" + i32.toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
@@ -369,7 +369,7 @@ export class Controller {
             case "lb":
             case "lbu":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await view.move("mem" + rx, "data0", lx.slice(6, 8), {path: "mem-data"});
                 }
                 view.update("data", lx);
@@ -381,7 +381,7 @@ export class Controller {
             case "lh":
             case "lhu":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
                         view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
@@ -395,7 +395,7 @@ export class Controller {
 
             case "lw":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("mem" + i32.toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
                         view.move("mem" + i32.toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
@@ -412,7 +412,7 @@ export class Controller {
             case "sb":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
                 }
                 break;
@@ -420,7 +420,7 @@ export class Controller {
             case "sh":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
                         view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1})
@@ -431,7 +431,7 @@ export class Controller {
             case "sw":
                 await view.move("alu-r", "addr", rx);
                 await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) {
+                if (!this.traceData.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("data0", "mem" + i32.toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
                         view.move("data1", "mem" + i32.toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1}),
