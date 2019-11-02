@@ -3,9 +3,9 @@ import * as v                  from "./virgule.js";
 import {Controller}            from "./controller.js";
 import {TextInput, TextOutput} from "./devices/text.js";
 import {BitmapOutput}          from "./devices/bitmap.js";
-import {AsmOutput}             from "./devices/asm.js";
+import {AsmOutput}             from "./devices/assembly.js";
 import * as view               from "./view.js";
-import * as i32                from "./i32.js";
+import * as int32                from "./int32.js";
 import * as url                from "./url.js";
 import * as hex                from "./hex.js";
 
@@ -151,7 +151,7 @@ window.addEventListener("load", async evt => {
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, i32.toHex(bus.read(addr, 1), 2));
+            view.simpleUpdate(elt.id, int32.toHex(bus.read(addr, 1), 2));
         });
     });
 
@@ -223,7 +223,7 @@ window.addEventListener("load", async evt => {
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, i32.toHex(cpu.x[addr]));
+            view.simpleUpdate(elt.id, int32.toHex(cpu.x[addr]));
         });
     });
 
@@ -236,7 +236,7 @@ window.addEventListener("load", async evt => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.setPc(value);
-                view.simpleUpdate("pc-i", i32.toHex(cpu.pc + 4));
+                view.simpleUpdate("pc-i", int32.toHex(cpu.pc + 4));
             }
         });
 
@@ -244,7 +244,7 @@ window.addEventListener("load", async evt => {
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, i32.toHex(cpu.pc));
+            view.simpleUpdate(elt.id, int32.toHex(cpu.pc));
             view.highlightAsm(cpu.pc);
         });
     });
@@ -265,7 +265,7 @@ window.addEventListener("load", async evt => {
 
         elt.addEventListener("blur", evt => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, i32.toHex(cpu.mepc));
+            view.simpleUpdate(elt.id, int32.toHex(cpu.mepc));
         });
     });
 
@@ -334,7 +334,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("bitmap-output").addEventListener("click", evt => {
         const {x, y} = view.getBitmapOutputXY("bitmap-output", bitmap_out, evt.clientX, evt.clientY);
         const address = bitmap_out.firstAddress + x + y * bitmap_out.width;
-        view.highlightMemoryCell("mem" + i32.toHex(address));
+        view.highlightMemoryCell("mem" + int32.toHex(address));
     });
 
     console.log("Ready");

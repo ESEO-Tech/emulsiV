@@ -1,6 +1,6 @@
 
-import * as fmt from "./fmt.js";
-import * as i32 from "./i32.js";
+import * as bin from "./binary.js";
+import * as int32 from "./int32.js";
 
 export class Virgule {
     /*
@@ -37,7 +37,7 @@ export class Virgule {
         const fetchError = this.bus.error;
 
         // Decode
-        const instr = fmt.fromWord(word);
+        const instr = bin.fromWord(word);
 
         // Execute
         const x1 = this.getX(instr.rs1);
@@ -61,16 +61,16 @@ export class Virgule {
         let r = 0;
         switch (instr.aluOp) {
             case "b":    r = b;                           break;
-            case "add":  r = i32.s(a + b);                break;
+            case "add":  r = int32.signed(a + b);                break;
             case "sll":  r = a << b;                      break;
-            case "slt":  r = i32.s(a) < i32.s(b) ? 1 : 0; break;
-            case "sltu": r = i32.u(a) < i32.u(b) ? 1 : 0; break;
+            case "slt":  r = int32.signed(a) < int32.signed(b) ? 1 : 0; break;
+            case "sltu": r = int32.unsigned(a) < int32.unsigned(b) ? 1 : 0; break;
             case "xor":  r = a ^   b;                     break;
             case "srl":  r = a >>> b;                     break;
             case "sra":  r = a >>  b;                     break;
             case "or":   r = a |   b;                     break;
             case "and":  r = a &   b;                     break;
-            case "sub":  r = i32.s(a - b);                break;
+            case "sub":  r = int32.signed(a - b);                break;
         }
 
         // Branch condition
@@ -81,8 +81,8 @@ export class Virgule {
             case "ne":  taken = x1 !== x2;              break;
             case "lt":  taken = x1 <   x2;              break;
             case "ge":  taken = x1 >=  x2;              break;
-            case "ltu": taken = i32.u(x1) <  i32.u(x2); break;
-            case "geu": taken = i32.u(x1) >= i32.u(x2); break;
+            case "ltu": taken = int32.unsigned(x1) <  int32.unsigned(x2); break;
+            case "geu": taken = int32.unsigned(x1) >= int32.unsigned(x2); break;
         }
 
         // Register/memory update
@@ -127,7 +127,7 @@ export class Virgule {
 
     setX(index, value) {
         if (index > 0 && index < this.x.length) {
-            this.x[index] = i32.s(value);
+            this.x[index] = int32.signed(value);
         }
     }
 
@@ -139,7 +139,7 @@ export class Virgule {
     }
 
     setPc(value) {
-        this.pc = i32.u(value & ~3);
+        this.pc = int32.unsigned(value & ~3);
     }
 }
 
@@ -160,12 +160,12 @@ export class Bus {
     }
 
     getDevices(address, size) {
-        address = i32.u(address);
+        address = int32.unsigned(address);
         return this.devices.filter(dev => dev.accepts(address, size));
     }
 
     read(address, size, signed) {
-        address = i32.u(address);
+        address = int32.unsigned(address);
         const devices = this.getDevices(address, size);
         this.error = !devices.length;
         return this.error ? 0 : devices[0].read(address, size, signed);
@@ -187,8 +187,8 @@ export class Bus {
 export class Device {
     constructor(firstAddress, size) {
         this.size         = size;
-        this.firstAddress = i32.u(firstAddress);
-        this.lastAddress  = i32.u(firstAddress + size - 1);
+        this.firstAddress = int32.unsigned(firstAddress);
+        this.lastAddress  = int32.unsigned(firstAddress + size - 1);
     }
 
     reset() {
@@ -196,16 +196,17 @@ export class Device {
     }
 
     accepts(address, size) {
-        return address >= this.firstAddress && i32.u(address + size - 1) <= this.lastAddress;
+        return address >= this.firstAddress && int32.unsigned(address + size - 1) <= this.lastAddress;
     }
 
     read(address, size, signed) {
-        const raw = this.localRead(i32.u(address - this.firstAddress), size);
-        return i32.getSlice(raw, size * 8 - 1, 0, 0, signed);
+        const raw = this.localRead(int32.unsigned(address - this.firstAddress), size);
+        return signed ? int32.signedSlice(raw, size * 8 - 1, 0) :
+                        int32.unsignedSlice(raw, size * 8 - 1, 0);
     }
 
     write(address, size, value) {
-        this.localWrite(i32.u(address - this.firstAddress), size, value);
+        this.localWrite(int32.unsigned(address - this.firstAddress), size, value);
     }
 
     localRead(address, size) {
@@ -248,7 +249,7 @@ export class Memory extends Device {
 
     localWrite(address, size, value) {
         for (let i = 0; i < size; i ++) {
-            this.data[address + i] = i32.getSlice(value, 8 * i + 7, 8 * i);
+            this.data[address + i] = int32.unsignedSlice(value, 8 * i + 7, 8 * i);
         }
     }
 }

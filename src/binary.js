@@ -1,5 +1,5 @@
 
-import * as i32 from "./i32.js";
+import * as int32 from "./int32.js";
 
 // Base opcodes
 const OP_LOAD   = 0x03;
@@ -162,7 +162,7 @@ const ACTION_TABLE = {
 function decodeFields(word) {
     const res = {};
     for (let [key, [left, right]] of Object.entries(FIELDS)) {
-        res[key] = i32.getSlice(word, left, right);
+        res[key] = int32.unsignedSlice(word, left, right);
     }
     return res;
 }
@@ -175,11 +175,11 @@ function decodeImmediate(opcode, word) {
     const fmt    = OPCODE_TO_FORMAT_TABLE[opcode];
     const slices = IMM_FORMAT_TABLE[fmt];
 
-    let signed   = true;
+    let slicer   = int32.signedSlice;
     let res      = 0;
     for (let [left, right, pos] of slices) {
-        res   |= i32.getSlice(word, left, right, pos, signed);
-        signed = false;
+        res   |= slicer(word, left, right, pos);
+        slicer = int32.unsignedSlice;
     }
 
     return res;
@@ -195,7 +195,7 @@ function encodeImmediate(opcode, word) {
 
     let res = 0;
     for (let [left, right, pos] of slices) {
-        res |= i32.getSlice(word, left - right + pos, pos, right);
+        res |= int32.unsignedSlice(word, left - right + pos, pos, right);
     }
 
     return res;
@@ -237,7 +237,7 @@ export function toWord(instr) {
     const fields = DECODE_TABLE[instr.name] || [];
     Object.entries(FIELDS).forEach(([fieldName, [l, r]], i) => {
         const v = fields[i] || instr[fieldName] || 0;
-        res |= i32.getSlice(v, l - r, 0, r);
+        res |= int32.unsignedSlice(v, l - r, 0, r);
     });
     if (fields.length) {
         res |= encodeImmediate(fields[0], instr.imm);

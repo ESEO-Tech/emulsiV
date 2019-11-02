@@ -1,5 +1,5 @@
 
-import * as i32 from "./i32.js";
+import * as int32 from "./int32.js";
 
 const ASM_TABLE = {
     lui   : "di",
@@ -98,7 +98,7 @@ export function toString({name, rd, rs1, rs2, imm}, address) {
             case "d": return emitReg(rd);
             case "1": return emitReg(rs1);
             case "2": return emitReg(rs2);
-            case "i": return Math.abs(imm) > 32768 ? `0x${i32.toHex(imm)}` : i32.s(imm);
+            case "i": return Math.abs(imm) > 32768 ? `0x${int32.toHex(imm)}` : int32.signed(imm);
             case "p": return (imm > 0 ? "+" : "") + imm;
             case "a": return `${imm}(${emitReg(rs1)})`;
         }
@@ -127,7 +127,7 @@ export function metaToString({name, imm}, address) {
         return null;
     }
     if (ASM_TABLE[name].endsWith("p")) {
-        return "0x" + i32.toHex(imm + address);
+        return "0x" + int32.toHex(imm + address);
     }
     return null;
 }

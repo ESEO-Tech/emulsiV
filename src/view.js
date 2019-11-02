@@ -1,8 +1,8 @@
 
-import * as i32       from "./i32.js";
+import * as int32       from "./int32.js";
 import {TextOutput}   from "./devices/text.js";
 import {BitmapOutput} from "./devices/bitmap.js";
-import {AsmOutput}    from "./devices/asm.js";
+import {AsmOutput}    from "./devices/assembly.js";
 
 const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
@@ -185,10 +185,10 @@ export function init(memSize) {
         }
 
         const rowAddress = i * MEMORY_BYTES_PER_ROW;
-        const rowAddressX = i32.toHex(rowAddress);
+        const rowAddressX = int32.toHex(rowAddress);
         currentRow.querySelector("th").innerHTML = rowAddressX;
         currentRow.querySelectorAll("td.reg").forEach((td, j) => {
-            td.setAttribute("id", "mem" + i32.toHex(rowAddress + j));
+            td.setAttribute("id", "mem" + int32.toHex(rowAddress + j));
         });
         currentRow.querySelector("td.brk").setAttribute("id", "brk" + rowAddressX);
         currentRow.querySelector("td.asm").setAttribute("id", "asm" + rowAddressX);
@@ -197,7 +197,7 @@ export function init(memSize) {
     // Make registers and assembly view editable.
     // Omit the instruction register and the device registers.
     document.querySelectorAll(".reg, .asm").forEach(elt => {
-        if (elt.id !== "instr" && (!elt.id.startsWith("mem") || elt.id < "mem" + i32.toHex(memSize))) {
+        if (elt.id !== "instr" && (!elt.id.startsWith("mem") || elt.id < "mem" + int32.toHex(memSize))) {
             elt.setAttribute("contenteditable", "true");
             elt.setAttribute("spellcheck",      "false");
         }
@@ -252,7 +252,7 @@ function scrollIntoView(elt) {
 
 export function highlightAsm(address) {
     document.querySelectorAll(".asm").forEach(e => e.classList.remove("active"));
-    const cell = document.getElementById("asm" + i32.toHex(address));
+    const cell = document.getElementById("asm" + int32.toHex(address));
     if (cell) {
         cell.classList.add("active");
         scrollIntoView(cell);
@@ -385,9 +385,9 @@ function updateBitmapOutput(id, dev) {
     const scaleY = canvas.height / dev.height;
     const ctx = canvas.getContext("2d");
     for (let p of pixels) {
-        const red   = Math.floor(255 * i32.getSlice(p.c, 7, 5) / 7);
-        const green = Math.floor(255 * i32.getSlice(p.c, 4, 2) / 7);
-        const blue  = Math.floor(255 * i32.getSlice(p.c, 1, 0) / 3);
+        const red   = Math.floor(255 * int32.unsignedSlice(p.c, 7, 5) / 7);
+        const green = Math.floor(255 * int32.unsignedSlice(p.c, 4, 2) / 7);
+        const blue  = Math.floor(255 * int32.unsignedSlice(p.c, 1, 0) / 3);
         ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
         ctx.fillRect(p.x * scaleX, p.y * scaleY, scaleX, scaleY);
     }
@@ -432,27 +432,27 @@ function updateAsmOutput(id, dev) {
 
             case "ascii":
                 for (let i = 0; i < 32; i += 8) {
-                    const charCode = i32.getSlice(word, i + 7, i);
+                    const charCode = int32.unsignedSlice(word, i + 7, i);
                     const char = (charCode >= 0x20 && charCode < 0x7f || charCode >= 0xa1) ? String.fromCharCode(charCode) : "\ufffd";
                     res += char;
                 }
                 break;
 
-            case "int32":  res = i32.s(word).toString(); break;
-            case "uint32": res = i32.u(word).toString(); break;
+            case "int32":  res = int32.signed(word).toString(); break;
+            case "uint32": res = int32.unsigned(word).toString(); break;
             case "int16":
-                res = [i32.getSlice(word, 15, 0, 0, true), i32.getSlice(word, 31, 16, 0, true)].map(s => s.toString()).join(", ");
+                res = [int32.signedSlice(word, 15, 0), int32.signedSlice(word, 31, 16)].map(s => s.toString()).join(", ");
                 break;
             case "uint16":
-                res = [i32.getSlice(word, 15, 0), i32.getSlice(word, 31, 16)].map(s => s.toString()).join(", ");
+                res = [int32.unsignedSlice(word, 15, 0), int32.unsignedSlice(word, 31, 16)].map(s => s.toString()).join(", ");
                 break;
             case "int8":
-                res = [i32.getSlice(word, 7, 0, 0, true), i32.getSlice(word, 15, 8, 0, true),
-                       i32.getSlice(word, 23, 16, 0, true), i32.getSlice(word, 31, 24, 0, true),].map(s => s.toString()).join(", ");
+                res = [int32.signedSlice(word, 7, 0), int32.signedSlice(word, 15, 8),
+                       int32.signedSlice(word, 23, 16), int32.signedSlice(word, 31, 24),].map(s => s.toString()).join(", ");
                 break;
             case "uint8":
-                res = [i32.getSlice(word, 7, 0), i32.getSlice(word, 15, 8),
-                       i32.getSlice(word, 23, 16), i32.getSlice(word, 31, 24),].map(s => s.toString()).join(", ");
+                res = [int32.unsignedSlice(word, 7, 0), int32.unsignedSlice(word, 15, 8),
+                       int32.unsignedSlice(word, 23, 16), int32.unsignedSlice(word, 31, 24),].map(s => s.toString()).join(", ");
                 break;
         }
         if (res.length) {

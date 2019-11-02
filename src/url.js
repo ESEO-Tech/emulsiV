@@ -1,5 +1,5 @@
 
-import {toHex} from "./i32.js";
+import {toHex} from "./int32.js";
 
 export function encode(hex) {
     return "#" + hex.trim().split(/\s+/).map(l => {
