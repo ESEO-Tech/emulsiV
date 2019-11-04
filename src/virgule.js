@@ -2,6 +2,49 @@
 import * as bin from "./binary.js";
 import * as int32 from "./int32.js";
 
+const ACTION_TABLE = {
+    //         src1  src2   aluOp   wbMem  branch
+    lui     : [    , "imm", "b"   , "r"  ,      ],
+    auipc   : ["pc", "imm", "add" , "r"  ,      ],
+    jal     : ["pc", "imm", "add" , "pc+", "al" ],
+    jalr    : ["x1", "imm", "add" , "pc+", "al" ],
+    beq     : ["pc", "imm", "add" ,      , "eq" ],
+    bne     : ["pc", "imm", "add" ,      , "ne" ],
+    blt     : ["pc", "imm", "add" ,      , "lt" ],
+    bge     : ["pc", "imm", "add" ,      , "ge" ],
+    bltu    : ["pc", "imm", "add" ,      , "ltu"],
+    bgeu    : ["pc", "imm", "add" ,      , "geu"],
+    lb      : ["x1", "imm", "add" , "lb" ,      ],
+    lh      : ["x1", "imm", "add" , "lh" ,      ],
+    lw      : ["x1", "imm", "add" , "lw" ,      ],
+    lbu     : ["x1", "imm", "add" , "lbu",      ],
+    lhu     : ["x1", "imm", "add" , "lhu",      ],
+    sb      : ["x1", "imm", "add" , "sb" ,      ],
+    sh      : ["x1", "imm", "add" , "sh" ,      ],
+    sw      : ["x1", "imm", "add" , "sw" ,      ],
+    addi    : ["x1", "imm", "add" , "r"  ,      ],
+    slli    : ["x1", "imm", "sll" , "r"  ,      ],
+    slti    : ["x1", "imm", "slt" , "r"  ,      ],
+    sltiu   : ["x1", "imm", "sltu", "r"  ,      ],
+    xori    : ["x1", "imm", "xor" , "r"  ,      ],
+    srli    : ["x1", "imm", "srl" , "r"  ,      ],
+    srai    : ["x1", "imm", "sra" , "r"  ,      ],
+    ori     : ["x1", "imm", "or"  , "r"  ,      ],
+    andi    : ["x1", "imm", "and" , "r"  ,      ],
+    add     : ["x1", "x2" , "add" , "r"  ,      ],
+    sub     : ["x1", "x2" , "sub" , "r"  ,      ],
+    sll     : ["x1", "x2" , "sll" , "r"  ,      ],
+    slt     : ["x1", "x2" , "slt" , "r"  ,      ],
+    sltu    : ["x1", "x2" , "sltu", "r"  ,      ],
+    xor     : ["x1", "x2" , "xor" , "r"  ,      ],
+    srl     : ["x1", "x2" , "srl" , "r"  ,      ],
+    sra     : ["x1", "x2" , "sra" , "r"  ,      ],
+    or      : ["x1", "x2" , "or"  , "r"  ,      ],
+    and     : ["x1", "x2" , "and" , "r"  ,      ],
+    mret    : [    ,      ,       ,      ,      ],
+    invalid : [    ,      ,       ,      ,      ],
+};
+
 export class Virgule {
     /*
      * Registres :
@@ -37,7 +80,11 @@ export class Virgule {
         const fetchError = this.bus.error;
 
         // Decode
-        const instr = bin.fromWord(word);
+        const instr = bin.decode(word);
+
+        // Trouver les actions associées à l'instruction.
+        const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[instr.name];
+
 
         // Execute
         const x1 = this.getX(instr.rs1);
@@ -45,21 +92,21 @@ export class Virgule {
 
         // ALU operand A
         let a = 0;
-        switch (instr.src1) {
+        switch (src1) {
             case "pc": a = this.pc; break;
             case "x1": a = x1;      break;
         }
 
         // ALU operand B
         let b = 0;
-        switch (instr.src2) {
+        switch (src2) {
             case "imm": b = instr.imm; break;
             case "x2":  b = x2;        break;
         }
 
         // ALU operation
         let r = 0;
-        switch (instr.aluOp) {
+        switch (aluOp) {
             case "b":    r = b;                           break;
             case "add":  r = int32.signed(a + b);                break;
             case "sll":  r = a << b;                      break;
@@ -75,7 +122,7 @@ export class Virgule {
 
         // Branch condition
         let taken = false;
-        switch (instr.branch) {
+        switch (branch) {
             case "al":  taken = true;                   break;
             case "eq":  taken = x1 === x2;              break;
             case "ne":  taken = x1 !== x2;              break;
@@ -87,7 +134,7 @@ export class Virgule {
 
         // Register/memory update
         let l = 0;
-        switch (instr.wbMem) {
+        switch (wbMem) {
             case "r":   this.setX(instr.rd, r);                                 break;
             case "pc+": this.setX(instr.rd, incPc);                             break;
             case "lb":  l = this.bus.read(r, 1, true);  this.setX(instr.rd, l); break;
@@ -100,8 +147,8 @@ export class Virgule {
             case "sw":  this.bus.write(r, 4, x2);                               break;
         }
 
-        const loadStoreError = instr.wbMem &&
-                               (instr.wbMem[0] === 'l' || instr.wbMem[0] === 's') &&
+        const loadStoreError = wbMem &&
+                               (wbMem[0] === 'l' || wbMem[0] === 's') &&
                                this.bus.error;
 
         // Program counter update
@@ -122,7 +169,12 @@ export class Virgule {
             this.setPc(incPc);
         }
 
-        return {instr, pc: savedPc, incPc, irq: enteringIrq, x1, x2, a, b, r, l, taken, fetchError, loadStoreError};
+        return {
+            instr, src1, src2, aluOp, wbMem, branch,
+            pc: savedPc, incPc, irq: enteringIrq,
+            x1, x2, a, b, r, l, taken,
+            fetchError, loadStoreError
+        };
     }
 
     setX(index, value) {

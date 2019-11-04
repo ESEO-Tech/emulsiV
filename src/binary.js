@@ -1,7 +1,7 @@
 
 import * as int32 from "./int32.js";
 
-// Base opcodes
+// Base opcodes.
 const OP_LOAD   = 0x03;
 const OP_IMM    = 0x13;
 const OP_AUIPC  = 0x17;
@@ -13,7 +13,7 @@ const OP_JALR   = 0x67;
 const OP_JAL    = 0x6F;
 const OP_SYSTEM = 0x73;
 
-// Funct3 opcodes
+// Funct3 opcodes.
 const F3_JALR = 0;
 const F3_BEQ  = 0;
 const F3_BNE  = 1;
@@ -36,17 +36,19 @@ const F3_OR   = 6;
 const F3_AND  = 7;
 const F3_MRET = 0;
 
-// Funct7 opcodes
+// Funct7 opcodes.
 const F7_L    = 0;
 const F7_A    = 32;
 const F7_MRET = 24;
 
-// Rs2/rs1/rd opcodes
+// Rs2/Rs1/Rd fixed values.
 const RS2_MRET = 2;
 const RS1_MRET = 0;
 const RD_MRET  = 0;
 
-const FIELDS = {
+// Instruction field definitions.
+// Keep them in this order for compatibility with INSTR_NAME_TO_FIELDS.
+const FIELD_NAME_TO_SLICE = {
     opcode : [6,  0],
     funct3 : [14, 12],
     funct7 : [31, 25],
@@ -55,7 +57,16 @@ const FIELDS = {
     rd     : [11, 7],
 };
 
-const OPCODE_TO_FORMAT_TABLE = {
+function decodeFields(word) {
+    const res = {};
+    for (let [key, [left, right]] of Object.entries(FIELD_NAME_TO_SLICE)) {
+        res[key] = int32.unsignedSlice(word, left, right);
+    }
+    return res;
+}
+
+// Instruction immediate format for each base opcode.
+const OPCODE_TO_FORMAT = {
     [OP_LOAD]   : "I",
     [OP_IMM]    : "I",
     [OP_JALR]   : "I",
@@ -67,7 +78,8 @@ const OPCODE_TO_FORMAT_TABLE = {
     [OP_JAL]    : "J",
 };
 
-const IMM_FORMAT_TABLE = {
+// Slices of the instruction word for each immediate format.
+const FORMAT_TO_IMM_SLICES = {
     I : [[31, 20, 0 ]                                         ],
     S : [[31, 25, 5 ], [11, 7, 0  ]                           ],
     B : [[31, 31, 12], [7 , 7, 11 ], [30, 25, 5 ], [11, 8 , 1]],
@@ -75,7 +87,42 @@ const IMM_FORMAT_TABLE = {
     J : [[31, 31, 20], [19, 12, 12], [20, 20, 11], [30, 21, 1]],
 };
 
-const DECODE_TABLE = {
+function decodeImmediate(opcode, word) {
+    if (!(opcode in OPCODE_TO_FORMAT)) {
+        return 0;
+    }
+
+    const fmt    = OPCODE_TO_FORMAT[opcode];
+    const slices = FORMAT_TO_IMM_SLICES[fmt];
+
+    let slicer = int32.signedSlice;
+    let res    = 0;
+    for (let [left, right, pos] of slices) {
+        res   |= slicer(word, left, right, pos);
+        slicer = int32.unsignedSlice;
+    }
+
+    return res;
+}
+
+function encodeImmediate(opcode, word) {
+    if (!(opcode in OPCODE_TO_FORMAT)) {
+        return 0;
+    }
+
+    const fmt    = OPCODE_TO_FORMAT[opcode];
+    const slices = FORMAT_TO_IMM_SLICES[fmt];
+
+    let res = 0;
+    for (let [left, right, pos] of slices) {
+        res |= int32.unsignedSlice(word, left - right + pos, pos, right);
+    }
+
+    return res;
+}
+
+// Map instruction names to fixed field values.
+const INSTR_NAME_TO_FIELDS = {
     lui   : [OP_LUI],
     auipc : [OP_AUIPC],
     jal   : [OP_JAL],
@@ -112,135 +159,59 @@ const DECODE_TABLE = {
     srl   : [OP_REG   , F3_SR  , F7_L],
     sra   : [OP_REG   , F3_SR  , F7_A],
     or    : [OP_REG   , F3_OR  , F7_L],
-    and   : [OP_REG   , F3_ADD , F7_L],
+    and   : [OP_REG   , F3_AND , F7_L],
     mret  : [OP_SYSTEM, F3_MRET, F7_MRET, RS2_MRET, RS1_MRET, RD_MRET]
 };
 
-const ACTION_TABLE = {
-    //         src1  src2   aluOp   wbMem  branch
-    lui     : [    , "imm", "b"   , "r"  ,      ],
-    auipc   : ["pc", "imm", "add" , "r"  ,      ],
-    jal     : ["pc", "imm", "add" , "pc+", "al" ],
-    jalr    : ["x1", "imm", "add" , "pc+", "al" ],
-    beq     : ["pc", "imm", "add" ,      , "eq" ],
-    bne     : ["pc", "imm", "add" ,      , "ne" ],
-    blt     : ["pc", "imm", "add" ,      , "lt" ],
-    bge     : ["pc", "imm", "add" ,      , "ge" ],
-    bltu    : ["pc", "imm", "add" ,      , "ltu"],
-    bgeu    : ["pc", "imm", "add" ,      , "geu"],
-    lb      : ["x1", "imm", "add" , "lb" ,      ],
-    lh      : ["x1", "imm", "add" , "lh" ,      ],
-    lw      : ["x1", "imm", "add" , "lw" ,      ],
-    lbu     : ["x1", "imm", "add" , "lbu",      ],
-    lhu     : ["x1", "imm", "add" , "lhu",      ],
-    sb      : ["x1", "imm", "add" , "sb" ,      ],
-    sh      : ["x1", "imm", "add" , "sh" ,      ],
-    sw      : ["x1", "imm", "add" , "sw" ,      ],
-    addi    : ["x1", "imm", "add" , "r"  ,      ],
-    slli    : ["x1", "imm", "sll" , "r"  ,      ],
-    slti    : ["x1", "imm", "slt" , "r"  ,      ],
-    sltiu   : ["x1", "imm", "sltu", "r"  ,      ],
-    xori    : ["x1", "imm", "xor" , "r"  ,      ],
-    srli    : ["x1", "imm", "srl" , "r"  ,      ],
-    srai    : ["x1", "imm", "sra" , "r"  ,      ],
-    ori     : ["x1", "imm", "or"  , "r"  ,      ],
-    andi    : ["x1", "imm", "and" , "r"  ,      ],
-    add     : ["x1", "x2" , "add" , "r"  ,      ],
-    sub     : ["x1", "x2" , "sub" , "r"  ,      ],
-    sll     : ["x1", "x2" , "sll" , "r"  ,      ],
-    slt     : ["x1", "x2" , "slt" , "r"  ,      ],
-    sltu    : ["x1", "x2" , "sltu", "r"  ,      ],
-    xor     : ["x1", "x2" , "xor" , "r"  ,      ],
-    srl     : ["x1", "x2" , "srl" , "r"  ,      ],
-    sra     : ["x1", "x2" , "sra" , "r"  ,      ],
-    or      : ["x1", "x2" , "or"  , "r"  ,      ],
-    and     : ["x1", "x2" , "and" , "r"  ,      ],
-    mret    : [    ,      ,       ,      ,      ],
-    invalid : [    ,      ,       ,      ,      ],
-};
-
-function decodeFields(word) {
-    const res = {};
-    for (let [key, [left, right]] of Object.entries(FIELDS)) {
-        res[key] = int32.unsignedSlice(word, left, right);
+// Reverse INSTR_NAME_TO_FIELDS into a tree to decode field values.
+// Use hash maps instead of plain objects to avoid converting numeric keys
+// to strings.
+function addToTree(tree, name, path, index) {
+    const fieldValue = path[index];
+    if (index === path.length - 1) {
+        tree.set(fieldValue, name);
     }
-    return res;
+    else {
+        if (!tree.has(fieldValue)) {
+            tree.set(fieldValue, new Map());
+        }
+        addToTree(tree.get(fieldValue), name, path, index + 1);
+    }
 }
 
-function decodeImmediate(opcode, word) {
-    if (!(opcode in OPCODE_TO_FORMAT_TABLE)) {
-        return 0;
-    }
-
-    const fmt    = OPCODE_TO_FORMAT_TABLE[opcode];
-    const slices = IMM_FORMAT_TABLE[fmt];
-
-    let slicer   = int32.signedSlice;
-    let res      = 0;
-    for (let [left, right, pos] of slices) {
-        res   |= slicer(word, left, right, pos);
-        slicer = int32.unsignedSlice;
-    }
-
-    return res;
+const FIELDS_TO_INSTR_NAME = new Map();
+for (let [name, path] of Object.entries(INSTR_NAME_TO_FIELDS)) {
+    addToTree(FIELDS_TO_INSTR_NAME, name, path, 0);
 }
 
-function encodeImmediate(opcode, word) {
-    if (!(opcode in OPCODE_TO_FORMAT_TABLE)) {
-        return 0;
-    }
-
-    const fmt    = OPCODE_TO_FORMAT_TABLE[opcode];
-    const slices = IMM_FORMAT_TABLE[fmt];
-
-    let res = 0;
-    for (let [left, right, pos] of slices) {
-        res |= int32.unsignedSlice(word, left - right + pos, pos, right);
-    }
-
-    return res;
-}
-
-const cache = {};
-
-export function fromWord(word) {
-    // if (word in cache) {
-    //     return cache[word];
-    // }
-
+export function decode(word) {
     // Extraire les champs de l'instruction.
-    const {opcode, funct3, funct7, rs2, rs1, rd} = decodeFields(word);
-    const imm = decodeImmediate(opcode, word);
+    const fields = decodeFields(word);
 
     // Trouver le nom de l'instruction.
-    const row = [opcode, funct3, funct7, rs2, rs1, rd];
-    const name = Object.keys(DECODE_TABLE).find(name =>
-            DECODE_TABLE[name].every((v, i) => v === row[i])
-        ) || "invalid";
+    let tree = FIELDS_TO_INSTR_NAME;
+    for (let fieldValue of Object.values(fields)) {
+        tree = tree.get(fieldValue) || "invalid";
+        if (!(tree instanceof Map)) {
+            break;
+        }
+    }
 
-    // Trouver les actions associées à l'instruction.
-    const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[name];
-
-    const res = {
-        name, raw: word,
-        rd, rs1, rs2, imm,
-        src1, src2, aluOp, wbMem, branch
-    };
-
-    // cache[word] = res;
-
-    return res;
+    fields.name = tree;
+    fields.word = word;
+    fields.imm  = decodeImmediate(fields.opcode, word);
+    return fields;
 }
 
-export function toWord(instr) {
+export function encode(instr) {
     let res = 0;
-    const fields = DECODE_TABLE[instr.name] || [];
-    Object.entries(FIELDS).forEach(([fieldName, [l, r]], i) => {
-        const v = fields[i] || instr[fieldName] || 0;
-        res |= int32.unsignedSlice(v, l - r, 0, r);
+    const fields = INSTR_NAME_TO_FIELDS[instr.name] || [];
+    Object.entries(FIELD_NAME_TO_SLICE).forEach(([fieldName, [left, right]], index) => {
+        const fieldValue = fields[index] || instr[fieldName] || 0;
+        res |= int32.unsignedSlice(fieldValue, left - right, 0, right);
     });
     if (fields.length) {
         res |= encodeImmediate(fields[0], instr.imm);
     }
-    return res;
+    return int32.unsigned(res);
 }

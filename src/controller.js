@@ -93,7 +93,7 @@ export class Controller {
             case "pseudo":
                 const instr = asm.fromString(str, addr);
                 if (instr) {
-                    word = bin.toWord(instr);
+                    word = bin.encode(instr);
                 }
                 break;
 
@@ -124,7 +124,7 @@ export class Controller {
     showAsm(addr) {
         const format = document.getElementById("alt-mem-view-sel").value;
         if (format === "asm" || format === "pseudo") {
-            const str = asm.toString(bin.fromWord(this.bus.read(addr, 4)), addr);
+            const str = asm.toString(bin.decode(this.bus.read(addr, 4)), addr);
             view.simpleUpdate("asm" + int32.toHex(addr), str);
         }
     }
@@ -238,7 +238,7 @@ export class Controller {
 
         await view.move("pc", "addr", int32.toHex(this.traceData.pc));
 
-        const irx = int32.toHex(this.traceData.instr.raw);
+        const irx = int32.toHex(this.traceData.instr.word);
         if (!this.traceData.fetchError) { // TODO Add error indicator
             await Promise.all([
                 view.move("mem" + int32.toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
@@ -278,14 +278,14 @@ export class Controller {
         view.update("rs2",    this.traceData.instr.rs2);
         view.update("rd",     this.traceData.instr.rd);
         view.update("imm",    int32.toHex(this.traceData.instr.imm));
-        view.update("alu-op", this.traceData.instr.aluOp);
-        view.update("cmp-op", this.traceData.instr.branch);
-        if (!this.traceData.instr.branch || this.traceData.instr.branch === "al") {
+        view.update("alu-op", this.traceData.aluOp);
+        view.update("cmp-op", this.traceData.branch);
+        if (!this.traceData.branch || this.traceData.branch === "al") {
             view.update("cmp-taken", this.traceData.taken);
         }
         await view.waitUpdate();
 
-        if (this.traceData.instr.aluOp) {
+        if (this.traceData.aluOp) {
             this.setNextState("alu");
         }
         else {
@@ -297,7 +297,7 @@ export class Controller {
         this.highlightCurrentState();
 
         // ALU operand A
-        switch (this.traceData.instr.src1) {
+        switch (this.traceData.src1) {
             case "pc":
                 await view.move("pc", "alu-a", int32.toHex(this.traceData.pc));
                 break
@@ -307,7 +307,7 @@ export class Controller {
         }
 
         // ALU operand B
-        switch (this.traceData.instr.src2) {
+        switch (this.traceData.src2) {
             case "imm":
                 await view.move("imm", "alu-b", int32.toHex(this.traceData.instr.imm));
                 break
@@ -322,10 +322,10 @@ export class Controller {
         view.update("alu-r", int32.toHex(this.traceData.r));
         await view.waitUpdate();
 
-        if (this.traceData.instr.branch && this.traceData.instr.branch !== "al") {
+        if (this.traceData.branch && this.traceData.branch !== "al") {
             this.setNextState("branch");
         }
-        else if (this.traceData.instr.wbMem !== "r" && this.traceData.instr.wbMem !== "pc+" || this.traceData.instr.rd) {
+        else if (this.traceData.wbMem !== "r" && this.traceData.wbMem !== "pc+" || this.traceData.instr.rd) {
             this.setNextState("write");
         }
         else {
@@ -353,7 +353,7 @@ export class Controller {
         const rx    = int32.toHex(this.traceData.r);
         const lx    = int32.toHex(this.traceData.l);
 
-        switch (this.traceData.instr.wbMem) {
+        switch (this.traceData.wbMem) {
             case "r":
                 if (this.traceData.instr.rd) {
                     await view.move("alu-r", "x" + this.traceData.instr.rd, rx, {path: "alu-r-xrd"});

@@ -34,7 +34,7 @@ export class AsmOutput extends Device {
     localWrite(address, size, value) {
         address -= address % 4;
         const word = this.mem.read(address, 4, false);
-        const instr = bin.fromWord(word);
+        const instr = bin.decode(word);
         this.instrs[int32.toHex(address)] = {
             word:   word,
             asm:    asm.toString(instr, address),
