@@ -5,11 +5,11 @@ import {TextInput, TextOutput} from "./devices/text.js";
 import {BitmapOutput}          from "./devices/bitmap.js";
 import {AsmOutput}             from "./devices/assembly.js";
 import * as view               from "./view.js";
-import * as int32                from "./int32.js";
+import {toHex}                 from "./int32.js";
 import * as url                from "./url.js";
 import * as hex                from "./hex.js";
 
-window.addEventListener("load", async evt => {
+window.addEventListener("load", async () => {
     const memSize = 4096;
 
     const bus = new v.Bus();
@@ -36,7 +36,7 @@ window.addEventListener("load", async evt => {
 
     function loadExample(name) {
         const xhr = new XMLHttpRequest();
-        xhr.addEventListener("load", evt => {
+        xhr.addEventListener("load", () => {
             ctrl.loadHex(xhr.responseText);
         });
         xhr.overrideMimeType("text/plain");
@@ -64,7 +64,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
         const reader = new FileReader();
-        reader.addEventListener("load", evt => ctrl.loadHex(reader.result));
+        reader.addEventListener("load", () => ctrl.loadHex(reader.result));
         reader.readAsText(file);
     });
 
@@ -81,7 +81,7 @@ window.addEventListener("load", async evt => {
         ctrl.onKeyDown(text_in, code);
     });
 
-    document.getElementById("run-btn").addEventListener("click", evt => {
+    document.getElementById("run-btn").addEventListener("click", () => {
         if (ctrl.running) {
             ctrl.stop();
         }
@@ -90,12 +90,12 @@ window.addEventListener("load", async evt => {
         }
     });
 
-    async function stageTrace(evt) {
+    async function stageTrace() {
         await ctrl.trace(true, true);
     }
 
-    document.getElementById("reset-btn").addEventListener("click", evt => ctrl.reset());
-    document.getElementById("step-btn").addEventListener("click", evt => ctrl.run(true));
+    document.getElementById("reset-btn").addEventListener("click", () => ctrl.reset());
+    document.getElementById("step-btn").addEventListener("click", () => ctrl.run(true));
     document.getElementById("fetch-btn").addEventListener("click", stageTrace);
     document.getElementById("decode-btn").addEventListener("click", stageTrace);
     document.getElementById("alu-btn").addEventListener("click", stageTrace);
@@ -134,12 +134,12 @@ window.addEventListener("load", async evt => {
     // Memory.
     document.querySelectorAll("#mem .reg").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
-        elt.addEventListener("focus", evt => {
+        elt.addEventListener("focus", () => {
             selectAll(elt);
         });
 
         // Update the content of the current cell while typing.
-        elt.addEventListener("input", evt => {
+        elt.addEventListener("input", () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 bus.write(addr, 1, value);
@@ -149,9 +149,9 @@ window.addEventListener("load", async evt => {
 
         blurOnEnter(elt);
 
-        elt.addEventListener("blur", evt => {
+        elt.addEventListener("blur", () => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, int32.toHex(bus.read(addr, 1), 2));
+            view.simpleUpdate(elt.id, toHex(bus.read(addr, 1), 2));
         });
     });
 
@@ -161,7 +161,7 @@ window.addEventListener("load", async evt => {
         let changed = false;
         let saved;
 
-        elt.addEventListener("focus", evt => {
+        elt.addEventListener("focus", () => {
             // Save the original content of this cell.
             saved   = elt.innerHTML;
             changed = false;
@@ -178,14 +178,14 @@ window.addEventListener("load", async evt => {
         });
 
         // Update the memory content while typing.
-        elt.addEventListener("input", evt => {
+        elt.addEventListener("input", () => {
             ctrl.setAsm(addr, elt.innerText.replace(/\u00a0/g, " ").replace(/\ufffd/g, "\u0000"));
             changed = true;
         });
 
         blurOnEnter(elt);
 
-        elt.addEventListener("blur", evt => {
+        elt.addEventListener("blur", () => {
             if (changed) {
                 // Update all devices that map to memory, inclding the assembly view.
                 view.updateDevices(true);
@@ -200,7 +200,7 @@ window.addEventListener("load", async evt => {
     });
 
     // Alternative memory view format change
-    document.getElementById("alt-mem-view-sel").addEventListener("change", evt => {
+    document.getElementById("alt-mem-view-sel").addEventListener("change", () => {
         asm_out.refresh();
         view.updateDevices(true);
         view.resize();
@@ -209,10 +209,10 @@ window.addEventListener("load", async evt => {
     // General-purpose registers.
     document.querySelectorAll("#x .reg").forEach(elt => {
         const addr = parseInt(elt.id.slice(1));
-        elt.addEventListener("focus", evt => selectAll(elt));
+        elt.addEventListener("focus", () => selectAll(elt));
 
         // Update the content of the current register while typing.
-        elt.addEventListener("input", evt => {
+        elt.addEventListener("input", () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.setX(addr, value);
@@ -221,40 +221,40 @@ window.addEventListener("load", async evt => {
 
         blurOnEnter(elt);
 
-        elt.addEventListener("blur", evt => {
+        elt.addEventListener("blur", () => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, int32.toHex(cpu.x[addr]));
+            view.simpleUpdate(elt.id, toHex(cpu.x[addr]));
         });
     });
 
     // Program counter.
     document.querySelectorAll("#pc").forEach(elt => {
-        elt.addEventListener("focus", evt => selectAll(elt));
+        elt.addEventListener("focus", () => selectAll(elt));
 
         // Update the content of the register while typing.
-        elt.addEventListener("input", evt => {
+        elt.addEventListener("input", () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.setPc(value);
-                view.simpleUpdate("pc-i", int32.toHex(cpu.pc + 4));
+                view.simpleUpdate("pc-i", toHex(cpu.pc + 4));
             }
         });
 
         blurOnEnter(elt);
 
-        elt.addEventListener("blur", evt => {
+        elt.addEventListener("blur", () => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, int32.toHex(cpu.pc));
+            view.simpleUpdate(elt.id, toHex(cpu.pc));
             view.highlightAsm(cpu.pc);
         });
     });
 
     // Machine exception return address.
     document.querySelectorAll("#mepc").forEach(elt => {
-        elt.addEventListener("focus", evt => selectAll(elt));
+        elt.addEventListener("focus", () => selectAll(elt));
 
         // Update the content of the register while typing.
-        elt.addEventListener("input", evt => {
+        elt.addEventListener("input", () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 cpu.mepc = value;
@@ -263,16 +263,16 @@ window.addEventListener("load", async evt => {
 
         blurOnEnter(elt);
 
-        elt.addEventListener("blur", evt => {
+        elt.addEventListener("blur", () => {
             // Accept the last content of the current cell.
-            view.simpleUpdate(elt.id, int32.toHex(cpu.mepc));
+            view.simpleUpdate(elt.id, toHex(cpu.mepc));
         });
     });
 
     // Toggle breakpoints.
     document.querySelectorAll(".brk").forEach(elt => {
         const addr = parseInt(elt.id.slice(3), 16);
-        elt.addEventListener("click", evt => ctrl.toggleBreakpoint(addr));
+        elt.addEventListener("click", () => ctrl.toggleBreakpoint(addr));
     });
 
     /* ---------------------------------------------------------------------- *
@@ -287,8 +287,8 @@ window.addEventListener("load", async evt => {
         view.resize();
     }
 
-    document.getElementById("font-plus-btn").addEventListener("click", evt => updateFontSize("body", 1.1));
-    document.getElementById("font-minus-btn").addEventListener("click", evt => updateFontSize("body", 1.0/1.1));
+    document.getElementById("font-plus-btn").addEventListener("click", () => updateFontSize("body", 1.1));
+    document.getElementById("font-minus-btn").addEventListener("click", () => updateFontSize("body", 1.0/1.1));
 
     /* ---------------------------------------------------------------------- *
        Event handlers for link generation and open/download buttons.
@@ -298,7 +298,7 @@ window.addEventListener("load", async evt => {
     if (!navigator.clipboard) {
         genLinkBtn.setAttribute("title", "Create a link to this program and copy the address into the browser's location bar.")
     }
-    genLinkBtn.addEventListener("click", async evt => {
+    genLinkBtn.addEventListener("click", async () => {
         const hash = url.encode(hex.generate(bus, mem.size));
         genLinkBtn.classList.add("active");
         if (navigator.clipboard) {
@@ -312,18 +312,18 @@ window.addEventListener("load", async evt => {
         else {
             window.location.hash = hash;
         }
-        setTimeout(evt => {
+        setTimeout(() => {
             genLinkBtn.classList.remove("active");
             genLinkBtn.innerHTML = '<i class="fas fa-link"></i>';
         }, 500);
     });
 
-    document.getElementById("download-btn").addEventListener("click", evt => {
+    document.getElementById("download-btn").addEventListener("click", () => {
         const blob = new Blob([hex.generate(bus, mem.size)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "program.hex");
     });
 
-    document.getElementById("open-btn").addEventListener("click", evt => {
+    document.getElementById("open-btn").addEventListener("click", () => {
         document.getElementById("hex-input").click();
     });
 
@@ -334,7 +334,7 @@ window.addEventListener("load", async evt => {
     document.getElementById("bitmap-output").addEventListener("click", evt => {
         const {x, y} = view.getBitmapOutputXY("bitmap-output", bitmap_out, evt.clientX, evt.clientY);
         const address = bitmap_out.firstAddress + x + y * bitmap_out.width;
-        view.highlightMemoryCell("mem" + int32.toHex(address));
+        view.highlightMemoryCell("mem" + toHex(address));
     });
 
     console.log("Ready");

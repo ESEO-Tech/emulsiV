@@ -1,16 +1,16 @@
 
-import * as bin from "../src/binary.js"
+import {encode, decode} from "../src/binary.js"
 
 function testInstruction(label, word, fields) {
     it(`decodes instruction: ${label}`, () => {
-        const result = bin.decode(word);
+        const result = decode(word);
         for (let key in fields) {
             chai.assert.strictEqual(result[key], fields[key]);
         }
     });
     if (fields.name !== "invalid") {
         it(`encodes instruction: ${label}`, () => {
-            chai.assert.equal(bin.encode(fields), word);
+            chai.assert.equal(encode(fields), word);
         });
     }
 }

@@ -1,8 +1,8 @@
 
 import {Device} from "../virgule.js";
-import * as bin from "../binary.js";
-import * as asm from "../assembly.js";
-import * as int32 from "../int32.js";
+import {decode} from "../binary.js";
+import {disassemble, disassemblePseudo, disassembleMeta} from "../assembly.js";
+import {toHex} from "../int32.js";
 
 export class AsmOutput extends Device {
     constructor(mem) {
@@ -34,12 +34,12 @@ export class AsmOutput extends Device {
     localWrite(address, size, value) {
         address -= address % 4;
         const word = this.mem.read(address, 4, false);
-        const instr = bin.decode(word);
-        this.instrs[int32.toHex(address)] = {
+        const instr = decode(word);
+        this.instrs[toHex(address)] = {
             word:   word,
-            asm:    asm.toString(instr, address),
-            pseudo: asm.pseudoToString(instr, address),
-            meta:   asm.metaToString(instr, address),
+            asm:    disassemble(instr),
+            pseudo: disassemblePseudo(instr),
+            meta:   disassembleMeta(instr, address),
         };
     }
 }

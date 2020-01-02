@@ -1,5 +1,5 @@
 
-import * as int32 from "./int32.js";
+import {toHex, unsignedSlice} from "./int32.js";
 
 export function parse(text, dest) {
     text = text.toLowerCase();
@@ -81,7 +81,7 @@ export function generate(src, size, bytesPerLine=16) {
         // Compute the actual byte count for the current line.
         const count = Math.min(bytesPerLine, size - lineAddr);
         // Line header with ":", byte count, address and record type.
-        let line = ":" + int32.toHex(count, 2) + int32.toHex(lineAddr, 4) + "00";
+        let line = ":" + toHex(count, 2) + toHex(lineAddr, 4) + "00";
         // Initialize the checksum for this line.
         let checksum = count + (lineAddr >> 8) + (lineAddr & 0xFF);
         // This flag will be used to detect null lines.
@@ -93,13 +93,13 @@ export function generate(src, size, bytesPerLine=16) {
                 hasData = true;
             }
             checksum += byte;
-            line += int32.toHex(byte, 2);
+            line += toHex(byte, 2);
         }
 
         // If the line contains non-zero data, append it to the result
         // with the final checksum byte.
         if (hasData) {
-            result += line + int32.toHex(int32.unsignedSlice(-checksum, 7, 0), 2) + "\n";
+            result += line + toHex(unsignedSlice(-checksum, 7, 0), 2) + "\n";
         }
     }
 

@@ -1,6 +1,13 @@
 
-import * as int32 from "./int32.js";
+import {toHex, signed} from "./int32.js";
 
+// Assembly operand syntax:
+// 'd': destination register
+// '1': source register 1
+// '2': source register 2
+// 'i': immediate
+// 'p': offset from PC
+// 'a': indirect address
 const ASM_TABLE = {
     lui   : "di",
     auipc : "di",
@@ -63,30 +70,34 @@ const ASM_TABLE = {
     ret    : "",
 };
 
+// Psendo-instruction replacement table.
+// A suffix '$n' indicates a pseudo-instruction that has the same name as
+// a regular instruction.
 const PSEUDO_TABLE = {
-    nop:    {name: "addi",  rd:  0, rs1: 0, imm: 0},
-    li:     {name: "addi",  rs1: 0},
-    mv:     {name: "addi",  imm: 0},
-    not:    {name: "xori",  imm: -1},
-    neg:    {name: "sub",   rs1: 0},
-    seqz:   {name: "sltiu", imm: 1},
-    snez:   {name: "sltu",  rs1: 0},
-    sgtz:   {name: "slt",   rs1: 0},
-    sltz:   {name: "slt",   rs2: 0},
-    beqz:   {name: "beq",   rs2: 0},
-    bnez:   {name: "bne",   rs2: 0},
-    blez:   {name: "bge",   rs1: 0},
-    bgez:   {name: "bge",   rs2: 0},
-    bltz:   {name: "blt",   rs2: 0},
-    bgtz:   {name: "blt",   rs1: 0},
-    j:      {name: "jal",   rd:  0},
-    jal$1:  {name: "jal",   rd:  1},
-    ret:    {name: "jalr",  rd:  0, rs1: 1, imm: 0},
-    jr:     {name: "jalr",  rd:  0, imm: 0},
-    jalr$1: {name: "jalr",  rd:  1, imm: 0},
+    nop:    {name: "addi",  rd: 0, rs1: 0,         imm: 0 },
+    li:     {name: "addi",         rs1: 0                 },
+    mv:     {name: "addi",                         imm: 0 },
+    not:    {name: "xori",                         imm: -1},
+    neg:    {name: "sub",          rs1: 0                 },
+    seqz:   {name: "sltiu",                        imm: 1 },
+    snez:   {name: "sltu",         rs1: 0                 },
+    sgtz:   {name: "slt",          rs1: 0                 },
+    sltz:   {name: "slt",                  rs2: 0         },
+    beqz:   {name: "beq",                  rs2: 0         },
+    bnez:   {name: "bne",                  rs2: 0         },
+    blez:   {name: "bge",          rs1: 0                 },
+    bgez:   {name: "bge",                  rs2: 0         },
+    bltz:   {name: "blt",                  rs2: 0         },
+    bgtz:   {name: "blt",          rs1: 0                 },
+    j:      {name: "jal",   rd: 0                         },
+    jal$1:  {name: "jal",   rd: 1                         },
+    ret:    {name: "jalr",  rd: 0, rs1: 1,         imm: 0 },
+    jr:     {name: "jalr",  rd: 0,                 imm: 0 },
+    jalr$1: {name: "jalr",  rd: 1,                 imm: 0 },
 }
 
-export function toString({name, rd, rs1, rs2, imm}, address) {
+// Disassemble an instruction or pseudo-instruction.
+export function disassemble({name, rd, rs1, rs2, imm}) {
     if (!(name in ASM_TABLE)) {
         return "-";
     }
@@ -98,7 +109,7 @@ export function toString({name, rd, rs1, rs2, imm}, address) {
             case "d": return emitReg(rd);
             case "1": return emitReg(rs1);
             case "2": return emitReg(rs2);
-            case "i": return Math.abs(imm) > 32768 ? `0x${int32.toHex(imm)}` : int32.signed(imm);
+            case "i": return Math.abs(imm) > 32768 ? `0x${toHex(imm)}` : signed(imm);
             case "p": return (imm > 0 ? "+" : "") + imm;
             case "a": return `${imm}(${emitReg(rs1)})`;
         }
@@ -112,34 +123,42 @@ export function toString({name, rd, rs1, rs2, imm}, address) {
     return name;
 }
 
-export function pseudoToString(instr, address) {
+// Disassemble as a pseudo-instruction.
+// Return null if the given instruction cannot be mapped to a known
+// pseudo-instruction.
+export function disassemblePseudo(instr) {
     for (let [pname, pinstr] of Object.entries(PSEUDO_TABLE)) {
         if (Object.entries(pinstr).every(([key, value]) => instr[key] === value)) {
             instr.name = pname;
-            return toString(instr, address);
+            return disassemble(instr);
         }
     }
     return null;
 }
 
-export function metaToString({name, imm}, address) {
+// Extract additional readable information from an instruction.
+// Currently, this returns the target address of a PC-relative branch in hexadecimal.
+export function disassembleMeta({name, imm}, address) {
     if (!(name in ASM_TABLE)) {
         return null;
     }
     if (ASM_TABLE[name].endsWith("p")) {
-        return "0x" + int32.toHex(imm + address);
+        return "0x" + toHex(imm + address);
     }
     return null;
 }
 
+// Compose regular expressions in sequence.
 function seq(...res) {
     return new RegExp(res.map(e => `(?:${e.source})`).join(""));
 }
 
+// Compose regular expressions into an alternative.
 function alt(...res) {
     return new RegExp(res.map(e => `(?:${e.source})`).join("|"));
 }
 
+// Assembly instruction grammar.
 const instructionNameRe     = /\b[a-z]+\b/;
 const registerNameRe        = /\bx([0-9]+)\b/;
 const decimalLiteralRe      = /[+-]?[0-9]+\b/;
@@ -149,7 +168,7 @@ const indirectAddressRe     = seq(/\(\s*/, registerNameRe, /\s*\)/);
 const offsetAddressRe       = seq(integerLiteralRe, /\s*/, indirectAddressRe);
 const instructionFragmentRe = new RegExp(alt(instructionNameRe, registerNameRe, indirectAddressRe, offsetAddressRe, integerLiteralRe), "g");
 
-export function fromString(str, address) {
+export function assemble(str) {
     const instr = {name: "invalid", rd: 0, rs1: 0, rs2: 0, imm: 0};
 
     const fragments = str.toLowerCase().match(instructionFragmentRe);
@@ -189,13 +208,14 @@ export function fromString(str, address) {
             case "2": instr.rs2 = parseReg(op); break;
             case "i":
             case "p": instr.imm = parseImm(op); break;
-            case "a":
+            case "a": {
                 const addressSpec = op.split(/[()]/);
                 if (addressSpec.length !== 3) {
                     return;
                 }
                 instr.imm = parseImm(addressSpec[0]);
                 instr.rs1 = parseReg(addressSpec[1]);
+            }
         }
     });
 

@@ -1,5 +1,5 @@
 
-import * as bin from "./binary.js";
+import {decode} from "./binary.js";
 import * as int32 from "./int32.js";
 
 const ACTION_TABLE = {
@@ -80,7 +80,7 @@ export class Virgule {
         const fetchError = this.bus.error;
 
         // Decode
-        const instr = bin.decode(word);
+        const instr = decode(word);
 
         // Trouver les actions associées à l'instruction.
         const [src1, src2, aluOp, wbMem, branch] = ACTION_TABLE[instr.name];

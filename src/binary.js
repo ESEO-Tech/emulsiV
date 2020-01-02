@@ -1,5 +1,5 @@
 
-import * as int32 from "./int32.js";
+import {signedSlice, unsignedSlice, unsigned} from "./int32.js";
 
 // Base opcodes.
 const OP_LOAD   = 0x03;
@@ -60,7 +60,7 @@ const FIELD_NAME_TO_SLICE = {
 function decodeFields(word) {
     const res = {};
     for (let [key, [left, right]] of Object.entries(FIELD_NAME_TO_SLICE)) {
-        res[key] = int32.unsignedSlice(word, left, right);
+        res[key] = unsignedSlice(word, left, right);
     }
     return res;
 }
@@ -95,11 +95,11 @@ function decodeImmediate(opcode, word) {
     const fmt    = OPCODE_TO_FORMAT[opcode];
     const slices = FORMAT_TO_IMM_SLICES[fmt];
 
-    let slicer = int32.signedSlice;
+    let slicer = signedSlice;
     let res    = 0;
     for (let [left, right, pos] of slices) {
         res   |= slicer(word, left, right, pos);
-        slicer = int32.unsignedSlice;
+        slicer = unsignedSlice;
     }
 
     return res;
@@ -115,7 +115,7 @@ function encodeImmediate(opcode, word) {
 
     let res = 0;
     for (let [left, right, pos] of slices) {
-        res |= int32.unsignedSlice(word, left - right + pos, pos, right);
+        res |= unsignedSlice(word, left - right + pos, pos, right);
     }
 
     return res;
@@ -185,10 +185,8 @@ for (let [name, path] of Object.entries(INSTR_NAME_TO_FIELDS)) {
 }
 
 export function decode(word) {
-    // Extraire les champs de l'instruction.
     const fields = decodeFields(word);
 
-    // Trouver le nom de l'instruction.
     let tree = FIELDS_TO_INSTR_NAME;
     for (let fieldValue of Object.values(fields)) {
         tree = tree.get(fieldValue) || "invalid";
@@ -208,10 +206,10 @@ export function encode(instr) {
     const fields = INSTR_NAME_TO_FIELDS[instr.name] || [];
     Object.entries(FIELD_NAME_TO_SLICE).forEach(([fieldName, [left, right]], index) => {
         const fieldValue = fields[index] || instr[fieldName] || 0;
-        res |= int32.unsignedSlice(fieldValue, left - right, 0, right);
+        res |= unsignedSlice(fieldValue, left - right, 0, right);
     });
     if (fields.length) {
         res |= encodeImmediate(fields[0], instr.imm);
     }
-    return int32.unsigned(res);
+    return unsigned(res);
 }

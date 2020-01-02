@@ -4,8 +4,17 @@
   "description": "A RISC-V (rv32e) visual instruction set simulator",
   "author": "Guillaume Savaton",
   "license": "MPL-2.0",
+  "scripts": {
+    "start": "node_modules/.bin/http-server -o index.html .",
+    "test": "node_modules/.bin/http-server -o test/index.html .",
+    "lint": "node_modules/.bin/eslint src"
+  },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",
     "file-saver": "^2.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "http-server": "^0.12.0"
   }
 }
