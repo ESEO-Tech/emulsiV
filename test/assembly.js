@@ -1,17 +1,27 @@
 
-import {assemble, disassemble} from "../src/assembly.js"
+import {assemble, disassemble, disassemblePseudo} from "../src/assembly.js"
 
-function testInstruction({asm, fields, dis=true}) {
-    it(`assembles instruction: ${asm}`, () => {
-        const result = assemble(asm);
-        for (let key in fields) {
-            chai.assert.strictEqual(result[key], fields[key]);
-        }
-    });
-    if (dis) {
-        it(`disassembles instruction: ${asm}`, () => {
-            chai.assert.equal(disassemble(fields), asm);
+function testInstruction({asm, fields, dis=true, pseudo=false}) {
+    if (!pseudo) {
+        it(`assembles instruction: ${asm}`, () => {
+            const result = assemble(asm);
+            for (let key in fields) {
+                chai.assert.strictEqual(result[key], fields[key]);
+            }
         });
+    }
+
+    if (dis) {
+        if (!pseudo) {
+            it(`disassembles instruction: ${asm}`, () => {
+                chai.assert.equal(disassemble(fields), asm);
+            });
+        }
+        else {
+            it(`disassembles pseudo-instruction: ${asm}`, () => {
+                chai.assert.equal(disassemblePseudo(fields), asm);
+            });
+        }
     }
 }
 
@@ -76,6 +86,26 @@ const testData = [
     {asm: "sb x9, (x7)",              fields: {name: "sb",              rs1: 7,  rs2: 9,  imm: 0    }, dis: false},
     {asm: "mret x1, 2",               fields: {name: "mret"                                         }, dis: false},
     {asm: "invalid",                  fields: {name: "invalid", rd: 0,  rs1: 0,  rs2: 0,  imm: 0    }, dis: false},
+    // Pseudo-instructions.
+    {asm: "nop",                      fields: {name: "addi",    rd: 0,  rs1: 0,           imm: 0    }, pseudo: true},
+    {asm: "li x3, -1",                fields: {name: "addi",    rd: 3,  rs1: 0,           imm: -1   }, pseudo: true},
+    {asm: "mv x4, x5",                fields: {name: "addi",    rd: 4,  rs1: 5,           imm: 0    }, pseudo: true},
+    {asm: "not x5, x6",               fields: {name: "xori",    rd: 5,  rs1: 6,           imm: -1   }, pseudo: true},
+    {asm: "neg x6, x7",               fields: {name: "sub",     rd: 6,  rs1: 0,  rs2: 7             }, pseudo: true},
+    {asm: "seqz x7, x8",              fields: {name: "sltiu",   rd: 7,  rs1: 8,           imm: 1    }, pseudo: true},
+    {asm: "snez x8, x9",              fields: {name: "sltu",    rd: 8,  rs1: 0,  rs2: 9              }, pseudo: true},
+    {asm: "sgtz x9, x10",             fields: {name: "slt",     rd: 9,  rs1: 0,  rs2: 10             }, pseudo: true},
+    {asm: "sltz x10, x11",            fields: {name: "slt",     rd: 10, rs1: 11, rs2: 0              }, pseudo: true},
+    {asm: "beqz x12, -4",             fields: {name: "beq",             rs1: 12, rs2: 0,  imm: -4    }, pseudo: true},
+    {asm: "bnez x13, +4",             fields: {name: "bne",             rs1: 13, rs2: 0,  imm: 4     }, pseudo: true},
+    {asm: "blez x11, -8",             fields: {name: "bge",             rs1: 0,  rs2: 11, imm: -8    }, pseudo: true},
+    {asm: "bltz x12, +8",             fields: {name: "blt",             rs1: 12, rs2: 0,  imm: 8     }, pseudo: true},
+    {asm: "bgtz x12, -16",            fields: {name: "blt",             rs1: 0,  rs2: 12, imm: -16   }, pseudo: true},
+    {asm: "j +16",                    fields: {name: "jal",     rd: 0,                    imm: 16    }, pseudo: true},
+    {asm: "jal -20",                  fields: {name: "jal",     rd: 1,                    imm: -20   }, pseudo: true},
+    {asm: "ret",                      fields: {name: "jalr",    rd: 0,  rs1: 1,           imm: 0     }, pseudo: true},
+    {asm: "jr x13",                   fields: {name: "jalr",    rd: 0,  rs1: 13,          imm: 0     }, pseudo: true},
+    {asm: "jalr x14",                 fields: {name: "jalr",    rd: 1,  rs1: 14,          imm: 0     }, pseudo: true},
 ];
 
 describe("Module: assembly", () => {
