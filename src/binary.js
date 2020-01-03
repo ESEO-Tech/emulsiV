@@ -70,7 +70,7 @@ const OPCODE_TO_FORMAT = {
     [OP_LOAD]   : "I",
     [OP_IMM]    : "I",
     [OP_JALR]   : "I",
-    [OP_SYSTEM] : "I",
+    // [OP_SYSTEM] : "I",
     [OP_STORE]  : "S",
     [OP_BRANCH] : "B",
     [OP_AUIPC]  : "U",
@@ -79,6 +79,7 @@ const OPCODE_TO_FORMAT = {
 };
 
 // Slices of the instruction word for each immediate format.
+// Format H corresponds to immediate shift instructions.
 const FORMAT_TO_IMM_SLICES = {
     I : [[31, 20, 0 ]                                         ],
     S : [[31, 25, 5 ], [11, 7, 0  ]                           ],
@@ -87,7 +88,11 @@ const FORMAT_TO_IMM_SLICES = {
     J : [[31, 31, 20], [19, 12, 12], [20, 20, 11], [30, 21, 1]],
 };
 
-function decodeImmediate(opcode, word) {
+function decodeImmediate({opcode, funct3, rs2, word}) {
+    if (opcode === OP_IMM && (funct3 === F3_SL || funct3 === F3_SR)) {
+        return rs2;
+    }
+
     if (!(opcode in OPCODE_TO_FORMAT)) {
         return 0;
     }
@@ -197,7 +202,7 @@ export function decode(word) {
 
     fields.name = tree;
     fields.word = word;
-    fields.imm  = decodeImmediate(fields.opcode, word);
+    fields.imm  = decodeImmediate(fields);
     return fields;
 }
 
