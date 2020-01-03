@@ -1,5 +1,5 @@
 
-import * as int32 from "../int32.js";
+import {unsignedSlice} from "../int32.js";
 import {Device} from "../virgule.js";
 
 export class BitmapOutput extends Device {
@@ -29,7 +29,7 @@ export class BitmapOutput extends Device {
             this.pixels.push({
                 x: (address + i) % this.width,
                 y: Math.floor((address + i) / this.width),
-                c: int32.unsignedSlice(value, 8 * i + 7, 8 * i)
+                c: unsignedSlice(value, 8 * i + 7, 8 * i)
             })
         }
     }
