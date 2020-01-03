@@ -1,14 +1,14 @@
 
 import {assemble, disassemble} from "../src/assembly.js"
 
-function testInstruction({asm, fields}) {
+function testInstruction({asm, fields, dis=true}) {
     it(`assembles instruction: ${asm}`, () => {
         const result = assemble(asm);
         for (let key in fields) {
             chai.assert.strictEqual(result[key], fields[key]);
         }
     });
-    if (fields.name !== "invalid") {
+    if (dis) {
         it(`disassembles instruction: ${asm}`, () => {
             chai.assert.equal(disassemble(fields), asm);
         });
@@ -62,11 +62,41 @@ const testData = [
     {asm: "or x4, x5, x8",            fields: {name: "or",      rd: 4,  rs1: 5,  rs2: 8             }},
     {asm: "and x5, x6, x9",           fields: {name: "and",     rd: 5,  rs1: 6,  rs2: 9             }},
     {asm: "mret",                     fields: {name: "mret"                                         }},
-    {asm: "invalid (unknown opcode)", fields: {name: "invalid", rd: 0,  rs1: 0,  rs2: 0,  imm: 0    }},
+    // Partial or invalid instructions are assembled with default fields.
+    {asm: "lui",                      fields: {name: "lui",     rd: 0,                    imm: 0    }, dis: false},
+    {asm: "lui x1, x2",               fields: {name: "lui",     rd: 1,                    imm: 0    }, dis: false},
+    {asm: "jalr",                     fields: {name: "jalr",    rd: 0,  rs1: 0,           imm: 0    }, dis: false},
+    {asm: "jalr x8, x1",              fields: {name: "jalr",    rd: 8,  rs1: 1,           imm: 0    }, dis: false},
+    {asm: "jalr x8, x1, x4",          fields: {name: "jalr",    rd: 8,  rs1: 1,           imm: 0    }, dis: false},
+    {asm: "lb",                       fields: {name: "lb",      rd: 0,  rs1: 0,           imm: 0    }, dis: false},
+    {asm: "lb x9",                    fields: {name: "lb",      rd: 9,  rs1: 0,           imm: 0    }, dis: false},
+    {asm: "lb x9, (x7)",              fields: {name: "lb",      rd: 9,  rs1: 7,           imm: 0    }, dis: false},
+    {asm: "sb",                       fields: {name: "sb",              rs1: 0,  rs2: 0,  imm: 0    }, dis: false},
+    {asm: "sb x9",                    fields: {name: "sb",              rs1: 0,  rs2: 9,  imm: 0    }, dis: false},
+    {asm: "sb x9, (x7)",              fields: {name: "sb",              rs1: 7,  rs2: 9,  imm: 0    }, dis: false},
+    {asm: "mret x1, 2",               fields: {name: "mret"                                         }, dis: false},
+    {asm: "invalid",                  fields: {name: "invalid", rd: 0,  rs1: 0,  rs2: 0,  imm: 0    }, dis: false},
 ];
 
 describe("Module: assembly", () => {
+    // Nominal case
     for (let t of testData) {
         testInstruction(t);
+    }
+
+    // Replace commas with spaces
+    for (let t of testData) {
+        const u = Object.create(t);
+        u.asm = u.asm.replace(/\s*,\s*/g, " ");
+        u.dis = false;
+        testInstruction(u);
+    }
+
+    // Insert spaces
+    for (let t of testData) {
+        const u = Object.create(t);
+        u.asm = "  " + u.asm.replace(/\s*([,()])\s*/g, "  $1  ") + "  ";
+        u.dis = false;
+        testInstruction(u);
     }
 });
