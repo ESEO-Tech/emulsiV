@@ -40,8 +40,8 @@ const ACTION_TABLE = {
     sra     : {src1: "x1", src2: "x2",  aluOp: "sra",  wbMem: "r"                 },
     or      : {src1: "x1", src2: "x2",  aluOp: "or",   wbMem: "r"                 },
     and     : {src1: "x1", src2: "x2",  aluOp: "and",  wbMem: "r"                 },
-    mret    : {},
-    invalid : {},
+    mret    : {                                                                   },
+    invalid : {                                                                   },
 };
 
 export class Virgule {
