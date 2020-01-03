@@ -19,7 +19,7 @@ OBJ_DEPS = $(C_DEPS:.c=.o) $(ASM_DEPS:.s=.o)
 	$(CC) $(C_FLAGS) -c -o $@ $<
 
 %.o: %.s
-	$(CC) $(C_FLAGS) -c -o $@ $<
+	$(CC) $(C_FLAGS) -Wa,-a -c -o $@ $< > $*.lst
 
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
@@ -28,4 +28,4 @@ OBJ_DEPS = $(C_DEPS:.c=.o) $(ASM_DEPS:.s=.o)
 	$(LIB_DIR)/url-encode.js $< > $@
 
 clean:
-	rm -f *.o *.hex *.elf
+	rm -f *.o *.hex *.elf *.lst
