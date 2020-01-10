@@ -70,7 +70,7 @@ const OPCODE_TO_FORMAT = {
     [OP_LOAD]   : "I",
     [OP_IMM]    : "I",
     [OP_JALR]   : "I",
-    // [OP_SYSTEM] : "I",
+    [OP_SYSTEM] : "I",
     [OP_STORE]  : "S",
     [OP_BRANCH] : "B",
     [OP_AUIPC]  : "U",

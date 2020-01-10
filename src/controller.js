@@ -25,10 +25,10 @@ export class Controller {
             this.bus.reset();
         }
         view.clearDevices();
-        this.traceData = null;
+        this.savedIrq = this.bus.irq();
         this.forceUpdate();
-        this.setNextState("fetch");
         view.resize();
+        this.prepareNextState();
     }
 
     forceUpdate() {
@@ -37,7 +37,7 @@ export class Controller {
             view.simpleUpdate("x" + i, toHex(this.cpu.x[i]));
         }
         view.simpleUpdate("pc",        toHex(this.cpu.pc));
-        view.simpleUpdate("pc-i",      toHex(this.cpu.pc + 4));
+        view.simpleUpdate("pc-i",      toHex(this.cpu.pcNext));
         view.simpleUpdate("mepc",      toHex(this.cpu.mepc));
         view.simpleUpdate("addr",      "-");
         view.simpleUpdate("data",      "-");
@@ -192,10 +192,10 @@ export class Controller {
         do {
             await this.trace(single, false);
         } while (!this.stopRequest &&
-                 !(single && this.state === "fetch") &&
-                 !(this.breakpoints[toHex(this.cpu.pc)] && this.state === "fetch"));
+                 !(single && this.cpu.state === "fetch") &&
+                 !(this.breakpoints[toHex(this.cpu.pc)] && this.cpu.state === "fetch"));
 
-         const stopTime = Date.now();
+        const stopTime = Date.now();
 
         console.log(`Execution time: ${stopTime - startTime} ms`);
 
@@ -204,7 +204,7 @@ export class Controller {
         }
 
         view.setButtonLabel("run", "Run");
-        view.enableInput(this.state + "-btn");
+        view.enableInput(this.cpu.state + "-btn");
         view.enableInput("hex-input");
         view.enableInput("step-btn");
         view.enableInput("reset-btn");
@@ -212,40 +212,37 @@ export class Controller {
         this.running = false;
     }
 
-    highlightCurrentState() {
-        view.activateButton(this.state);
-        view.enableInput(this.state + "-btn", false);
-        view.enableInput("hex-input",         false);
-        view.enableInput("step-btn",          false);
-        view.enableInput("reset-btn",         false);
+    highlightState(name) {
+        view.activateButton(name);
+        view.enableInput(name + "-btn", false);
+        view.enableInput("hex-input",   false);
+        view.enableInput("step-btn",    false);
+        view.enableInput("reset-btn",   false);
     }
 
-    setNextState(name) {
-        if (this.state) {
-            view.activateButton(this.state, false);
+    prepareNextState(name) {
+        if (name) {
+            view.activateButton(name, false);
         }
-        view.enableInput(name + "-btn", !this.running);
-        view.enableInput("hex-input",   !this.running);
-        view.enableInput("step-btn",    !this.running);
-        view.enableInput("reset-btn",   !this.running);
-        this.state = name;
+        view.enableInput(this.cpu.state + "-btn", !this.running);
+        view.enableInput("hex-input",             !this.running);
+        view.enableInput("step-btn",              !this.running);
+        view.enableInput("reset-btn",             !this.running);
     }
 
     async traceFetch() {
-        this.highlightCurrentState();
-
         view.simpleUpdate("addr", "-");
         view.simpleUpdate("data", "-");
 
-        await view.move("pc", "addr", toHex(this.traceData.pc));
+        await view.move("pc", "addr", toHex(this.cpu.pc));
 
-        const irx = toHex(this.traceData.instr.word);
-        if (!this.traceData.fetchError) { // TODO Add error indicator
+        const irx = toHex(this.cpu.fetchData);
+        if (!this.cpu.fetchError) { // TODO Add error indicator
             await Promise.all([
-                view.move("mem" + toHex(this.traceData.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
-                view.move("mem" + toHex(this.traceData.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
-                view.move("mem" + toHex(this.traceData.pc + 2), "data2", irx.slice(2, 4), {slot: 2}),
-                view.move("mem" + toHex(this.traceData.pc + 3), "data3", irx.slice(0, 2), {slot: 3})
+                view.move("mem" + toHex(this.cpu.pc + 0), "data0", irx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                view.move("mem" + toHex(this.cpu.pc + 1), "data1", irx.slice(4, 6), {slot: 1}),
+                view.move("mem" + toHex(this.cpu.pc + 2), "data2", irx.slice(2, 4), {slot: 2}),
+                view.move("mem" + toHex(this.cpu.pc + 3), "data3", irx.slice(0, 2), {slot: 3})
             ]);
         }
         view.update("data", irx);
@@ -267,219 +264,180 @@ export class Controller {
         view.simpleUpdate("alu-b", "-");
         view.simpleUpdate("cmp-a", "-");
         view.simpleUpdate("cmp-b", "-");
-
-        this.setNextState("decode");
     }
 
     async traceDecode() {
-        this.highlightCurrentState();
-
-        view.update("fn",     this.traceData.instr.name);
-        view.update("rs1",    this.traceData.instr.rs1);
-        view.update("rs2",    this.traceData.instr.rs2);
-        view.update("rd",     this.traceData.instr.rd);
-        view.update("imm",    toHex(this.traceData.instr.imm));
-        view.update("alu-op", this.traceData.aluOp);
-        view.update("cmp-op", this.traceData.branch);
-        if (!this.traceData.branch || this.traceData.branch === "al") {
-            view.update("cmp-taken", this.traceData.taken);
+        view.update("fn",     this.cpu.instr.name);
+        view.update("rs1",    this.cpu.instr.rs1);
+        view.update("rs2",    this.cpu.instr.rs2);
+        view.update("rd",     this.cpu.instr.rd);
+        view.update("imm",    toHex(this.cpu.instr.imm));
+        view.update("alu-op", this.cpu.datapath.aluOp);
+        view.update("cmp-op", this.cpu.datapath.branch);
+        if (!this.cpu.datapath.branch || this.cpu.datapath.branch === "al") {
+            view.update("cmp-taken", this.cpu.branchTaken);
         }
         await view.waitUpdate();
-
-        if (this.traceData.aluOp) {
-            this.setNextState("alu");
-        }
-        else {
-            this.setNextState("pc");
-        }
     }
 
-    async traceALU() {
-        this.highlightCurrentState();
-
+    async traceCompute() {
         // ALU operand A
-        switch (this.traceData.src1) {
+        switch (this.cpu.datapath.src1) {
             case "pc":
-                await view.move("pc", "alu-a", toHex(this.traceData.pc));
+                await view.move("pc", "alu-a", toHex(this.cpu.pc));
                 break
             case "x1":
-                await view.move("x" + this.traceData.instr.rs1, "alu-a", toHex(this.traceData.x1), {path: "xrs1-alu-a"});
+                await view.move("x" + this.cpu.instr.rs1, "alu-a", toHex(this.cpu.x1), {path: "xrs1-alu-a"});
                 break;
         }
 
         // ALU operand B
-        switch (this.traceData.src2) {
+        switch (this.cpu.datapath.src2) {
             case "imm":
-                await view.move("imm", "alu-b", toHex(this.traceData.instr.imm));
+                await view.move("imm", "alu-b", toHex(this.cpu.instr.imm));
                 break
             case "x2":
-                await view.move("x" + this.traceData.instr.rs2, "alu-b", toHex(this.traceData.x2), {path: "xrs2-alu-b"});
+                await view.move("x" + this.cpu.instr.rs2, "alu-b", toHex(this.cpu.x2), {path: "xrs2-alu-b"});
                 break;
         }
 
         view.clearPaths();
         await view.delay(2 * STEP_DELAY);
 
-        view.update("alu-r", toHex(this.traceData.r));
+        view.update("alu-r", toHex(this.cpu.aluResult));
         await view.waitUpdate();
-
-        if (this.traceData.branch && this.traceData.branch !== "al") {
-            this.setNextState("branch");
-        }
-        else if (this.traceData.wbMem !== "r" && this.traceData.wbMem !== "pc+" || this.traceData.instr.rd) {
-            this.setNextState("write");
-        }
-        else {
-            this.setNextState("pc");
-        }
     }
 
-    async traceBranch() {
-        this.highlightCurrentState();
-
-        await view.move("x" + this.traceData.instr.rs1, "cmp-a", toHex(this.traceData.x1), {path: "xrs1-cmp-a"});
-        await view.move("x" + this.traceData.instr.rs2, "cmp-b", toHex(this.traceData.x2), {path: "xrs2-cmp-b"});
+    async traceCompare() {
+        await view.move("x" + this.cpu.instr.rs1, "cmp-a", toHex(this.cpu.x1), {path: "xrs1-cmp-a"});
+        await view.move("x" + this.cpu.instr.rs2, "cmp-b", toHex(this.cpu.x2), {path: "xrs2-cmp-b"});
         view.clearPaths();
         await view.delay(2 * STEP_DELAY);
-        view.update("cmp-taken", this.traceData.taken);
+        view.update("cmp-taken", this.cpu.branchTaken);
         await view.waitUpdate();
-
-        this.setNextState("pc");
     }
 
-    async traceWriteBack() {
-        this.highlightCurrentState();
+    async traceLoadStoreWriteBack() {
+        const x2x   = toHex(this.cpu.x2);
+        const rx    = toHex(this.cpu.aluResult);
+        const lx    = toHex(this.cpu.loadData);
 
-        const x2x   = toHex(this.traceData.x2);
-        const rx    = toHex(this.traceData.r);
-        const lx    = toHex(this.traceData.l);
-
-        switch (this.traceData.wbMem) {
+        switch (this.cpu.datapath.wbMem) {
             case "r":
-                if (this.traceData.instr.rd) {
-                    await view.move("alu-r", "x" + this.traceData.instr.rd, rx, {path: "alu-r-xrd"});
+                if (this.cpu.instr.rd) {
+                    await view.move("alu-r", "x" + this.cpu.instr.rd, rx, {path: "alu-r-xrd"});
                 }
                 break;
 
             case "pc+":
-                if (this.traceData.instr.rd) {
-                    await view.move("pc-i",  "x" + this.traceData.instr.rd, toHex(this.traceData.incPc), {path: "pc-i-xrd"});
+                if (this.cpu.instr.rd) {
+                    await view.move("pc-i",  "x" + this.cpu.instr.rd, toHex(this.cpu.pcNext), {path: "pc-i-xrd"});
                 }
                 break;
 
             case "lb":
             case "lbu":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await view.move("mem" + rx, "data0", lx.slice(6, 8), {path: "mem-data"});
                 }
                 view.update("data", lx);
-                if (this.traceData.instr.rd) {
-                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
+                if (this.cpu.instr.rd) {
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "lh":
             case "lhu":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
-                        view.move("mem" + toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
-                        view.move("mem" + toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
+                        view.move("mem" + toHex(this.cpu.aluResult + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                        view.move("mem" + toHex(this.cpu.aluResult + 1), "data1", lx.slice(4, 6), {slot: 1}),
                     ]);
                 }
                 view.update("data", lx);
-                if (this.traceData.instr.rd) {
-                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
+                if (this.cpu.instr.rd) {
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "lw":
                 await view.move("alu-r", "addr", rx);
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
-                        view.move("mem" + toHex(this.traceData.r + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
-                        view.move("mem" + toHex(this.traceData.r + 1), "data1", lx.slice(4, 6), {slot: 1}),
-                        view.move("mem" + toHex(this.traceData.r + 2), "data2", lx.slice(2, 4), {slot: 2}),
-                        view.move("mem" + toHex(this.traceData.r + 3), "data3", lx.slice(0, 2), {slot: 3})
+                        view.move("mem" + toHex(this.cpu.aluResult + 0), "data0", lx.slice(6, 8), {slot: 0, path: "mem-data"}),
+                        view.move("mem" + toHex(this.cpu.aluResult + 1), "data1", lx.slice(4, 6), {slot: 1}),
+                        view.move("mem" + toHex(this.cpu.aluResult + 2), "data2", lx.slice(2, 4), {slot: 2}),
+                        view.move("mem" + toHex(this.cpu.aluResult + 3), "data3", lx.slice(0, 2), {slot: 3})
                     ]);
                 }
                 view.update("data", lx);
-                if (this.traceData.instr.rd) {
-                    await view.move("data", "x" + this.traceData.instr.rd, lx, {path: "data-xrd"});
+                if (this.cpu.instr.rd) {
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
                 }
                 break;
 
             case "sb":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
                 }
                 break;
 
             case "sh":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
-                        view.move("data0", "mem" + toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
-                        view.move("data1", "mem" + toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1})
+                        view.move("data0", "mem" + toHex(this.cpu.aluResult + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                        view.move("data1", "mem" + toHex(this.cpu.aluResult + 1), x2x.slice(4, 6), {slot: 1})
                     ]);
                 }
                 break;
 
             case "sw":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.traceData.instr.rs2, "data", x2x, {path: "xrs2-data"});
-                if (!this.traceData.loadStoreError) { // TODO Add error indicator
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
-                        view.move("data0", "mem" + toHex(this.traceData.r + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
-                        view.move("data1", "mem" + toHex(this.traceData.r + 1), x2x.slice(4, 6), {slot: 1}),
-                        view.move("data2", "mem" + toHex(this.traceData.r + 2), x2x.slice(2, 4), {slot: 2}),
-                        view.move("data3", "mem" + toHex(this.traceData.r + 3), x2x.slice(0, 2), {slot: 3})
+                        view.move("data0", "mem" + toHex(this.cpu.aluResult + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
+                        view.move("data1", "mem" + toHex(this.cpu.aluResult + 1), x2x.slice(4, 6), {slot: 1}),
+                        view.move("data2", "mem" + toHex(this.cpu.aluResult + 2), x2x.slice(2, 4), {slot: 2}),
+                        view.move("data3", "mem" + toHex(this.cpu.aluResult + 3), x2x.slice(0, 2), {slot: 3})
                     ]);
                 }
                 break;
         }
 
         // IRQ status
-        if (this.traceData.irqChanged) {
-            view.update("irq", this.bus.irq());
+        const irq = this.bus.irq();
+        if (this.savedIrq !== irq) {
+            this.savedIrq = irq;
+            view.update("irq", irq);
             await view.waitUpdate();
         }
 
         view.clearPaths();
 
         view.updateDevices(true);
-
-        this.setNextState("pc");
     }
 
-    async tracePC() {
-        this.highlightCurrentState();
+    async traceUpdatePC() {
+        const pcx = toHex(this.cpu.pc);
 
-        const incPcx = toHex(this.traceData.incPc);
-        const rx     = toHex(this.traceData.r);
-
-        if (this.traceData.irq) {
-            view.update("pc", toHex(this.cpu.pc));
+        if (this.cpu.acceptingIrq) {
+            // TODO Move from CSR to PC
+            view.update("pc", pcx);
             await view.waitUpdate();
-            if (this.traceData.taken) {
-                await view.move("alu-r", "mepc", rx);
-            }
-            else {
-                await view.move("pc-i", "mepc", incPcx);
-            }
-        }
-        else if (this.traceData.instr.name === "mret") {
-            await view.move("mepc", "pc", toHex(this.cpu.mepc));
-        }
-        else if (this.traceData.taken) {
-            await view.move("alu-r", "pc", rx);
+            await view.move(this.cpu.branchTaken ? "alu-r" : "pc-i", "mepc", toHex(this.cpu.mepc));
         }
         else {
-            await view.move("pc-i", "pc", incPcx);
+            const src = this.cpu.instr.name === "mret" ? "mepc"  :
+                        this.cpu.branchTaken           ? "alu-r" :
+                                                         "pc-i";
+            await view.move(src, "pc", pcx);
         }
 
         view.clearPaths();
@@ -487,49 +445,33 @@ export class Controller {
         view.highlightAsm(this.cpu.pc);
 
         // Program counter increment.
-        view.update("pc-i", toHex(this.cpu.pc + 4));
+        view.update("pc-i", toHex(this.cpu.pcNext));
         await view.waitUpdate();
-
-        this.setNextState("fetch");
     }
 
     async trace(single, oneStage) {
-        switch (this.state) {
-            case "fetch": {
-                const savedIrq = this.bus.irq();
-                this.traceData = this.cpu.step();
-                this.traceData.irqChanged = this.bus.irq() !== savedIrq;
+        const state = this.cpu.state;
+        this.cpu.step();
 
-                if (single || view.animationsEnabled()) {
-                    await this.traceFetch();
-                }
-                else {
-                    view.updateDevices(false);
-                }
-                break;
+        if (single || view.animationsEnabled()) {
+            this.highlightState(state);
+
+            switch (state) {
+                case "fetch":              await this.traceFetch();              break;
+                case "decode":             await this.traceDecode();             break;
+                case "compute":            await this.traceCompute();            break;
+                case "compare":            await this.traceCompare();            break;
+                case "loadStoreWriteBack": await this.traceLoadStoreWriteBack(); break;
+                case "updatePC":           await this.traceUpdatePC();           break;
             }
 
-            case "decode":
-                await this.traceDecode();
-                break;
-
-            case "alu":
-                await this.traceALU();
-                break;
-
-            case "branch":
-                await this.traceBranch();
-                break;
-
-            case "write":
-                await this.traceWriteBack();
-                break;
-
-            case "pc":
-                await this.tracePC();
+            this.prepareNextState(state);
+        }
+        else if (this.cpu.state === "fetch") {
+            view.updateDevices(false);
         }
 
-        if (!oneStage && !this.stopRequest && !(single && this.state === "fetch")) {
+        if (!oneStage && !this.stopRequest && !(single && this.cpu.state === "fetch")) {
             await view.delay(STEP_DELAY);
         }
     }

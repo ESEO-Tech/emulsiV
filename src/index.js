@@ -98,10 +98,10 @@ window.addEventListener("load", async () => {
     document.getElementById("step-btn").addEventListener("click", () => ctrl.run(true));
     document.getElementById("fetch-btn").addEventListener("click", stageTrace);
     document.getElementById("decode-btn").addEventListener("click", stageTrace);
-    document.getElementById("alu-btn").addEventListener("click", stageTrace);
-    document.getElementById("branch-btn").addEventListener("click", stageTrace);
-    document.getElementById("write-btn").addEventListener("click", stageTrace);
-    document.getElementById("pc-btn").addEventListener("click", stageTrace);
+    document.getElementById("compute-btn").addEventListener("click", stageTrace);
+    document.getElementById("compare-btn").addEventListener("click", stageTrace);
+    document.getElementById("loadStoreWriteBack-btn").addEventListener("click", stageTrace);
+    document.getElementById("updatePC-btn").addEventListener("click", stageTrace);
 
     document.getElementById("animate-cb").addEventListener("click", evt => {
         if (evt.target.checked && ctrl.running) {

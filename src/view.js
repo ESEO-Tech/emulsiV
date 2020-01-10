@@ -270,7 +270,7 @@ function highlightPath(pathPrefix) {
 
 export function move(fromId, toId, value, {slot=0, path=`${fromId}-${toId}`} = {}) {
     if (!animationsEnabled()) {
-        this.simpleUpdate(toId, value);
+        this.update(toId, value);
         return Promise.resolve();
     }
 

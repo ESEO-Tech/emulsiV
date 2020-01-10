@@ -65,115 +65,140 @@ export class Virgule {
             this.x[i] = 0;
         }
 
-        this.pc   = 0;
-        this.mepc = 0;
+        this.pc             = 0;
+        this.pcNext         = 4;
+        this.mepc           = 0;
+        this.fetchData      = 0;
+        this.fetchError     = false;
+        this.decode();
+        this.x1             = 0;
+        this.x2             = 0;
+        this.aluResult      = 0;
+        this.branchTaken    = false;
+        this.loadData       = 0;
+        this.loadStoreError = false;
+        this.state          = "fetch";
     }
 
-    step() {
-        const savedPc = this.pc;
-        const incPc   = this.pc + 4;
-        const irq     = this.bus.irq();
+    fetch() {
+        this.fetchData  = this.bus.read(this.pc, 4, false);
+        this.fetchError = this.bus.error;
+        this.state      = "decode";
+    }
 
-        // Fetch
-        const word = this.bus.read(this.pc, 4, false);
-        const fetchError = this.bus.error;
+    decode() {
+        this.instr    = decode(this.fetchData);
+        this.datapath = ACTION_TABLE[this.instr.name];
+        this.state    = this.datapath.aluOp ? "compute" : "updatePC";
+    }
 
-        // Decode
-        const instr = decode(word);
+    compute() {
+        // Read registers.
+        this.x1 = this.getX(this.instr.rs1);
+        this.x2 = this.getX(this.instr.rs2);
 
-        // Trouver les actions associées à l'instruction.
-        const {src1, src2, aluOp, wbMem, branch} = ACTION_TABLE[instr.name];
-
-
-        // Execute
-        const x1 = this.getX(instr.rs1);
-        const x2 = this.getX(instr.rs2);
-
-        // ALU operand A
+        // Select ALU operand A
         let a = 0;
-        switch (src1) {
+        switch (this.datapath.src1) {
             case "pc": a = this.pc; break;
-            case "x1": a = x1;      break;
+            case "x1": a = this.x1; break;
         }
 
-        // ALU operand B
+        // Select ALU operand B
         let b = 0;
-        switch (src2) {
-            case "imm": b = instr.imm; break;
-            case "x2":  b = x2;        break;
+        switch (this.datapath.src2) {
+            case "imm": b = this.instr.imm; break;
+            case "x2":  b = this.x2;        break;
         }
 
-        // ALU operation
-        let r = 0;
-        switch (aluOp) {
-            case "b":    r = b;                                 break;
-            case "add":  r = signed(a + b);                     break;
-            case "sll":  r = a << unsignedSlice(b, 4, 0);       break;
-            case "slt":  r = signed(a) < signed(b) ? 1 : 0;     break;
-            case "sltu": r = unsigned(a) < unsigned(b) ? 1 : 0; break;
-            case "xor":  r = a ^ b  ;                           break;
-            case "srl":  r = a >>> unsignedSlice(b, 4, 0);      break;
-            case "sra":  r = a >>  unsignedSlice(b, 4, 0);      break;
-            case "or":   r = a | b;                             break;
-            case "and":  r = a & b;                             break;
-            case "sub":  r = signed(a - b);                     break;
+        // Perform ALU operation
+        this.aluResult = 0;
+        switch (this.datapath.aluOp) {
+            case "b":    this.aluResult = b;                                 break;
+            case "add":  this.aluResult = signed(a + b);                     break;
+            case "sll":  this.aluResult = a << unsignedSlice(b, 4, 0);       break;
+            case "slt":  this.aluResult = signed(a) < signed(b) ? 1 : 0;     break;
+            case "sltu": this.aluResult = unsigned(a) < unsigned(b) ? 1 : 0; break;
+            case "xor":  this.aluResult = a ^ b  ;                           break;
+            case "srl":  this.aluResult = a >>> unsignedSlice(b, 4, 0);      break;
+            case "sra":  this.aluResult = a >>  unsignedSlice(b, 4, 0);      break;
+            case "or":   this.aluResult = a | b;                             break;
+            case "and":  this.aluResult = a & b;                             break;
+            case "sub":  this.aluResult = signed(a - b);                     break;
         }
 
-        // Branch condition
-        let taken = false;
-        switch (branch) {
-            case "al":  taken = true;                   break;
-            case "eq":  taken = x1 === x2;              break;
-            case "ne":  taken = x1 !== x2;              break;
-            case "lt":  taken = x1 <   x2;              break;
-            case "ge":  taken = x1 >=  x2;              break;
-            case "ltu": taken = unsigned(x1) <  unsigned(x2); break;
-            case "geu": taken = unsigned(x1) >= unsigned(x2); break;
+        this.branchTaken = this.datapath.branch && this.datapath.branch === "al";
+
+        if (this.datapath.branch && this.datapath.branch !== "al") {
+            this.state = "compare";
+        }
+        else if (this.datapath.wbMem !== "r" && this.datapath.wbMem !== "pc+" || this.instr.rd) {
+            this.state = "loadStoreWriteBack";
+        }
+        else {
+            this.state = "updatePC";
+        }
+    }
+
+    compare() {
+        switch (this.datapath.branch) {
+            case "eq":  this.branchTaken = this.x1 === this.x2;                    break;
+            case "ne":  this.branchTaken = this.x1 !== this.x2;                    break;
+            case "lt":  this.branchTaken = this.x1 <   this.x2;                    break;
+            case "ge":  this.branchTaken = this.x1 >=  this.x2;                    break;
+            case "ltu": this.branchTaken = unsigned(this.x1) <  unsigned(this.x2); break;
+            case "geu": this.branchTaken = unsigned(this.x1) >= unsigned(this.x2); break;
+            default   : this.branchTaken = false;
         }
 
-        // Register/memory update
-        let l = 0;
-        switch (wbMem) {
-            case "r":   this.setX(instr.rd, r);                                 break;
-            case "pc+": this.setX(instr.rd, incPc);                             break;
-            case "lb":  l = this.bus.read(r, 1, true);  this.setX(instr.rd, l); break;
-            case "lh":  l = this.bus.read(r, 2, true);  this.setX(instr.rd, l); break;
-            case "lw":  l = this.bus.read(r, 4, true);  this.setX(instr.rd, l); break;
-            case "lbu": l = this.bus.read(r, 1, false); this.setX(instr.rd, l); break;
-            case "lhu": l = this.bus.read(r, 2, false); this.setX(instr.rd, l); break;
-            case "sb":  this.bus.write(r, 1, x2);                               break;
-            case "sh":  this.bus.write(r, 2, x2);                               break;
-            case "sw":  this.bus.write(r, 4, x2);                               break;
+        this.state = "updatePC";
+    }
+
+    loadStoreWriteBack() {
+        this.loadData = 0;
+        switch (this.datapath.wbMem) {
+            case "r":   this.setX(this.instr.rd, this.aluResult);                                                         break;
+            case "pc+": this.setX(this.instr.rd, this.pcNext);                                                            break;
+            case "lb":  this.loadData = this.bus.read(this.aluResult, 1, true);  this.setX(this.instr.rd, this.loadData); break;
+            case "lh":  this.loadData = this.bus.read(this.aluResult, 2, true);  this.setX(this.instr.rd, this.loadData); break;
+            case "lw":  this.loadData = this.bus.read(this.aluResult, 4, true);  this.setX(this.instr.rd, this.loadData); break;
+            case "lbu": this.loadData = this.bus.read(this.aluResult, 1, false); this.setX(this.instr.rd, this.loadData); break;
+            case "lhu": this.loadData = this.bus.read(this.aluResult, 2, false); this.setX(this.instr.rd, this.loadData); break;
+            case "sb":  this.bus.write(this.aluResult, 1, this.x2);                                                       break;
+            case "sh":  this.bus.write(this.aluResult, 2, this.x2);                                                       break;
+            case "sw":  this.bus.write(this.aluResult, 4, this.x2);                                                       break;
         }
 
-        const loadStoreError = wbMem &&
-                               (wbMem[0] === 'l' || wbMem[0] === 's') &&
-                               this.bus.error;
+        this.loadStoreError = this.datapath.wbMem                                                &&
+                              (this.datapath.wbMem[0] === 'l' || this.datapath.wbMem[0] === 's') &&
+                              this.bus.error;
+        this.state = "updatePC";
+    }
 
-        // Program counter update
-        const enteringIrq = irq && !this.irqState;
-        if (enteringIrq) {
+    updatePC() {
+        this.acceptingIrq = this.bus.irq() && !this.irqState;
+        if (this.acceptingIrq) {
             this.setPc(4);
-            this.mepc = taken ? r : incPc;
+            this.mepc = this.branchTaken ? this.aluResult : this.pcNext;
             this.irqState = true;
         }
-        else if (instr.name === "mret") {
+        else if (this.instr.name === "mret") {
             this.setPc(this.mepc);
             this.irqState = false;
         }
-        else if (taken) {
-            this.setPc(r);
+        else if (this.branchTaken) {
+            this.setPc(this.aluResult);
         }
         else {
-            this.setPc(incPc);
+            this.setPc(this.pcNext);
         }
 
-        return {
-            instr, src1, src2, aluOp, wbMem, branch,
-            pc: savedPc, incPc, irq: enteringIrq,
-            x1, x2, a, b, r, l, taken,
-            fetchError, loadStoreError
-        };
+        this.pcNext = unsigned(this.pc + 4);
+        this.state  = "fetch";
+    }
+
+    step() {
+        this[this.state]();
     }
 
     setX(index, value) {
