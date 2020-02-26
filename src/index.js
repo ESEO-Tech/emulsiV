@@ -1,19 +1,19 @@
 
-import * as v                  from "./virgule.js";
-import {Controller}            from "./controller.js";
-import {TextInput, TextOutput} from "./devices/text.js";
-import {BitmapOutput}          from "./devices/bitmap.js";
-import {AsmOutput}             from "./devices/assembly.js";
-import * as view               from "./view.js";
-import {toHex}                 from "./int32.js";
-import * as url                from "./url.js";
-import * as hex                from "./hex.js";
+import {Bus, Memory, Processor} from "./virgule.js";
+import {Controller}             from "./controller.js";
+import {TextInput, TextOutput}  from "./devices/text.js";
+import {BitmapOutput}           from "./devices/bitmap.js";
+import {AsmOutput}              from "./devices/assembly.js";
+import * as view                from "./view.js";
+import {toHex}                  from "./int32.js";
+import * as url                 from "./url.js";
+import * as hex                 from "./hex.js";
 
 window.addEventListener("load", async () => {
     const memSize = 4096;
 
-    const bus = new v.Bus();
-    const mem = new v.Memory(0, memSize);
+    const bus = new Bus();
+    const mem = new Memory(0, memSize);
     bus.addDevice(mem);
     const asm_out = new AsmOutput(mem);
     bus.addDevice(asm_out);
@@ -23,7 +23,7 @@ window.addEventListener("load", async () => {
     bus.addDevice(text_out);
     const bitmap_out = new BitmapOutput(0x00000C00, 32, 32);
     bus.addDevice(bitmap_out);
-    const cpu = new v.Virgule(16, bus);
+    const cpu = new Processor(16, bus);
 
     view.init(mem.size);
     view.registerView("asm", asm_out, false);

@@ -44,7 +44,7 @@ const ACTION_TABLE = {
     invalid : {                                                                   },
 };
 
-export class Virgule {
+export class Processor {
     /*
      * Registres :
      *
