@@ -1,42 +1,55 @@
 
-Installation des dépendances
-============================
+Virgulator
+==========
 
-Installez `npm` et exécutez la commande suivante à partir du dossier racine :
+Virgulator is a visual simulator for Virgule, a minimal CPU core implementation
+based on the RISC-V architecture.
+This simulator is intended to be used as a tool for teaching the basics of
+computer architecture.
+
+The user interface shows the structure of the datapath and animates the data
+transfers between functional units.
+The execution of a single instruction is decomposed into several steps (fetch,
+decode, ALU, mem/reg, PC) for educational reasons, but the intent is not to
+reflect a specific sequencer or pipeline implementation.
+In fact, we don't plan to simulate a pipeline in more detail.
+
+Running the simulator locally
+-----------------------------
+
+Due to the security policies in recent web browsers, some features will only work
+if the simulator is served by a web server.
+We provide facilities to automate the process.
+
+Install `npm` and run the following command from the root of the source tree:
 
 ```
 npm install
 ```
 
-Exécution en local
-==================
-
-La commande suivante démarre un serveur web local et ouvre le fichier
-`index.html` situé à la racine :
+This command starts a local web server and opens the simulator in a web browser:
 
 ```
 npm start
 ```
 
-Tests unitaires
-===============
+Development
+-----------
 
-La commande suivante démarre un serveur web local et ouvre le fichier
-`test/index.html` :
+Check the JavaScript source code:
+
+```
+npm run lint
+```
+
+This command starts a local web server and runs the unit tests from the `test` folder:
 
 ```
 npm test
 ```
 
-Propositions de fonctionnalités
-===============================
+Known issues
+------------
 
-* Enregistrer l'état de la mémoire au format `.hex`.
-* Enregistrer l'état de la mémoire en tant que données codées dans l'URL.
-* Charger le contenu de la mémoire à partir de données codées dans l'URL.
-
-Bugs connus
-===========
-
-Dans la colonne de droite du tableau représentant la mémoire, en mode
-"ASCII", la saisie d'espaces peut donner des résultats imprévisibles.
+In the rightmost column of the memory view, in *ASCII* mode,
+typing spaces can result in unexpected values.
