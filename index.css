@@ -245,3 +245,34 @@ marker.bus3.active path { fill:   hsl(30, 100%, 40%); }
 tr > div {
     display: none !important;
 }
+
+.branding {
+    grid-column-end: span 3;
+}
+
+.branding > div {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    text-align: center;
+    font-size: 12pt;
+}
+
+.branding img {
+    height: 6em;
+    max-height: 80px;
+    margin-bottom: 0.5em;
+}
+
+.branding .links a:nth-child(2) {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+a {
+    color: hsl(210, 55%, 40%);
+}
+
+a img {
+    border: none;
+}

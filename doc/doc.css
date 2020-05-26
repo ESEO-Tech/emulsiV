@@ -1,0 +1,50 @@
+
+body {
+    margin: 1em calc(50vw - 30em);
+    font-size: 13pt;
+}
+
+h1 {
+    text-align: center;
+}
+
+h1, h2, h3 {
+    font-family: sans-serif;
+    font-weight: normal;
+}
+
+address {
+    text-align: center;
+    font-style: normal;
+}
+
+.toc {
+    list-style-type: none;
+    display: table;
+    margin: 3em auto 2em auto;
+}
+
+a {
+    color: hsl(210, 55%, 40%);
+}
+
+table {
+    margin: 2em auto;
+    border-collapse: collapse;
+}
+
+th {
+    font-family: sans-serif;
+    font-weight: normal;
+    background: rgb(220, 220, 220);
+}
+
+td, th {
+    border: 1px solid rgb(50, 50, 50);
+    padding: 0.25em 1em;
+    font-size: 90%;
+}
+
+code {
+    white-space: nowrap;
+}
