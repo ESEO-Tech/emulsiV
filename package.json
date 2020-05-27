@@ -1,5 +1,5 @@
 {
-  "name": "virgulator",
+  "name": "emulsiv",
   "version": "1.0.0",
   "description": "A RISC-V (rv32e) visual instruction set simulator",
   "author": "Guillaume Savaton",

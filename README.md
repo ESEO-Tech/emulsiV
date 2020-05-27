@@ -1,8 +1,8 @@
 
-Virgulator
+emulsiV
 ==========
 
-Virgulator is a visual simulator for Virgule, a minimal CPU core implementation
+emulsiV is a visual simulator for Virgule, a minimal CPU core implementation
 based on the RISC-V architecture.
 This simulator is intended to be used as a tool for teaching the basics of
 computer architecture.
