@@ -8,9 +8,16 @@ h1 {
     text-align: center;
 }
 
-h1, h2, h3 {
+h1, h2, h3, h4 {
     font-family: sans-serif;
+}
+
+h1, h2, h3 {
     font-weight: normal;
+}
+
+h4 {
+    font-weight: bold;    
 }
 
 address {
@@ -19,9 +26,12 @@ address {
 }
 
 .toc {
-    list-style-type: none;
     display: table;
     margin: 3em auto 2em auto;
+}
+
+.toc li {
+    list-style-type: none;
 }
 
 a {

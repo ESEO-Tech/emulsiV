@@ -13,12 +13,22 @@
 
 <ul class="toc">
     <li><a href="#motivation">Motivation and scope</a></li>
-    <li><a href="#specification">Relation with the RISC-V specification</a></li>
-    <li><a href="#registers">Registers</a></li>
-    <li><a href="#memory">Memory organization</a></li>
-    <li><a href="#interrupts">Interrupts</a></li>
-    <li><a href="#instructions">Instruction set</a></li>
-    <li><a href="#encoding">Instruction encoding</a></li>
+    <li><a href="#virgule">Processor architecture</a>
+        <ul>
+            <li><a href="#specification">Relation with the RISC-V specification</a></li>
+            <li><a href="#registers">Registers</a></li>
+            <li><a href="#memory">Memory organization</a></li>
+            <li><a href="#interrupts">Interrupts</a></li>
+            <li><a href="#instructions">Instruction set</a></li>
+            <li><a href="#encoding">Instruction encoding</a></li>
+        </ul>
+    </li>
+    <li><a href="#devices">Memory and peripheral devices</a>
+        <ul>
+            <li><a href="#layout">Memory layout</a></li>
+            <li><a href="#textio">Text input/output</a></li>
+            <li><a href="#bitmap">Bitmap output</a></li>
+        </ul>
 </ul>
 
 <p><a href="..">emulsiV</a> is a visual simulator for a simple RISC processor called Virgule.</p>
@@ -30,7 +40,7 @@ instructions that a C compiler would generate from a pure stand-alone C program.
 
 <h2 id="motivation">Motivation and scope</h2>
 
-<p>Virgule and emulsiV are used for teaching computer architecture
+<p><em>Virgule</em> and <em>emulsiV</em> are used for teaching computer architecture
 and digital design to beginners at <a href="https://eseo.fr">ESEO</a>.
 Before choosing a processor architecture, we had the following requirements in mind:</p>
 
@@ -60,7 +70,9 @@ A simulator is a great way to visualize how each instruction affects the data pa
 <p>In a digital circuit design course, students can implement a processor core
 in VHDL or Verilog, or instantiate one to make their own system-on-chip.</p>
 
-<h2 id="specification">Relation with the RISC-V specification</h2>
+<h2 id="virgule">Processor architecture</h2>
+
+<h3 id="specification">Relation with the RISC-V specification</h3>
 
 <p>Virgule implements all the computational, transfer control, and memory access instructions
 from the integer subset RV32E of the RISC-V specification.
@@ -79,7 +91,7 @@ interrupt handlers.</p>
 <em>user</em>, <em>supervisor</em>, and <em>machine</em>.
 Virgule only supports the <em>machine</em> level.</p>
 
-<h2 id="registers">Registers</h2>
+<h3 id="registers">Registers</h3>
 
 <p>Virgule contains the following 32-bit registers:</p>
 
@@ -92,7 +104,7 @@ Virgule only supports the <em>machine</em> level.</p>
         receives the return address when a machine-level exception occurs.</li>
 </ul>
 
-<h2 id="memory">Memory organization</h2>
+<h3 id="memory">Memory organization</h3>
 
 <p>Data formats for memory load and store instructions follow these conventions:</p>
 
@@ -124,7 +136,7 @@ ordering.</p>
     <li>At address 4, Virgule expects to find the interrupt handler.</li>
 </ul>
 
-<h2 id="interrupts">Interrupts</h2>
+<h3 id="interrupts">Interrupts</h3>
 
 <p>Virgule implements a simple hardware interrupt scheme in the <em>machine</em>
 privilege mode.
@@ -147,115 +159,115 @@ This instruction has the following effect:</p>
     <li>Switch to an interruptible state.</li>
 </ol>
 
-<h2 id="instructions">Instruction set</h2>
+<h3 id="instructions">Instruction set</h3>
 
 <p>In the following table:</p>
 
 <ul>
-    <li><code>{rd}</code> is the number of the destination register.
-    <li><code>{rs1}</code> and <code>{rs2}</code> are the numbers of the sources registers.
-    <li><code>{imm}</code> is a literal (immediate) integer value.
+    <li><code>rd</code> is the destination general-purpose register.
+    <li><code>rs1</code> and <code>rs2</code> are the source general-purpose registers.
+    <li><code>imm</code> is a literal (immediate) integer value.
 </ul>
 
 <table>
-    <tr><th>Instruction</th>                         <th>Syntax</th>                                  <th>Operation</th></tr>
-    <tr><td>Load Upper Immediate</td>                <td><code>LUI x{rd}, {imm}</code></td>           <td><code>x{rd} ← imm</code></td></tr>
-    <tr><td>Add Upper Immediate to PC</td>           <td><code>AUIPC x{rd}, {imm}</code></td>         <td><code>x{rd} ← pc + imm</code></td></tr>
-    <tr><td>Jump And Link</td>                       <td><code>JAL x{rd}, {imm}</code></td>           <td><code>x{rd} ← pc + 4; pc ← pc + imm</code></td></tr>
-    <tr><td>Jump And Link Register</td>              <td><code>JALR x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← pc + 4; pc ← x{rs1} + imm</code></td></tr>
-    <tr><td>Branch if Equal</td>                     <td><code>BEQ x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><th>Instruction</th>               <th>Syntax</th>                         <th>Operation</th></tr>
+    <tr><td>Load Upper Immediate</td>      <td><code>LUI rd, imm</code></td>       <td><code>rd ← imm</code></td></tr>
+    <tr><td>Add Upper Immediate to PC</td> <td><code>AUIPC rd, imm</code></td>     <td><code>rd ← pc + imm</code></td></tr>
+    <tr><td>Jump And Link</td>             <td><code>JAL rd, imm</code></td>       <td><code>rd ← pc + 4; pc ← pc + imm</code></td></tr>
+    <tr><td>Jump And Link Register</td>    <td><code>JALR rd, rs1, imm</code></td> <td><code>rd ← pc + 4; pc ← rs1 + imm</code></td></tr>
+    <tr><td>Branch if Equal</td>           <td><code>BEQ rs1, rs2, imm</code></td>
 <td><pre>
-if x{rs1} = x{rs2}:
+if rs1 = rs2:
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Branch if Not Equal</td>                 <td><code>BNE x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><td>Branch if Not Equal</td> <td><code>BNE rs1, rs2, imm</code></td>
 <td><pre>
-if x{rs1} ≠ x{rs2}:
+if rs1 ≠ rs2:
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Branch if Less Than</td>                 <td><code>BLT x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><td>Branch if Less Than</td> <td><code>BLT rs1, rs2, imm</code></td>
 <td><pre>
-if signed(x{rs1}) &lt; signed(x{rs2}):
+if signed(rs1) &lt; signed(rs2):
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Branch if Greater or Equal</td>          <td><code>BGE x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><td>Branch if Greater or Equal</td> <td><code>BGE rs1, rs2, imm</code></td>
 <td><pre>
-if signed(x{rs1}) ≥ signed(x{rs2}):
+if signed(rs1) ≥ signed(rs2):
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Branch if Less Than Unsigned</td>        <td><code>BLTU x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><td>Branch if Less Than Unsigned</td> <td><code>BLTU rs1, rs2, imm</code></td>
 <td><pre>
-if unsigned(x{rs1}) &lt; unsigned(x{rs2}):
+if unsigned(rs1) &lt; unsigned(rs2):
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Branch if Greater or Equal Unsigned</td> <td><code>BGEU x{rs1}, x{rs2}, {imm}</code></td>
+    <tr><td>Branch if Greater or Equal Unsigned</td> <td><code>BGEU rs1, rs2, imm</code></td>
 <td><pre>
-if unsigned(x{rs1}) ≥ unsigned(x{rs2}):
+if unsigned(rs1) ≥ unsigned(rs2):
     pc ← pc + imm
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Load Byte</td>                           <td><code>LB x{rd}, {imm}(x{rs1})</code></td>    <td><code>x{rd} ← signed(mem[x{rs1}])</code></td></tr>
-    <tr><td>Load Half word</td>                      <td><code>LH x{rd}, {imm}(x{rs1})</code></td>    <td><code>x{rd} ← signed(mem[x{rs1}:x{rs1}+1])</code></td></tr>
-    <tr><td>Load Word</td>                           <td><code>LW x{rd}, {imm}(x{rs1})</code></td>    <td><code>x{rd} ← signed(mem[x{rs1}:x{rs1}+3])</code></td></tr>
-    <tr><td>Load Byte Unsigned</td>                  <td><code>LBU x{rd}, {imm}(x{rs1})</code></td>   <td><code>x{rd} ← unsigned(mem[x{rs1}])</code></td></tr>
-    <tr><td>Load Half word Unsigned</td>             <td><code>LHU x{rd}, {imm}(x{rs1})</code></td>   <td><code>x{rd} ← unsigned(mem[x{rs1}:x{rs1}+1])</code></td></tr>
-    <tr><td>Store Byte</td>                          <td><code>SB x{rs2}, {imm}(x{rs1})</code></td>   <td><code>mem[x{rs1}] ← x{rs2}[7:0]</code></td></tr>
-    <tr><td>Store Half word</td>                     <td><code>SH x{rs2}, {imm}(x{rs1})</code></td>   <td><code>mem[x{rs1}:x{rs1}+1] ← x{rs2}[15:0]</code></td></tr>
-    <tr><td>Store Word</td>                          <td><code>SW x{rs2}, {imm}(x{rs1})</code></td>   <td><code>mem[x{rs1}:x{rs1}+3] ← x{rs2}</code></td></tr>
-    <tr><td>Add Immediate</td>                       <td><code>ADDI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} + imm</code></td></tr>
-    <tr><td>Shift Left Logical Immediate</td>        <td><code>SLLI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} sll imm</code></td></tr>
-    <tr><td>Set on Less Than Immediate</td>          <td><code>SLTI x{rd}, x{rs1}, {imm}</code></td>
+    <tr><td>Load Byte</td>                    <td><code>LB rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1])</code></td></tr>
+    <tr><td>Load Half word</td>               <td><code>LH rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1:rs1+1])</code></td></tr>
+    <tr><td>Load Word</td>                    <td><code>LW rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1:rs1+3])</code></td></tr>
+    <tr><td>Load Byte Unsigned</td>           <td><code>LBU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1])</code></td></tr>
+    <tr><td>Load Half word Unsigned</td>      <td><code>LHU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1:rs1+1])</code></td></tr>
+    <tr><td>Store Byte</td>                   <td><code>SB rs2, imm(rs1)</code></td>  <td><code>mem[rs1] ← rs2[7:0]</code></td></tr>
+    <tr><td>Store Half word</td>              <td><code>SH rs2, imm(rs1)</code></td>  <td><code>mem[rs1:rs1+1] ← rs2[15:0]</code></td></tr>
+    <tr><td>Store Word</td>                   <td><code>SW rs2, imm(rs1)</code></td>  <td><code>mem[rs1:rs1+3] ← rs2</code></td></tr>
+    <tr><td>Add Immediate</td>                <td><code>ADDI rd, rs1, imm</code></td> <td><code>rd ← rs1 + imm</code></td></tr>
+    <tr><td>Shift Left Logical Immediate</td> <td><code>SLLI rd, rs1, imm</code></td> <td><code>rd ← rs1 sll imm</code></td></tr>
+    <tr><td>Set on Less Than Immediate</td>   <td><code>SLTI rd, rs1, imm</code></td>
 <td><pre>
-if signed(x{rs1}) &lt; signed(imm):
-    x{rd} ← 1
+if signed(rs1) &lt; signed(imm):
+    rd ← 1
 else:
-    x{rd} ← 0
+    rd ← 0
 </pre></td></tr>
-    <tr><td>Set on Less Than Immediate Unsigned</td> <td><code>SLTIU x{rd}, x{rs1}, {imm}</code></td>
+    <tr><td>Set on Less Than Immediate Unsigned</td> <td><code>SLTIU rd, rs1, imm</code></td>
 <td><pre>
-if unsigned(x{rs1}) &lt; unsigned(imm):
-    x{rd} ← 1
+if unsigned(rs1) &lt; unsigned(imm):
+    rd ← 1
 else:
-    x{rd} ← 0
+    rd ← 0
 </pre></td></tr>
-    <tr><td>Exclusive Or Immediate</td>              <td><code>XORI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} xor imm</code></td></tr>
-    <tr><td>Shift Right Logical Immediate</td>       <td><code>SRLI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} srl imm</code></td></tr>
-    <tr><td>Shift Right Arithmetic Immediate</td>    <td><code>SRAI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} sra imm</code></td></tr>
-    <tr><td>Or Immediate</td>                        <td><code>ORI x{rd}, x{rs1}, {imm}</code></td>   <td><code>x{rd} ← x{rs1} or imm</code></td></tr>
-    <tr><td>And Immediate</td>                       <td><code>ANDI x{rd}, x{rs1}, {imm}</code></td>  <td><code>x{rd} ← x{rs1} and imm</code></td></tr>
-    <tr><td>Add</td>                                 <td><code>ADD x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} + x{rs2}</code></td></tr>
-    <tr><td>Subtract</td>                            <td><code>SUB x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} - x{rs2}</code></td></tr>
-    <tr><td>Shift Left Logical</td>                  <td><code>SLL x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} sll x{rs2}</code></td></tr>
-    <tr><td>Set on Less Than</td>                    <td><code>SLT x{rd}, x{rs1}, x{rs2}</code></td>
+    <tr><td>Exclusive Or Immediate</td>           <td><code>XORI rd, rs1, imm</code></td> <td><code>rd ← rs1 xor imm</code></td></tr>
+    <tr><td>Shift Right Logical Immediate</td>    <td><code>SRLI rd, rs1, imm</code></td> <td><code>rd ← rs1 srl imm</code></td></tr>
+    <tr><td>Shift Right Arithmetic Immediate</td> <td><code>SRAI rd, rs1, imm</code></td> <td><code>rd ← rs1 sra imm</code></td></tr>
+    <tr><td>Or Immediate</td>                     <td><code>ORI rd, rs1, imm</code></td>  <td><code>rd ← rs1 or imm</code></td></tr>
+    <tr><td>And Immediate</td>                    <td><code>ANDI rd, rs1, imm</code></td> <td><code>rd ← rs1 and imm</code></td></tr>
+    <tr><td>Add</td>                              <td><code>ADD rd, rs1, rs2</code></td>  <td><code>rd ← rs1 + rs2</code></td></tr>
+    <tr><td>Subtract</td>                         <td><code>SUB rd, rs1, rs2</code></td>  <td><code>rd ← rs1 - rs2</code></td></tr>
+    <tr><td>Shift Left Logical</td>               <td><code>SLL rd, rs1, rs2</code></td>  <td><code>rd ← rs1 sll rs2</code></td></tr>
+    <tr><td>Set on Less Than</td>                 <td><code>SLT rd, rs1, rs2</code></td>
 <td><pre>
-if signed(x{rs1}) &lt; signed(x{rs2}):
-    x{rd} ← 1
+if signed(rs1) &lt; signed(rs2):
+    rd ← 1
 else:
-    x{rd} ← 0
+    rd ← 0
 </pre></td></tr>
-    <tr><td>Set on Less Than Unsigned</td>           <td><code>SLTU x{rd}, x{rs1}, x{rs2}</code></td>
+    <tr><td>Set on Less Than Unsigned</td> <td><code>SLTU rd, rs1, rs2</code></td>
 <td><pre>
-if unsigned(x{rs1}) &lt; unsigned(x{rs2}):
-    x{rd} ← 1
+if unsigned(rs1) &lt; unsigned(rs2):
+    rd ← 1
 else:
-    x{rd} ← 0
+    rd ← 0
 </pre></td></tr>
-    <tr><td>Exclusive Or</td>                        <td><code>XOR x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} xor x{rs2}</code></td></tr>
-    <tr><td>Shift Right Logical</td>                 <td><code>SRL x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} srl x{rs2}[4:0]</code></td></tr>
-    <tr><td>Shift Right Arithmetic</td>              <td><code>SRA x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} sra x{rs2}[4:0]</code></td></tr>
-    <tr><td>Or</td>                                  <td><code>OR x{rd}, x{rs1}, x{rs2}</code></td>   <td><code>x{rd} ← x{rs1} or x{rs2}</code></td></tr>
-    <tr><td>And</td>                                 <td><code>AND x{rd}, x{rs1}, x{rs2}</code></td>  <td><code>x{rd} ← x{rs1} and x{rs2}</code></td></tr>
+    <tr><td>Exclusive Or</td>                        <td><code>XOR rd, rs1, rs2</code></td>  <td><code>rd ← rs1 xor rs2</code></td></tr>
+    <tr><td>Shift Right Logical</td>                 <td><code>SRL rd, rs1, rs2</code></td>  <td><code>rd ← rs1 srl rs2[4:0]</code></td></tr>
+    <tr><td>Shift Right Arithmetic</td>              <td><code>SRA rd, rs1, rs2</code></td>  <td><code>rd ← rs1 sra rs2[4:0]</code></td></tr>
+    <tr><td>Or</td>                                  <td><code>OR rd, rs1, rs2</code></td>   <td><code>rd ← rs1 or rs2</code></td></tr>
+    <tr><td>And</td>                                 <td><code>AND rd, rs1, rs2</code></td>  <td><code>rd ← rs1 and rs2</code></td></tr>
     <tr><td>Machine Return</td>                      <td><code>MRET</code></td>                       <td><code>pc ← mepc</code></td></tr>
 </table>
 
@@ -271,33 +283,33 @@ else:
     <tr><td><code>sra</code></td> <td>Arithmetic shift right (with sign extension)</td></tr>
 </table>
 
-<h2 id="encoding">Instruction encoding</h2>
-
-<h3>Instruction formats</h3>
+<h3 id="encoding">Instruction encoding</h3>
 
 <p>An instruction word can be composed of the following fields:</p>
 
 <ul>
     <li><code>funct7</code>, <code>funct3</code> and <code>opcode</code> define the operation to perform;
+    <li><code>rd</code> is the index of the destination general-purpose register (allowed values are in the range 0 to 15).
+    <li><code>rs1</code> and <code>rs2</code> are the indices of the source general-purpose registers (allowed values are in the range 0 to 15);
     <li><code>imm</code> represents a literal (immediate) integer value;
-    <li><code>rs1</code> and <code>rs2</code> are the source register numbers;
-    <li><code>rd</code> is the destination register number.
 </ul>
 
 <p>The RISC-V instruction set defines six instruction formats:</p>
 
 <table>
-    <tr><th>Format / Bits</th>  <th>31:25</th> <th>24:20</th>            <th>19:15</th>                    <th>14:12</th>                   <th>11:7</th>                    <th>6:0</th></tr>
-    <tr><td><code>R</code></td> <td><code>funct7</code></td>             <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
-    <tr><td><code>I</code></td> <td><code>imm[11:5]`/`funct7</code></td> <td><code>imm[4:0]</code></td>    <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
-    <tr><td><code>S</code></td> <td><code>imm[11:5]</code></td>          <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:0]</code></td>    <td><code>opcode</code></td></tr>
-    <tr><td><code>B</code></td> <td><code>imm[12,10:5]</code></td>       <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:1,11]</code></td> <td><code>opcode</code></td></tr>
-    <tr><td><code>U</code></td> <td><code>imm[31:25]</code></td>         <td><code>imm[24:20]</code></td>  <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
-    <tr><td><code>J</code></td> <td><code>imm[20,10:5]</code></td>       <td><code>imm[4:1,11]</code></td> <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><th>Format / Bits</th>  <th>31:25</th> <th>24:20</th>            <th>19:15</th>                    <th>14:12</th>                   <th>11:7</th>                    <th>6:0</th></tr>
+<tr><td><code>R</code></td> <td><code>funct7</code></td>             <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>I</code></td> <td><code>imm[11:5]`/`funct7</code></td> <td><code>imm[4:0]</code></td>    <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>S</code></td> <td><code>imm[11:5]</code></td>          <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:0]</code></td>    <td><code>opcode</code></td></tr>
+<tr><td><code>B</code></td> <td><code>imm[12,10:5]</code></td>       <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:1,11]</code></td> <td><code>opcode</code></td></tr>
+<tr><td><code>U</code></td> <td><code>imm[31:25]</code></td>         <td><code>imm[24:20]</code></td>  <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>J</code></td> <td><code>imm[20,10:5]</code></td>       <td><code>imm[4:1,11]</code></td> <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
 </table>
 
+<h4>Immediate values</h4>
+
 <p>Immediate values are sign-extended to 32 bits.
-When they are not included in the <code>imm</code> field, the least significant bits are 0.</p>
+When they are not explicitly encoded in the <code>imm</code> field, the least significant bits are 0.</p>
 
 <p>In the specification, formats <code>B</code> and <code>J</code> are described
 as variants of formats <code>S</code> and <code>U</code>.
@@ -318,27 +330,26 @@ and the bits of the immediate values:</p>
 <tr><td><code>J</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[19:15]</code></td> <td><code>inst[14:12]</code></td> <td><code>inst[20]</code></td> <td><code>inst[30:25]</code></td> <td><code>inst[24:21]</code></td>  <td>0</td></tr>
 </table>
 
-<h3>Base opcodes</h3>
+<h4>Base opcodes</h4>
 
-<p>The following table represents the main opcodes of the RISC-V instruction set
-that were kept in Virgule.
-Each opcode corresponds to an instruction format.</p>
+<p>In Virgule, we have retained the following base opcodes from the RISC-V specification.
+Each opcode corresponds to a specific instruction format:</p>
 
 <table>
-<tr><th><code>inst[6:0]</code></th> <th>Name</th>                <th>Format</th></tr>
-<tr><td>0000011</td>                <td><code>LOAD</code></td>   <td><code>I</code></td></tr>
-<tr><td>0010011</td>                <td><code>OP-IMM</code></td> <td><code>I</code></td></tr>
-<tr><td>0010111</td>                <td><code>AUIPC</code></td>  <td><code>U</code></td></tr>
-<tr><td>0100011</td>                <td><code>STORE</code></td>  <td><code>S</code></td></tr>
-<tr><td>0110011</td>                <td><code>OP</code></td>     <td><code>R</code></td></tr>
-<tr><td>0110111</td>                <td><code>LUI</code></td>    <td><code>U</code></td></tr>
-<tr><td>1100011</td>                <td><code>BRANCH</code></td> <td><code>B</code></td></tr>
-<tr><td>1100111</td>                <td><code>JALR</code></td>   <td><code>I</code></td></tr>
-<tr><td>1101111</td>                <td><code>JAL</code></td>    <td><code>J</code></td></tr>
-<tr><td>1110011</td>                <td><code>SYSTEM</code></td> <td><code>I</code></td></tr>
+<tr><th>Name</th>                <th><code>opcode</code></th> <th>Format</th></tr>
+<tr><td><code>LOAD</code></td>   <td>0000011</td>             <td><code>I</code></td></tr>
+<tr><td><code>OP-IMM</code></td> <td>0010011</td>             <td><code>I</code></td></tr>
+<tr><td><code>AUIPC</code></td>  <td>0010111</td>             <td><code>U</code></td></tr>
+<tr><td><code>STORE</code></td>  <td>0100011</td>             <td><code>S</code></td></tr>
+<tr><td><code>OP</code></td>     <td>0110011</td>             <td><code>R</code></td></tr>
+<tr><td><code>LUI</code></td>    <td>0110111</td>             <td><code>U</code></td></tr>
+<tr><td><code>BRANCH</code></td> <td>1100011</td>             <td><code>B</code></td></tr>
+<tr><td><code>JALR</code></td>   <td>1100111</td>             <td><code>I</code></td></tr>
+<tr><td><code>JAL</code></td>    <td>1101111</td>             <td><code>J</code></td></tr>
+<tr><td><code>SYSTEM</code></td> <td>1110011</td>             <td><code>I</code></td></tr>
 </table>
 
-<h3>Field values for each instruction</h3>
+<h4>Field values for each instruction</h4>
 
 <p>When decoding an instruction word, Virgule uses the following fields to
 identify the actual instruction.
@@ -387,6 +398,76 @@ names from the base opcode table above.</p>
 <tr><td><code>MRET</code></td> <td><code>SYSTEM</code></td> <td>000</td>                 <td>0011000</td>             <td>00010</td></tr>
 </table>
 
+<h2 id="devices">Memory and peripheral devices</h3>
+
+The simulator provides the following memory and I/O.
+
+<h3 id="layout">Memory layout</h3>
+
+<p>The addressing space is organized as follows.</p>
+
+<table>
+    <tr><th>Address (hex)</th> <th>Device</th></tr>
+    <tr><td style="text-align:center;"><code>00000000</code><br>&vellip;<br><code>00000bff</code></td> <td>RAM (3072 bytes)</td></tr>
+    <tr><td style="text-align:center;"><code>00000C00</code><br>&vellip;<br><code>00000fff</code></td> <td><a href="#bitmap">Bitmap RAM (1024 bytes)</a></td></tr>
+    <tr><td style="text-align:center;"><code>B0000000</code><br><code>B0000001</code></td> <td><a href="#textio">Text input</a></td></tr>
+    <tr><td style="text-align:center;"><code>C0000000</code></td> <td><a href="#textio">Text output</a></td></tr>
+</table>
+
+<h3 id="textio">Text input/output</h3>
+
+<p>The text input device is represented by a text field in the user interface of
+the simulator. It has two 8-bit registers:</p>
+
+<table>
+    <tr><th>Address (hex)</th> <th>Role</th> <th>Value</th></tr>
+    <tr><td style="text-align:center;"><code>B0000000</code></td> <td>Control/Status</td> <td>Bit 7: Interrupt enable<br>Bit 6: Character received</td></tr>
+    <tr><td style="text-align:center;"><code>B0000001</code></td> <td>Data</td> <td>The ASCII code of the last input character.</td></tr>
+</table>
+
+<p>The control/status register works as follows:</p>
+
+<ul>
+    <li>On reset, bits 6 and 7 are cleared.</li>
+    <li>Bit 6 is set after the user enters a character in the text field.
+    The only way to clear it is to write a zero using a *store* instruction.</li>
+    <li>The device will send an interrupt request to the processor when
+    bits 7 and 6 are both set.</li>
+</ul>
+
+<p>The text output device is represented by a text area in the user interface
+of the simulator. It has only one write-only register:</p>
+
+<table>
+    <tr><th>Address (hex)</th> <th>Role</th> <th>Value</th></tr>
+    <tr><td style="text-align:center;"><code>C0000000</code></td> <td>Data</td> <td>The ASCII code of the character to display.</td></tr>
+</table>
+
+<h3 id="bitmap">Bitmap output</h3>
+
+The simulator provides a graphic display area with 32 rows of 32 pixels.
+Each pixel is mapped to a RAM byte and its color is encoded like this:
+
+<table>
+    <tr><th>7</th><th>6</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th><th>0</th></tr>
+    <tr>
+        <td colspan="3" style="text-align:center;">Red</td>
+        <td colspan="3" style="text-align:center;">Green</td>
+        <td colspan="2" style="text-align:center;">Blue</td>
+    </tr>
+</table>
+
+The bitmap RAM follows a raster-scan ordering.
+For each address, this table shows the (x, y) coordinates of the corresponding pixel:
+
+<table style="text-align:center;">
+    <tr><th></th> <th>+0</th> <th>+1</th> <th>+2</th> <th>&hellip;</th> <th>+1F</th></tr>
+    <tr><th><code>00000C00</code></th> <td>(0, 0)</td> <td>(1, 0)</td> <td>(2, 0)</td> <td>&hellip;</td> <td>(31, 0)</td></tr>
+    <tr><th><code>00000C20</code></th> <td>(0, 1)</td> <td>(1, 1)</td> <td>(2, 1)</td> <td>&hellip;</td> <td>(31, 1)</td></tr>
+    <tr><th><code>00000C40</code></th> <td>(0, 2)</td> <td>(1, 2)</td> <td>(2, 2)</td> <td>&hellip;</td> <td>(31, 2)</td></tr>
+    <tr><th>&vellip;</th> <td>&vellip;</td> <td>&vellip;</td> <td>&vellip;</td> <td>&hellip;</td> <td>&vellip;</td></tr>
+    <tr><th><code>00000FE0</code></th> <td>(0, 31)</td> <td>(1, 31)</td> <td>(2, 31)</td> <td>&hellip;</td> <td>(31, 31)</td></tr>
+</table>
 <footer>
 This document is licensed under a
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
