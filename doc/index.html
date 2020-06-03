@@ -217,14 +217,14 @@ if unsigned(rs1) ≥ unsigned(rs2):
 else:
     pc ← pc + 4
 </pre></td></tr>
-    <tr><td>Load Byte</td>                    <td><code>LB rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1])</code></td></tr>
-    <tr><td>Load Half word</td>               <td><code>LH rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1:rs1+1])</code></td></tr>
-    <tr><td>Load Word</td>                    <td><code>LW rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1:rs1+3])</code></td></tr>
-    <tr><td>Load Byte Unsigned</td>           <td><code>LBU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1])</code></td></tr>
-    <tr><td>Load Half word Unsigned</td>      <td><code>LHU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1:rs1+1])</code></td></tr>
-    <tr><td>Store Byte</td>                   <td><code>SB rs2, imm(rs1)</code></td>  <td><code>mem[rs1] ← rs2[7:0]</code></td></tr>
-    <tr><td>Store Half word</td>              <td><code>SH rs2, imm(rs1)</code></td>  <td><code>mem[rs1:rs1+1] ← rs2[15:0]</code></td></tr>
-    <tr><td>Store Word</td>                   <td><code>SW rs2, imm(rs1)</code></td>  <td><code>mem[rs1:rs1+3] ← rs2</code></td></tr>
+    <tr><td>Load Byte</td>                    <td><code>LB rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm])</code></td></tr>
+    <tr><td>Load Half word</td>               <td><code>LH rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm:rs1+imm+1])</code></td></tr>
+    <tr><td>Load Word</td>                    <td><code>LW rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm:rs1+imm+3])</code></td></tr>
+    <tr><td>Load Byte Unsigned</td>           <td><code>LBU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1+imm])</code></td></tr>
+    <tr><td>Load Half word Unsigned</td>      <td><code>LHU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1+imm:rs1+imm+1])</code></td></tr>
+    <tr><td>Store Byte</td>                   <td><code>SB rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm] ← rs2[7:0]</code></td></tr>
+    <tr><td>Store Half word</td>              <td><code>SH rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm:rs1+imm+1] ← rs2[15:0]</code></td></tr>
+    <tr><td>Store Word</td>                   <td><code>SW rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm:rs1+imm+3] ← rs2</code></td></tr>
     <tr><td>Add Immediate</td>                <td><code>ADDI rd, rs1, imm</code></td> <td><code>rd ← rs1 + imm</code></td></tr>
     <tr><td>Shift Left Logical Immediate</td> <td><code>SLLI rd, rs1, imm</code></td> <td><code>rd ← rs1 sll imm</code></td></tr>
     <tr><td>Set on Less Than Immediate</td>   <td><code>SLTI rd, rs1, imm</code></td>
