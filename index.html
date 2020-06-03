@@ -31,10 +31,10 @@
         <label for="animate-cb">Animation</label>
         <input id="animate-cb" type="checkbox" title="Animate data transfers during instruction execution.">
         <label for="speed">Speed</label>
-        <input id="speed"     type="number" step="1" value="10" title="Set the animation speed. Has no effect if animations are disabled.">
-        <input id="reset-btn" type="button" value="Reset"       title="Reset the processor and peripherals. Does not clear the memory.">
-        <input id="run-btn"   type="button" value="Run"         title="Execute the program forever or until a breakpoint is hit.">
-        <input id="step-btn"  type="button" value="Step"        title="Execute the current instruction.">
+        <input id="speed"     type="number" step="1" value="10" min="1" title="Set the animation speed. Has no effect if animations are disabled.">
+        <input id="reset-btn" type="button" value="Reset"               title="Reset the processor and peripherals. Does not clear the memory.">
+        <input id="run-btn"   type="button" value="Run"                 title="Execute the program forever or until a breakpoint is hit.">
+        <input id="step-btn"  type="button" value="Step"                title="Execute the current instruction.">
 
         <input id="fetch-btn"              class="state-btn" type="button" value="Fetch"   title="Read an instruction from memory.">
         <input id="decode-btn"             class="state-btn" type="button" value="Decode"  title="Decode the current instruction.">
