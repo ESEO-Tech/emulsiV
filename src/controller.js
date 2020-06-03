@@ -267,11 +267,17 @@ export class Controller {
     }
 
     async traceDecode() {
+        const fmt = this.cpu.instr.format;
+        const isMret = this.cpu.instr.name === "mret";
+        const hasRs1 = fmt !== "U" && fmt !== "J" && !isMret;
+        const hasRs2 = hasRs1      && fmt !== "I";
+        const hasRd  = fmt !== "S" && fmt !== "B" && !isMret;
+        const hasImm = fmt !== "R"                && !isMret;
         view.update("fn",     this.cpu.instr.name);
-        view.update("rs1",    this.cpu.instr.rs1);
-        view.update("rs2",    this.cpu.instr.rs2);
-        view.update("rd",     this.cpu.instr.rd);
-        view.update("imm",    toHex(this.cpu.instr.imm));
+        view.update("rs1",    hasRs1 ? this.cpu.instr.rs1        : "-");
+        view.update("rs2",    hasRs2 ? this.cpu.instr.rs2        : "-");
+        view.update("rd",     hasRd  ? this.cpu.instr.rd         : "-");
+        view.update("imm",    hasImm ? toHex(this.cpu.instr.imm) : "-");
         view.update("alu-op", this.cpu.datapath.aluOp);
         view.update("cmp-op", this.cpu.datapath.branch);
         if (!this.cpu.datapath.branch || this.cpu.datapath.branch === "al") {

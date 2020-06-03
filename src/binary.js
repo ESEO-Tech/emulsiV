@@ -67,6 +67,7 @@ function decodeFields(word) {
 
 // Instruction immediate format for each base opcode.
 const OPCODE_TO_FORMAT = {
+    [OP_REG]    : "R",
     [OP_LOAD]   : "I",
     [OP_IMM]    : "I",
     [OP_JALR]   : "I",
@@ -88,17 +89,16 @@ const FORMAT_TO_IMM_SLICES = {
     J : [[31, 31, 20], [19, 12, 12], [20, 20, 11], [30, 21, 1]],
 };
 
-function decodeImmediate({opcode, funct3, rs2, word}) {
+function decodeImmediate({opcode, format, funct3, rs2, word}) {
     if (opcode === OP_IMM && (funct3 === F3_SL || funct3 === F3_SR)) {
         return rs2;
     }
 
-    if (!(opcode in OPCODE_TO_FORMAT)) {
+    if (!(format in FORMAT_TO_IMM_SLICES)) {
         return 0;
     }
 
-    const fmt    = OPCODE_TO_FORMAT[opcode];
-    const slices = FORMAT_TO_IMM_SLICES[fmt];
+    const slices = FORMAT_TO_IMM_SLICES[format];
 
     let slicer = signedSlice;
     let res    = 0;
@@ -116,6 +116,10 @@ function encodeImmediate(opcode, word) {
     }
 
     const fmt    = OPCODE_TO_FORMAT[opcode];
+    if (!(fmt in FORMAT_TO_IMM_SLICES)) {
+        return 0;
+    }
+
     const slices = FORMAT_TO_IMM_SLICES[fmt];
 
     let res = 0;
@@ -200,9 +204,10 @@ export function decode(word) {
         }
     }
 
-    fields.name = tree;
-    fields.word = word;
-    fields.imm  = decodeImmediate(fields);
+    fields.name   = tree;
+    fields.word   = word;
+    fields.format = OPCODE_TO_FORMAT[fields.opcode] || "";
+    fields.imm    = decodeImmediate(fields);
     return fields;
 }
 
