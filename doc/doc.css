@@ -17,7 +17,7 @@ h1, h2, h3 {
 }
 
 h4 {
-    font-weight: bold;    
+    font-weight: bold;
 }
 
 address {
@@ -57,4 +57,20 @@ td, th {
 
 code {
     white-space: nowrap;
+}
+
+pre {
+    margin: 2em 0 2em 4em;
+    padding-left: 1em;
+    border-left: 0.25em solid rgb(220, 220, 220);
+}
+
+td pre {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+footer {
+    margin-top: 3em;
 }

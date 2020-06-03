@@ -29,6 +29,15 @@
             <li><a href="#textio">Text input/output</a></li>
             <li><a href="#bitmap">Bitmap output</a></li>
         </ul>
+    </li>
+    <li><a href="#tools">Creating programs for emulsiV with the GNU toolchain</a>
+        <ul>
+            <li><a href="#asm">Using the assembler</a></li>
+            <li><a href="#compile">Using the C compiler</a></li>
+            <li><a href="#link">Using the linker</a></li>
+            <li><a href="#hex">Converting an executable to the hex format</a></li>
+        </ul>
+    </li>
 </ul>
 
 <p><a href="..">emulsiV</a> is a visual simulator for a simple RISC processor called Virgule.</p>
@@ -445,8 +454,8 @@ of the simulator. It has only one write-only register:</p>
 
 <h3 id="bitmap">Bitmap output</h3>
 
-The simulator provides a graphic display area with 32 rows of 32 pixels.
-Each pixel is mapped to a RAM byte and its color is encoded like this:
+<p>The simulator provides a graphic display area with 32 rows of 32 pixels.
+Each pixel is mapped to a RAM byte and its color is encoded like this:</p>
 
 <table>
     <tr><th>7</th><th>6</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th><th>0</th></tr>
@@ -457,8 +466,8 @@ Each pixel is mapped to a RAM byte and its color is encoded like this:
     </tr>
 </table>
 
-The bitmap RAM follows a raster-scan ordering.
-For each address, this table shows the (x, y) coordinates of the corresponding pixel:
+<p>The bitmap RAM follows a raster-scan ordering.
+For each address, this table shows the (x, y) coordinates of the corresponding pixel:</p>
 
 <table style="text-align:center;">
     <tr><th></th> <th>+0</th> <th>+1</th> <th>+2</th> <th>&hellip;</th> <th>+1F</th></tr>
@@ -468,7 +477,137 @@ For each address, this table shows the (x, y) coordinates of the corresponding p
     <tr><th>&vellip;</th> <td>&vellip;</td> <td>&vellip;</td> <td>&vellip;</td> <td>&hellip;</td> <td>&vellip;</td></tr>
     <tr><th><code>00000FE0</code></th> <td>(0, 31)</td> <td>(1, 31)</td> <td>(2, 31)</td> <td>&hellip;</td> <td>(31, 31)</td></tr>
 </table>
+
+<h2 id="tools">Creating programs for emulsiV with the GNU toolchain</h2>
+
+<p>This section assumes that you have installed the RISC-V GNU toolchain
+with support for the RV32E architecture.</p>
+
+<p>Each tool name is prefixed with a target <em>triplet</em> that depends on the
+build configuration of the toolchain.
+In the following examples, we use the <code>riscv32-unknown-elf</code> target.</p>
+
+<h3 id="asm">Using the assembler</h3>
+
+<p>This command assembles a source file <code>example.s</code> into an object file <code>example.o</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -march=rv32e -c -o example.o example.s
+</pre>
+
+<p>Here is a typical startup module (<code>startup.s</code>) that you can use
+for your programs.
+Another module should define the <code>main</code> subprogram,
+and optionally override the <code>irq_handler</code> subprogram.</p>
+
+<pre>
+    .section vectors, "x"
+
+    .global __reset
+__reset:
+    j start
+
+__irq:
+    j irq_handler
+
+    .text
+    .align 4
+
+    .weak irq_handler
+irq_handler:
+    mret
+
+start:
+    la gp, __global_pointer
+    la sp, __stack_pointer
+    la t0, __bss_start
+    la t1, __bss_end
+    bgeu t0, t1, memclr_done
+memclr:
+    sw zero, (t0)
+    addi t0, t0, 4
+    bltu t0, t1, memclr
+
+memclr_done:
+    call main
+    j .
+</pre>
+
+<h3 id="compile">Using the C compiler</h3>
+
+<p>This command generates compiles the source file <code>example.c</code> into an object file <code>example.o</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -march=rv32e -ffreestanding -c -o example.o example.c
+</pre>
+
+<h3 id="linker">Using the linker</h3>
+
+<p>This command links <code>startup.o</code> and <code>example.o</code> into a binary executable file <code>example.elf</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -nostdlib -T emulsiv.ld -o example.elf startup.o example.o
+</pre>
+
+<p>The memory map of the simulator is configured in the linker script <code>emulsiv.ld</code> below:</p>
+
+<pre>
+ENTRY(__reset)
+
+MEM_SIZE    = 4K;
+STACK_SIZE  = 512;
+BITMAP_SIZE = 1K;
+
+SECTIONS {
+    . = 0x0;
+
+    .text : {
+        *(vectors)
+        *(.text)
+        __text_end = .;
+    }
+
+    .data   : { *(.data) }
+    .rodata : { *(.rodata) }
+
+    __global_pointer = ALIGN(4);
+
+    .bss ALIGN(4) : {
+        __bss_start = .;
+        *(.bss COMMON)
+        __bss_end = ALIGN(4);
+    }
+
+    . = MEM_SIZE - STACK_SIZE - BITMAP_SIZE;
+
+    .stack ALIGN(4) : {
+        __stack_start = .;
+        . += STACK_SIZE;
+        __stack_pointer = .;
+    }
+
+    .bitmap ALIGN(4) : {
+        __bitmap_start = .;
+        *(bitmap)
+    }
+
+    __bitmap_end = __bitmap_start + BITMAP_SIZE;
+}
+</pre>
+
+<h3 id="hex">Converting an executable to the hex format</h3>
+
+<p>This command converts an ELF binary file <code>example.elf</code> into a text file <code>example.hex</code>
+in the <a href="https://en.wikipedia.org/wiki/Intel_HEX">Intel Hex format</a>:</p>
+
+<pre>
+riscv32-unknown-elf-objcopy -O ihex example.elf example.hex
+</pre>
+
+<p>Use the button "Open an hex file from your computer" to load it in the memory of the simulator.</p>
+
 <footer>
-This document is licensed under a
+This document was created by Guillaume Savaton, <a href="https://eseo.fr">ESEO</a>.
+It is licensed under a
 <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
 </footer>
