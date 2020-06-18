@@ -14,7 +14,9 @@ decode, ALU, mem/reg, PC) for educational reasons, but the intent is not to
 reflect a specific sequencer or pipeline implementation.
 In fact, we don't plan to simulate a pipeline in more detail.
 
-emulsiV is developed by Guillaume Savaton, teacher, researcher and engineer at [ESEO](https://eseo.fr).
+emulsiV is free software and is distributed under the terms of the
+[Mozilla Public License 2.0](https://github.com/Guillaume-Savaton-ESEO/emulsiV/blob/master/LICENSE).
+It is developed by Guillaume Savaton, teacher, researcher and engineer at [ESEO](https://eseo.fr).
 
 Running the simulator locally
 -----------------------------
