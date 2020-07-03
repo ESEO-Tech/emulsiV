@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="20.00001mm"
-   height="20.000006mm"
-   viewBox="0 0 20.00001 20.000006"
+   width="20.265009mm"
+   height="20.265005mm"
+   viewBox="0 0 20.265009 20.265005"
    version="1.1"
    id="svg4563"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="emulsiV-logo-alt.svg">
+   sodipodi:docname="emulsiV-logo.svg">
   <defs
      id="defs4557" />
   <sodipodi:namedview
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="7.9999996"
-     inkscape:cx="-16.098476"
-     inkscape:cy="30.981618"
+     inkscape:cx="-15.347691"
+     inkscape:cy="31.431284"
      inkscape:document-units="mm"
      inkscape:current-layer="layer3"
      showgrid="false"
@@ -49,8 +49,8 @@
        units="mm"
        spacingx="1"
        spacingy="1"
-       originx="-80.173188"
-       originy="-229.99999" />
+       originx="-80.040685"
+       originy="-229.81486" />
   </sodipodi:namedview>
   <metadata
      id="metadata4560">
@@ -60,7 +60,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -68,7 +68,7 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-80.173182,-46.999997)"
+     transform="translate(-80.040683,-46.920117)"
      style="display:inline">
     <ellipse
        style="opacity:1;fill:#333333;fill-opacity:0.98299321;fill-rule:nonzero;stroke:#333333;stroke-width:0.26499996;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.98431373"
@@ -516,7 +516,7 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="Calque 2"
-     transform="translate(-80.173182,-46.999997)"
+     transform="translate(-80.040683,-46.920117)"
      style="display:inline">
     <path
        style="display:inline;fill:#cccccc;fill-opacity:0.39115648;fill-rule:evenodd;stroke:none;stroke-width:0.26458335px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -554,7 +554,7 @@
      id="layer3"
      inkscape:label="Calque 3"
      style="display:inline"
-     transform="translate(-80.173182,-46.999997)">
+     transform="translate(-80.040683,-46.920117)">
     <path
        style="opacity:1;fill:#55dcfd;fill-opacity:1;fill-rule:nonzero;stroke:#55dcfd;stroke-width:0.1;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 51.969887,10.846363 -0.187825,-0.04206 v -0.23653 c 0,-0.8854145 0.755315,-1.7253486 1.789864,-1.9903861 0.301956,-0.077357 0.954031,-0.090541 1.281631,-0.025913 0.258245,0.050946 0.65544,0.1846841 0.855023,0.2878924 l 0.140211,0.072506 -0.07227,0.1422726 c -0.13279,0.2613981 -0.445775,0.6702855 -0.6856,0.8956749 -0.459298,0.4316512 -0.958994,0.7051592 -1.577176,0.8632632 -0.363228,0.0929 -1.197347,0.11088 -1.543854,0.03328 z"
@@ -750,7 +750,7 @@
   </g>
   <g
      style="display:none"
-     transform="translate(-80.173182,-46.999997)"
+     transform="translate(-80.040683,-46.920117)"
      inkscape:label="Copie de Calque 2"
      id="g1643"
      inkscape:groupmode="layer">
