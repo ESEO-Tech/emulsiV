@@ -5,8 +5,8 @@
   "author": "Guillaume Savaton",
   "license": "MPL-2.0",
   "repository": {
-      "type": "git",
-      "url": "https://github.com/Guillaume-Savaton-ESEO/emulsiV.git"
+    "type": "git",
+    "url": "https://github.com/Guillaume-Savaton-ESEO/emulsiV.git"
   },
   "scripts": {
     "start": "node_modules/.bin/http-server -o index.html .",
@@ -14,7 +14,7 @@
     "lint": "node_modules/.bin/eslint src"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^5.13.0",
+    "@fortawesome/fontawesome-free": "^5.13.1",
     "file-saver": "^2.0.2"
   },
   "devDependencies": {

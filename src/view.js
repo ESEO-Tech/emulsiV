@@ -21,7 +21,6 @@ export function resize() {
     // Reset the "register" cell to the top of the window.
     const regH1 = document.querySelector("#cell-x h1");
     regH1.style["padding-top"] = 0;
-    const regBottom = document.querySelector("#cell-x table").getBoundingClientRect().bottom;
 
     // Reset all spacers.
     document.querySelectorAll(".spacer").forEach(elt => elt.style.height = "0px");
