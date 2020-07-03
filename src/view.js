@@ -8,7 +8,6 @@ const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
 const WRITE_DELAY_MAX      = 5000;    // ms
 const ANIMATION_DELAY_MIN  = 1000/60; // ms
-const MARGIN               = 30;      // px
 
 export function resize() {
     function resizeElt(elt, delta) {
@@ -27,46 +26,33 @@ export function resize() {
     // Reset all spacers.
     document.querySelectorAll(".spacer").forEach(elt => elt.style.height = "0px");
 
-    // Make the memory table as high as the register table.
-    let memBottom = tblWrapper.getBoundingClientRect().bottom;
-    resizeElt(tblWrapper, regBottom - memBottom);
-
     // Set memory table height to its maximum in its parent grid cell.
-    const tblCell = document.getElementById("cell-memory")
-    const tblCellBottom = tblCell.getBoundingClientRect().bottom;
-    if (tblCellBottom > regBottom) {
-        resizeElt(tblWrapper, tblCellBottom - regBottom);
-    }
-
-    // Resize the memory table wrapper so that the "devices" section does not overflow.
-    const devicesBottom = Math.max(document.querySelector("#bitmap-output").getBoundingClientRect().bottom,
-                                   document.querySelector("#text-output").getBoundingClientRect().bottom);
-    if (devicesBottom < window.innerHeight) {
-        resizeElt(tblWrapper, window.innerHeight - devicesBottom - MARGIN);
-        memBottom = tblWrapper.getBoundingClientRect().bottom;
-    }
+    const memBottom = tblWrapper.getBoundingClientRect().bottom;
+    const ioTop     = document.querySelector(".io").getBoundingClientRect().top;
+    resizeElt(tblWrapper, ioTop - memBottom);
 
     // Restore the scrolling of the memory view.
     tblWrapper.scrollTop = tblWrapperScrollTop;
 
     // Center the contents of the "register" cell vertically.
-    let delta = memBottom - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
+    let delta = ioTop - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
     regH1.style["padding-top"] = (delta / 2) + "px";
 
     // Resize the spacer in the "PC" cell to justify its contents vertically.
-    delta = memBottom - document.querySelector("#cell-pc table:last-child").getBoundingClientRect().bottom;
+    delta = ioTop - document.querySelector("#cell-pc table:last-child").getBoundingClientRect().bottom - 10;
     resizeElt(document.querySelector("#cell-pc .spacer"), delta);
 
     // Resize the spacer in the "ALU" cell to justify its contents vertically.
-    delta = memBottom - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom;
+    delta = ioTop - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom - 10;
     resizeElt(document.querySelector("#cell-alu .spacer"), delta);
 
+    document.getElementById("text-input").style.width  =
     document.getElementById("text-output").style.width = tblWrapper.clientWidth + "px";
 
     // Center the contents of the "bus" cell vertically.
     const busH1 = document.querySelector("#cell-bus h1");
     busH1.style["padding-top"] = 0;
-    delta = memBottom - document.querySelector("#cell-bus table").getBoundingClientRect().bottom;
+    delta = ioTop - document.querySelector("#cell-bus table").getBoundingClientRect().bottom;
     busH1.style["padding-top"] = (delta / 2) + "px";
 
     const xmXrs1 = resizePath("xrs1", "alu-a", {style: "bus2", fromWeight: 3, labelFrom: "x[rs1]"});

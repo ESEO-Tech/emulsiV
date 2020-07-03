@@ -1,34 +1,77 @@
 
 body {
     font-family: "Droid Sans", sans-serif;
-    font-size: 11pt;
-    overflow-x: hidden;
+    overflow: hidden;
     margin: 0;
-}
+    padding: 0;
 
-.tbl-wrapper {
-    overflow-y: scroll;
-}
-
-.main {
     width: 100vw;
     height: 100vh;
+
     display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: auto auto max-content;
 }
+
+@media screen and (min-height: 701px) {
+    body {
+        font-size: 11pt;
+    }
+}
+
+@media screen and (max-height: 700px) {
+    body {
+        font-size: 10pt;
+    }
+}
+
+@media screen and (max-height: 680px) {
+    body {
+        font-size: 9pt;
+    }
+}
+
+@media screen and (max-height: 645px) {
+    body {
+        font-size: 8pt;
+    }
+}
+
+@media screen and (max-height: 610px) {
+    body {
+        font-size: 7pt;
+    }
+}
+
+/* ---------------------------------------------------- *
+ * Toolbar
+ * ---------------------------------------------------- */
 
 .toolbar {
-    padding: 0.2em 1em;
-    grid-row: 1;
-    grid-column: 1 / span 5;
+    box-sizing: border-box;
+    width: 100vw;
+    padding: 0.2rem 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, auto);
 }
 
-button {
+.toolbar-group:last-child {
+    text-align: right;
+}
+
+.toolbar button {
     border: none;
-    padding: 0 0.5em;
-    font-size: 12pt;
+    padding: 0 0;
+    margin-right: 0.3rem;
+    font-size: 110%;
     background: transparent;
+}
+
+input[type=button] {
+    padding: 0;
+}
+
+#speed {
+    width: 4rem;
 }
 
 #gen-link-btn {
@@ -39,18 +82,54 @@ button {
     background-color: rgb(200, 200, 200);
 }
 
+input.state-btn {
+    padding: 0.1rem 0.4rem;
+}
+
+.state-btn {
+    border: none;
+    background-color: hsl(35, 100%, 60%);
+    color: black;
+}
+
+.state-btn[disabled] {
+    background-color: hsl(35, 0%, 80%);
+    color: black;
+}
+
+.state-btn.active {
+    background-color: hsl(115, 60%, 60%);
+}
+
+/* ---------------------------------------------------- *
+ * Datapath
+ * ---------------------------------------------------- */
+
+.main {
+    box-sizing: border-box;
+    width: 100vw;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: repeat(5, 1fr);
+    overflow-y: hidden;
+}
+
+.tbl-wrapper {
+    overflow-y: scroll;
+}
+
 .cell {
-    padding: 0 1em;
+    padding: 0 1rem;
 }
 
 .cell h1 {
     font-size: 100%;
     text-align: center;
-    margin-top: 2em;
+    margin-top: 2rem;
 }
 
 .cell h1:first-child {
-    margin-top: 0.5em;
+    margin-top: 0.5rem;
 }
 
 .cell table:first-child {
@@ -59,12 +138,12 @@ button {
 
 .cell table {
     border-collapse: collapse;
-    margin: 0.5em auto;
+    margin: 0.5rem auto;
 }
 
 .cell th,
 .cell td {
-    padding: 0.2em 0.5em;
+    padding: 0.2rem 0.5rem;
     vertical-align: middle;
 }
 
@@ -91,7 +170,7 @@ button {
 .bus {
     border-top: 1px solid hsl(60, 80%, 40%);
     border-bottom: 1px solid hsl(60, 80%, 40%);
-    width: 6em;
+    width: 6rem;
 }
 
 .overlay {
@@ -105,7 +184,7 @@ button {
 .reg {
     border: 1px solid hsl(60, 80%, 40%);
     background-color: hsl(60, 80%, 90%);
-    box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
+    box-shadow: 0.2rem 0.2rem 0.3rem rgba(0, 0, 0, 30%);
 }
 
 .cell .written {
@@ -125,10 +204,10 @@ button {
     display: none;
     position: absolute;
     background-color: hsl(180, 100%, 80%);
-    border-radius: 1em;
+    border-radius: 1rem;
     left: 0;
     top: 0;
-    box-shadow: 0.2em 0.2em 0.3em rgba(0, 0, 0, 30%);
+    box-shadow: 0.2rem 0.2rem 0.3rem rgba(0, 0, 0, 30%);
 }
 
 .asm {
@@ -166,34 +245,38 @@ button {
     width: 100%;
 }
 
-.cell pre {
-    font-family: "Droid Sans Mono", monospace;
-    background: black;
-    color: lightgreen;
-    height: 5em;
-    overflow: scroll;
-    /* white-space: pre-wrap;
-    overflow-wrap: break-word; */
-}
-
 .asm {
     font-family: "Droid Sans Mono", monospace;
     white-space: nowrap;
 }
 
-.state-btn {
-    border: none;
-    background-color: hsl(35, 100%, 60%);
-    color: black;
+/* ---------------------------------------------------- *
+ * I/O
+ * ---------------------------------------------------- */
+
+.io {
+    box-sizing: border-box;
+    width: 100vw;
+    padding-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(3, auto);
 }
 
-.state-btn[disabled] {
-    background-color: hsl(35, 0%, 80%);
-    color: black;
+#text-input {
+    border: 1px solid black;
+    padding: 0.2rem 0.4rem;
 }
 
-.state-btn.active {
-    background-color: hsl(115, 60%, 60%);
+pre {
+    font-family: "Droid Sans Mono", monospace;
+    padding: 0.1rem 0.2rem;
+    background: black;
+    color: lightgreen;
+    height: 5rem;
+    overflow: auto;
+    width: 100%;
+    /* white-space: pre-wrap;
+    overflow-wrap: break-word; */
 }
 
 canvas {
@@ -206,6 +289,47 @@ canvas {
 canvas:hover {
     cursor: crosshair;
 }
+
+#eseo-logo {
+    margin-top: 0.5rem;
+    height: 3rem;
+}
+
+#emulsiv-logo {
+    height: 6rem;
+}
+
+.branding {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    border-spacing: 1.5rem;
+}
+
+.branding > div {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.branding ul {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 0;
+    list-style-type: none;
+    text-align: left;
+}
+
+a {
+    color: hsl(210, 55%, 40%);
+}
+
+a img {
+    border: none;
+}
+
+/* ---------------------------------------------------- *
+ * Bus overlay
+ * ---------------------------------------------------- */
 
 svg {
     z-index: -1;
@@ -244,35 +368,4 @@ marker.bus3.active path { fill:   hsl(30, 100%, 40%); }
 /* Spell checkers like Grammalecte may add elements that mess the layout of tables */
 tr > div {
     display: none !important;
-}
-
-.branding {
-    grid-column-end: span 3;
-}
-
-.branding > div {
-    position: absolute;
-    bottom: 30px;
-    right: 30px;
-    text-align: center;
-    font-size: 12pt;
-}
-
-.branding img {
-    height: 6em;
-    max-height: 80px;
-    margin-bottom: 0.5em;
-}
-
-.branding .links a:nth-child(2) {
-    margin-left: 1em;
-    margin-right: 1em;
-}
-
-a {
-    color: hsl(210, 55%, 40%);
-}
-
-a img {
-    border: none;
 }

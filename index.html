@@ -8,8 +8,8 @@
 
 <title>emulsiV - Simulator for Virgule, a minimal processor based on the RISC-V architecture</title>
 
-<div class="main">
-    <div class="toolbar">
+<div class="toolbar">
+    <div class="toolbar-group">
         <button id="font-plus-btn"  title="Increase font size."><i class="fas fa-search-plus"></i></button>
         <button id="font-minus-btn" title="Decrease font size."><i class="fas fa-search-minus"></i></button>
         <button id="gen-link-btn"   title="Create a link to this program and copy the address into the clipboard."><i class="fas fa-link"></i></button>
@@ -25,14 +25,19 @@
             <option value="bitmap-asm/bitmap.hex">Bitmap</option>
             <option value="cursor-asm/cursor.hex">Cursor</option>
         </select>
+    </div>
 
+    <div class="toolbar-group">
         <label for="animate-cb">Animation</label>
         <input id="animate-cb" type="checkbox" title="Animate data transfers during instruction execution.">
         <label for="speed">Speed</label>
-        <input id="speed"     type="number" step="1" value="10" min="1" title="Set the animation speed. Has no effect if animations are disabled.">
-        <input id="reset-btn" type="button" value="Reset"               title="Reset the processor and peripherals. Does not clear the memory.">
-        <input id="run-btn"   type="button" value="Run"                 title="Execute the program forever or until a breakpoint is hit.">
-        <input id="step-btn"  type="button" value="Step"                title="Execute the current instruction.">
+        <input id="speed" type="number" step="1" value="10" min="1" max="100" title="Set the animation speed. Has no effect if animations are disabled.">
+    </div>
+
+    <div class="toolbar-group">
+        <input id="reset-btn" type="button" value="Reset" title="Reset the processor and peripherals. Does not clear the memory.">
+        <input id="run-btn"   type="button" value="Run"   title="Execute the program forever or until a breakpoint is hit.">
+        <input id="step-btn"  type="button" value="Step"  title="Execute the current instruction.">
 
         <input id="fetch-btn"              class="state-btn" type="button" value="Fetch"   title="Read an instruction from memory.">
         <input id="decode-btn"             class="state-btn" type="button" value="Decode"  title="Decode the current instruction.">
@@ -41,7 +46,9 @@
         <input id="loadStoreWriteBack-btn" class="state-btn" type="button" value="Mem/Reg" title="Write the ALU result to a register, or store data to a memory location.">
         <input id="updatePC-btn"           class="state-btn" type="button" value="PC"      title="Update the program counter.">
     </div>
+</div>
 
+<div class="main">
     <div id="cell-memory" class="cell">
         <h1>Memory</h1>
         <div id="mem" class="tbl-wrapper">
@@ -150,6 +157,9 @@
             <tr> <th>x15</td> <td class="reg" id="x15"></td> </tr>
         </table>
     </div>
+</div>
+
+<div class="io">
     <div class="cell">
         <h1>Text I/O</h1>
         <table>
@@ -175,13 +185,14 @@
     </div>
     <div class="cell branding">
         <div>
-            <a href="https://eseo.fr"><img src="assets/ESEO-logo.svg" alt="ESEO - Innovation makes sense"></a>
-            <div class="links">
-                <a href="doc" target="_blank">About emulsiV</a>
-                <a href="https://github.com/Guillaume-Savaton-ESEO/emulsiV" target="_blank">Get the source code</a>
-                <a href="https://github.com/Guillaume-Savaton-ESEO/emulsiV/issues" target="_blank">Report issues</a>
-            </div>
+            <img id="emulsiv-logo" src="assets/emulsiV-logo.svg" alt="emulsiV">
         </div>
+        <ul class="links">
+            <li><a href="doc" target="_blank"><i class="fas fa-info-circle"></i> About emulsiV</a></li>
+            <li><a href="https://github.com/Guillaume-Savaton-ESEO/emulsiV" target="_blank"><i class="fab fa-github"></i> Get the source code</a></li>
+            <li><a href="https://github.com/Guillaume-Savaton-ESEO/emulsiV/issues" target="_blank"><i class="fas fa-exclamation-circle"></i> Report issues</a></li>
+            <li><a href="https://eseo.fr" target="_blank"><img id="eseo-logo" src="assets/ESEO-logo.svg" alt="ESEO - Innovation makes sense"></a></li>
+        </ul>
     </div>
 </div>
 
