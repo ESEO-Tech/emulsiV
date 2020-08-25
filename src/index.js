@@ -1,13 +1,13 @@
 
-import {Bus, Memory, Processor} from "./virgule.js";
-import {Controller}             from "./controller.js";
-import {TextInput, TextOutput}  from "./devices/text.js";
-import {BitmapOutput}           from "./devices/bitmap.js";
-import {AsmOutput}              from "./devices/assembly.js";
-import * as view                from "./view.js";
-import {toHex}                  from "./int32.js";
-import * as url                 from "./url.js";
-import * as hex                 from "./hex.js";
+import {Bus, Memory, Processor}                from "./virgule.js";
+import {Controller}                            from "./controller.js";
+import {TextInput, TextOutput, TextOutputView} from "./devices/text.js";
+import {BitmapOutput, BitmapOutputView}        from "./devices/bitmap.js";
+import {AsmOutput, AsmOutputView}              from "./devices/assembly.js";
+import * as view                               from "./view.js";
+import {toHex}                                 from "./int32.js";
+import * as url                                from "./url.js";
+import * as hex                                from "./hex.js";
 
 window.addEventListener("load", async () => {
     const memSize = 4096;
@@ -15,20 +15,28 @@ window.addEventListener("load", async () => {
     const bus = new Bus();
     const mem = new Memory(0, memSize);
     bus.addDevice(mem);
-    const asm_out = new AsmOutput(mem);
-    bus.addDevice(asm_out);
-    const text_in = new TextInput(0xB0000000);
-    bus.addDevice(text_in);
-    const text_out = new TextOutput(0xC0000000, 4);
-    bus.addDevice(text_out);
-    const bitmap_out = new BitmapOutput(0x00000C00, 32, 32);
-    bus.addDevice(bitmap_out);
+
+    const asmOut     = new AsmOutput(mem);
+    const asmOutView = new AsmOutputView(asmOut, "asm", false);
+    bus.addDevice(asmOut);
+    view.addDeviceView(asmOutView);
+
+    const textIn = new TextInput(0xB0000000);
+    bus.addDevice(textIn);
+
+    const textOut = new TextOutput(0xC0000000, 4);
+    const textOutView = new TextOutputView(textOut, "text-output", true);
+    bus.addDevice(textOut);
+    view.addDeviceView(textOutView);
+
+    const bitmapOut = new BitmapOutput(0x00000C00, 32, 32);
+    const bitmapOutView = new BitmapOutputView(bitmapOut, "bitmap-output", true);
+    bus.addDevice(bitmapOut);
+    view.addDeviceView(bitmapOutView);
+
     const cpu = new Processor(16, bus);
 
     view.init(mem.size);
-    view.registerView("asm", asm_out, false);
-    view.registerView("text-output", text_out, true);
-    view.registerView("bitmap-output", bitmap_out, true);
 
     const ctrl = new Controller(cpu, bus, mem);
 
@@ -78,7 +86,7 @@ window.addEventListener("load", async () => {
         if (code > 255) {
             return;
         }
-        ctrl.onKeyDown(text_in, code);
+        ctrl.onKeyDown(textIn, code);
     });
 
     document.getElementById("run-btn").addEventListener("click", () => {
@@ -143,7 +151,7 @@ window.addEventListener("load", async () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 bus.write(addr, 1, value);
-                view.updateDevices(true);
+                view.updateDeviceViews(true);
             }
         });
 
@@ -188,7 +196,7 @@ window.addEventListener("load", async () => {
         elt.addEventListener("blur", () => {
             if (changed) {
                 // Update all devices that map to memory, inclding the assembly view.
-                view.updateDevices(true);
+                view.updateDeviceViews(true);
             }
             else {
                 // Restore the original content if no input occurred.
@@ -200,9 +208,10 @@ window.addEventListener("load", async () => {
     });
 
     // Alternative memory view format change
-    document.getElementById("alt-mem-view-sel").addEventListener("change", () => {
-        asm_out.refresh();
-        view.updateDevices(true);
+    document.getElementById("alt-mem-view-sel").addEventListener("change", evt => {
+        asmOut.refresh();
+        asmOutView.format = evt.target.value;
+        asmOutView.update();
         view.resize();
     });
 
@@ -331,9 +340,9 @@ window.addEventListener("load", async () => {
        Event handlers for the canvas.
      * ---------------------------------------------------------------------- */
 
-    document.getElementById("bitmap-output").addEventListener("click", evt => {
-        const {x, y} = view.getBitmapOutputXY("bitmap-output", bitmap_out, evt.clientX, evt.clientY);
-        const address = bitmap_out.firstAddress + x + y * bitmap_out.width;
+    document.getElementById(bitmapOutView.id).addEventListener("click", evt => {
+        const {x, y} = bitmapOutView.getXY(evt.clientX, evt.clientY);
+        const address = bitmapOut.firstAddress + x + y * bitmapOut.width;
         view.highlightMemoryCell("mem" + toHex(address));
     });
 

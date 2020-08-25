@@ -24,7 +24,7 @@ export class Controller {
         if (resetBus) {
             this.bus.reset();
         }
-        view.clearDevices();
+        view.clearDeviceViews();
         this.savedIrq = this.bus.irq();
         this.forceUpdate();
         view.resize();
@@ -70,7 +70,7 @@ export class Controller {
         // Update text output register view.
         view.simpleUpdate("memc0000000", "-");
 
-        view.updateDevices(true);
+        view.updateDeviceViews(true);
 
         view.highlightAsm(this.cpu.pc);
     }
@@ -118,7 +118,7 @@ export class Controller {
             for (let a = addr; a < addr + 4; a ++) {
                 view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2))
             }
-            view.updateDevices(false);
+            view.updateDeviceViews(false);
         }
     }
 
@@ -427,7 +427,7 @@ export class Controller {
 
         view.clearPaths();
 
-        view.updateDevices(true);
+        view.updateDeviceViews(true);
     }
 
     async traceUpdatePC() {
@@ -474,7 +474,7 @@ export class Controller {
             this.prepareNextState(state);
         }
         else if (this.cpu.state === "fetch") {
-            view.updateDevices(false);
+            view.updateDeviceViews(false);
         }
 
         if (!oneStage && !this.stopRequest && !(single && this.cpu.state === "fetch")) {

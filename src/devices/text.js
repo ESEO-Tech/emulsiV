@@ -1,5 +1,6 @@
 
 import {Device, Memory} from "../virgule.js";
+import {DeviceView} from "../view.js";
 
 export class TextOutput extends Device {
     constructor(...args) {
@@ -24,6 +25,16 @@ export class TextOutput extends Device {
         const res = this.data;
         this.data = "";
         return res;
+    }
+}
+
+export class TextOutputView extends DeviceView {
+    update() {
+        document.getElementById(this.id).innerHTML += this.device.getData();
+    }
+
+    clear() {
+        document.getElementById(this.id).innerHTML = "";
     }
 }
 
