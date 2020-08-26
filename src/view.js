@@ -349,6 +349,7 @@ export class DeviceView {
         // Abstract
     }
 }
+
 const deviceViews = [];
 
 export function addDeviceView(v) {

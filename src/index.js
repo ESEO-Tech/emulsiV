@@ -56,7 +56,7 @@ window.addEventListener("load", async () => {
         ctrl.loadHex(url.decode(window.location.hash));
     }
     else {
-        await loadExample("hello-asm/hello.hex");
+        loadExample("hello-asm/hello.hex");
     }
 
     /* ---------------------------------------------------------------------- *
@@ -65,7 +65,7 @@ window.addEventListener("load", async () => {
 
     document.getElementById("examples-sel").addEventListener("change", async evt => {
         if (evt.target.value) {
-            await loadExample(evt.target.value);
+            loadExample(evt.target.value);
             evt.target.value = "";
         }
     });
