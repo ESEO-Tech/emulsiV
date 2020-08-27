@@ -164,8 +164,11 @@
     <div class="cell">
         <h1>Text I/O</h1>
         <table>
+            <tr class="heading">
+                <th></th> <th>0</th> <th>1</th>
+            </tr>
             <tr>
-                <th>B0000000</th>
+                <th>b0000000 (ctrl, data)</th>
                 <td class="reg" id="memb0000000"></td>
                 <td class="reg" id="memb0000001"></td>
             </tr>
@@ -174,10 +177,52 @@
         <input id="text-input">
 
         <table>
-            <tr> <th>C0000000</th> <td class="reg" id="memc0000000"></td> </tr>
+            <tr> <th>c0000000 (data)</th> <td class="reg" id="memc0000000"></td> </tr>
         </table>
 
         <pre id="text-output"></pre>
+    </div>
+    <div class="cell">
+        <h1>General-purpose I/O</h1>
+        <table>
+            <tr class="heading">
+                <th></th> <th>0</th> <th>1</th> <th>2</th> <th>3</th>
+            </tr>
+            <tr>
+                <th>d0000000 (dir)</th>
+                <td class="reg" id="memd0000000"></td>
+                <td class="reg" id="memd0000001"></td>
+                <td class="reg" id="memd0000002"></td>
+                <td class="reg" id="memd0000003"></td>
+            </tr>
+            <tr>
+                <th>d0000004 (ien)</th>
+                <td class="reg" id="memd0000004"></td>
+                <td class="reg" id="memd0000005"></td>
+                <td class="reg" id="memd0000006"></td>
+                <td class="reg" id="memd0000007"></td>
+            </tr>
+            <tr>
+                <th>d0000008 (evt)</th>
+                <td class="reg" id="memd0000008"></td>
+                <td class="reg" id="memd0000009"></td>
+                <td class="reg" id="memd000000a"></td>
+                <td class="reg" id="memd000000b"></td>
+            </tr>
+            <tr>
+                <th>d000000c (data)</th>
+                <td class="reg" id="memd000000c"></td>
+                <td class="reg" id="memd000000d"></td>
+                <td class="reg" id="memd000000e"></td>
+                <td class="reg" id="memd000000f"></td>
+            </tr>
+        </table>
+        <table id="gpio">
+            <tr> <th>0</th> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
+            <tr> <th>1</th> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
+            <tr> <th>2</th> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
+            <tr> <th>3</th> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> </tr>
+        </table>
     </div>
     <div class="cell">
         <h1>Bitmap output (00000C00&ndash;00000FFF)</h1>

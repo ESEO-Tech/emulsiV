@@ -27,6 +27,7 @@
         <ul>
             <li><a href="#layout">Memory layout</a></li>
             <li><a href="#textio">Text input/output</a></li>
+            <li><a href="#gpio">General-purpose input/output</a></li>
             <li><a href="#bitmap">Bitmap output</a></li>
         </ul>
     </li>
@@ -423,6 +424,7 @@ The simulator provides the following memory and I/O.
     <tr><td style="text-align:center;"><code>00000C00</code><br>&vellip;<br><code>00000fff</code></td> <td><a href="#bitmap">Bitmap RAM (1024 bytes)</a></td></tr>
     <tr><td style="text-align:center;"><code>B0000000</code><br><code>B0000001</code></td> <td><a href="#textio">Text input</a></td></tr>
     <tr><td style="text-align:center;"><code>C0000000</code></td> <td><a href="#textio">Text output</a></td></tr>
+    <tr><td style="text-align:center;"><code>D0000000</code></td> <td><a href="#gpio">General-purpose input/output</a></td></tr>
 </table>
 
 <h3 id="textio">Text input/output</h3>
@@ -441,7 +443,7 @@ the simulator. It has two 8-bit registers:</p>
 <ul>
     <li>On reset, bits 6 and 7 are cleared.</li>
     <li>Bit 6 is set after the user enters a character in the text field.
-    The only way to clear it is to write a zero using a *store* instruction.</li>
+    The only way to clear it is to write a zero using a <em>store</em> instruction.</li>
     <li>The device will send an interrupt request to the processor when
     bits 7 and 6 are both set.</li>
 </ul>
@@ -453,6 +455,32 @@ of the simulator. It has only one write-only register:</p>
     <tr><th>Address (hex)</th> <th>Role</th> <th>Value</th></tr>
     <tr><td style="text-align:center;"><code>C0000000</code></td> <td>Data</td> <td>The ASCII code of the character to display.</td></tr>
 </table>
+
+<h3 id="gpio">General-purpose input/output</h3>
+
+<p>The GPIO (General-purpose input/output) peripheral allows to connect
+at most 32 simple user I/O devices:</p>
+
+<ul>
+    <li>Push-buttons.</li>
+    <li>Switches.</li>
+    <li>LEDs.</li>
+</ul>
+
+<p>It has the following 32-bit registers:</p>
+
+<table>
+    <tr><th>Address (hex)</th> <th>Role</th> <th>Value</th></tr>
+    <tr><td style="text-align:center;"><code>D0000000</code></td> <td>Direction</td> <td>The configuration of each pin (0 for an output, 1 for an input).</td></tr>
+    <tr><td style="text-align:center;"><code>D0000004</code></td> <td>Interrupt enable</td> <td>Enable interrupts on input events.</td></tr>
+    <tr><td style="text-align:center;"><code>D0000008</code></td> <td>Input events</td> <td>Each bit is set to 1 if the corresponding input pin has changed.</td></tr>
+    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Data</td> <td>The current value of each input or output.</td></tr>
+</table>
+
+<p>On reset, all pins are configured as outputs and interrupts are disabled.</p>
+
+<p>The input events register must be cleared in software using a <em>store</em> instruction
+when the event has been processed.</p>
 
 <h3 id="bitmap">Bitmap output</h3>
 
