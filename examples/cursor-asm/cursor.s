@@ -29,14 +29,11 @@ __irq:
     sw t1, 4(sp)
     sw t2, 8(sp)
 
-    /* Read the GPIO status and clear the event flags */
-    li t0, GPIO
-    lw t1, 8(t0)
-    lw t2, 12(t0)
-    sw x0, 8(t0)
-
-    /* Keep only the state of the inputs that changed recently */
-    and t0, t1, t2
+    /* Read the GPIO "rising-edge" indicators and clear all event flags */
+    li t1, GPIO
+    lw t0, 8(t1)
+    sw x0, 8(t1)
+    sw x0, 12(t1)
 
     /* If the previous movement has not been processed yet, do nothing. */
     lw t1, cursor_index

@@ -3,72 +3,91 @@ import {Device, Memory} from "../virgule.js";
 import * as view from "../view.js";
 import {toHex, unsignedSlice} from "../int32.js";
 
+const GPIO_DIR_ADDR         = 0;
+const GPIO_INT_ADDR         = 4;
+const GPIO_RISING_EVT_ADDR  = 8;
+const GPIO_FALLING_EVT_ADDR = 12;
+const GPIO_STATUS_ADDR      = 16;
+
 export class GPIO extends Memory {
     constructor(firstAddress) {
-        super(firstAddress, 16);
+        super(firstAddress, GPIO_STATUS_ADDR + 4);
         this.changed = new Set();
         this.reset();
     }
 
     get direction() {
-        return super.localRead(0, 4);
+        return super.localRead(GPIO_DIR_ADDR, 4);
     }
 
     set direction(value) {
-        this.localWrite(0, 4, value);
+        this.localWrite(GPIO_DIR_ADDR, 4, value);
     }
 
     get interruptEnable() {
-        return super.localRead(4, 4);
+        return super.localRead(GPIO_INT_ADDR, 4);
     }
 
     set interruptEnable(value) {
-        this.localWrite(4, 4, value);
+        this.localWrite(GPIO_INT_ADDR, 4, value);
+    }
+
+    get inputRisingEvents() {
+        return super.localRead(GPIO_RISING_EVT_ADDR, 4);
+    }
+
+    set inputRisingEvents(value) {
+        this.localWrite(GPIO_RISING_EVT_ADDR, 4, value);
+    }
+
+    get inputFallingEvents() {
+        return super.localRead(GPIO_FALLING_EVT_ADDR, 4);
+    }
+
+    set inputFallingEvents(value) {
+        this.localWrite(GPIO_FALLING_EVT_ADDR, 4, value);
     }
 
     get inputEvents() {
-        return super.localRead(8, 4);
-    }
-
-    set inputEvents(value) {
-        this.localWrite(8, 4, value);
+        return this.inputRisingEvents | this.inputRisingEvents;
     }
 
     get ioStatus() {
-        return this.currentInputs     &  this.direction |
-               super.localRead(12, 4) & ~this.direction;
+        return this.currentInputs                   &  this.direction |
+               super.localRead(GPIO_STATUS_ADDR, 4) & ~this.direction;
     }
 
     set ioStatus(value) {
-        this.localWrite(12, 4, value);
+        this.localWrite(GPIO_STATUS_ADDR, 4, value);
     }
 
     reset() {
-        this.direction       = 0xFFFFFFFF;
-        this.interruptEnable = 0;
-        this.inputEvents     = 0;
-        this.ioStatus        = 0;
-        this.currentInputs   = 0;
-        this.changed         = new Set();
+        this.direction          = 0xFFFFFFFF;
+        this.interruptEnable    = 0;
+        this.inputRisingEvents  = 0;
+        this.inputFallingEvents = 0;
+        this.ioStatus           = 0;
+        this.currentInputs      = 0;
+        this.changed            = new Set();
     }
 
     localRead(address, size) {
-        if (address < 12) {
+        if (address < GPIO_STATUS_ADDR) {
             return super.localRead(address, size);
         }
-        const right = (address - 12) * 8;
+        const right = (address - GPIO_STATUS_ADDR) * 8;
         const left = right + size * 8 - 1;
         return unsignedSlice(this.ioStatus, left, right);
     }
 
     checkChanges(fn) {
         const saved = [];
-        for (let i = 8; i < this.size; i ++) {
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
             saved.push(this.localRead(i, 1));
         }
         fn();
-        for (let i = 8; i < this.size; i ++) {
-            if (saved[i - 8] !== this.localRead(i, 1)) {
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
+            if (saved[i - GPIO_RISING_EVT_ADDR] !== this.localRead(i, 1)) {
                 this.changed.add(i);
             }
         }
@@ -101,7 +120,12 @@ export class GPIO extends Memory {
         this.checkChanges(() => {
             const mask = 1 << bitIndex;
             this.currentInputs ^= mask;
-            this.inputEvents   |= mask;
+            if (this.currentInputs & mask) {
+                this.inputRisingEvents |= mask;
+            }
+            else {
+                this.inputFallingEvents |= mask;
+            }
         });
     }
 

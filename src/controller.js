@@ -73,7 +73,7 @@ export class Controller {
 
         // Update GPIO register view.
         // TODO move this to gpio.js
-        for (let a = 0xd0000000; a < 0xd0000010; a ++) {
+        for (let a = 0xd0000000; a < 0xd0000014; a ++) {
             view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2));
         }
 

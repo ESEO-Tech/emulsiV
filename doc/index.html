@@ -473,14 +473,15 @@ at most 32 simple user I/O devices:</p>
     <tr><th>Address (hex)</th> <th>Role</th> <th>Value</th></tr>
     <tr><td style="text-align:center;"><code>D0000000</code></td> <td>Direction</td> <td>The configuration of each pin (0 for an output, 1 for an input).</td></tr>
     <tr><td style="text-align:center;"><code>D0000004</code></td> <td>Interrupt enable</td> <td>Enable interrupts on input events.</td></tr>
-    <tr><td style="text-align:center;"><code>D0000008</code></td> <td>Input events</td> <td>Each bit is set to 1 if the corresponding input pin has changed.</td></tr>
-    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Data</td> <td>The current value of each input or output.</td></tr>
+    <tr><td style="text-align:center;"><code>D0000008</code></td> <td>Rising-edge events</td> <td>Each bit is set to 1 if the corresponding input pin has changed from 0 to 1.</td></tr>
+    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Falling-edge events</td> <td>Each bit is set to 1 if the corresponding input pin has changed from 1 to 0.</td></tr>
+    <tr><td style="text-align:center;"><code>D0000010</code></td> <td>Data</td> <td>The current value of each input or output.</td></tr>
 </table>
 
 <p>On reset, all pins are configured as outputs and interrupts are disabled.</p>
 
-<p>The input events register must be cleared in software using a <em>store</em> instruction
-when the event has been processed.</p>
+<p>The rising-edge and falling-edge events registers must be cleared in software using <em>store</em> instructions
+when the events have been processed.</p>
 
 <h3 id="bitmap">Bitmap output</h3>
 
