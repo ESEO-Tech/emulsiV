@@ -46,8 +46,8 @@ export class AsmOutput extends Device {
 }
 
 export class AsmOutputView extends DeviceView {
-    constructor(dev, id, always) {
-        super(dev, id, always);
+    constructor(...args) {
+        super(...args);
         this.format = "asm";
     }
 

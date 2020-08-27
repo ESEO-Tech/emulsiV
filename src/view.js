@@ -335,10 +335,11 @@ export function waitUpdate() {
 }
 
 export class DeviceView {
-    constructor(dev, id, always) {
-        this.device = dev;
-        this.id     = id;
-        this.always = always;
+    constructor(dev, id, ctrl, always) {
+        this.device     = dev;
+        this.id         = id;
+        this.controller = ctrl;
+        this.always     = always;
     }
 
     update() {

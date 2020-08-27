@@ -1,44 +1,53 @@
 
-import {Bus, Memory, Processor}                from "./virgule.js";
-import {Controller}                            from "./controller.js";
-import {TextInput, TextOutput, TextOutputView} from "./devices/text.js";
-import {BitmapOutput, BitmapOutputView}        from "./devices/bitmap.js";
-import {AsmOutput, AsmOutputView}              from "./devices/assembly.js";
-import * as view                               from "./view.js";
-import {toHex}                                 from "./int32.js";
-import * as url                                from "./url.js";
-import * as hex                                from "./hex.js";
+import {Bus, Memory, Processor}         from "./virgule.js";
+import {Controller}                     from "./controller.js";
+import {TextInput, TextInputView,
+       TextOutput, TextOutputView}      from "./devices/text.js";
+import {GPIO, GPIOView}                 from "./devices/gpio.js";
+import {BitmapOutput, BitmapOutputView} from "./devices/bitmap.js";
+import {AsmOutput, AsmOutputView}       from "./devices/assembly.js";
+import * as view                        from "./view.js";
+import {toHex}                          from "./int32.js";
+import * as url                         from "./url.js";
+import * as hex                         from "./hex.js";
 
 window.addEventListener("load", async () => {
     const memSize = 4096;
 
-    const bus = new Bus();
-    const mem = new Memory(0, memSize);
+    const bus  = new Bus();
+    const cpu  = new Processor(16, bus);
+    const mem  = new Memory(0, memSize);
+    const ctrl = new Controller(cpu, bus, mem);
     bus.addDevice(mem);
 
     const asmOut     = new AsmOutput(mem);
-    const asmOutView = new AsmOutputView(asmOut, "asm", false);
+    const asmOutView = new AsmOutputView(asmOut, "asm", ctrl, false);
     bus.addDevice(asmOut);
     view.addDeviceView(asmOutView);
 
     const textIn = new TextInput(0xB0000000);
+    const textInView = new TextInputView(textIn, "text-input", ctrl, true);
     bus.addDevice(textIn);
+    view.addDeviceView(textInView);
 
     const textOut = new TextOutput(0xC0000000, 4);
-    const textOutView = new TextOutputView(textOut, "text-output", true);
+    const textOutView = new TextOutputView(textOut, "text-output", ctrl, true);
     bus.addDevice(textOut);
     view.addDeviceView(textOutView);
 
+    const gpio = new GPIO(0xD0000000, 16);
+    const gpioView = new GPIOView(gpio, "gpio", ctrl, true);
+    bus.addDevice(gpio);
+    view.addDeviceView(gpioView);
+
     const bitmapOut = new BitmapOutput(0x00000C00, 32, 32);
-    const bitmapOutView = new BitmapOutputView(bitmapOut, "bitmap-output", true);
+    const bitmapOutView = new BitmapOutputView(bitmapOut, "bitmap-output", ctrl, true);
     bus.addDevice(bitmapOut);
     view.addDeviceView(bitmapOutView);
 
-    const cpu = new Processor(16, bus);
-
     view.init(mem.size);
 
-    const ctrl = new Controller(cpu, bus, mem);
+    ctrl.reset();
 
     window.addEventListener("resize", () => view.resize());
 
@@ -69,6 +78,7 @@ window.addEventListener("load", async () => {
             evt.target.value = "";
         }
     });
+
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
         const reader = new FileReader();
@@ -77,17 +87,6 @@ window.addEventListener("load", async () => {
     });
 
     document.getElementById("speed").addEventListener("change", evt => view.setAnimationSpeed(evt.target.value));
-
-    document.getElementById("text-input").addEventListener("keydown", evt => {
-        if (evt.key.length > 1) {
-            return;
-        }
-        const code = evt.key.charCodeAt(0);
-        if (code > 255) {
-            return;
-        }
-        ctrl.onKeyDown(textIn, code);
-    });
 
     document.getElementById("run-btn").addEventListener("click", () => {
         if (ctrl.running) {
