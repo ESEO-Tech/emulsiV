@@ -66,7 +66,6 @@ export class Processor {
         }
 
         this.pc             = 0;
-        this.pcNext         = 4;
         this.mepc           = 0;
         this.fetchData      = 0;
         this.fetchError     = false;
@@ -175,11 +174,15 @@ export class Processor {
         this.state = "updatePC";
     }
 
+    get pcNext() {
+        return unsigned(this.pc + 4);
+    }
+
     updatePC() {
         this.acceptingIrq = this.bus.irq() && !this.irqState;
         if (this.acceptingIrq) {
-            this.setPc(4);
             this.mepc = this.branchTaken ? this.aluResult : this.pcNext;
+            this.setPc(4);
             this.irqState = true;
         }
         else if (this.instr.name === "mret") {
@@ -193,7 +196,6 @@ export class Processor {
             this.setPc(this.pcNext);
         }
 
-        this.pcNext = unsigned(this.pc + 4);
         this.state  = "fetch";
     }
 

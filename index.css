@@ -259,7 +259,7 @@ input.state-btn {
     width: 100vw;
     padding-top: 1rem;
     display: grid;
-    grid-template-columns: repeat(3, auto);
+    grid-template-columns: repeat(4, auto);
 }
 
 #text-input {
@@ -325,6 +325,50 @@ a {
 
 a img {
     border: none;
+}
+
+#gpio {
+    border-spacing: 2px;
+    border-collapse: separate;
+}
+
+#gpio td {
+    width: 0.4rem;
+    border: 2px solid transparent;
+    border-radius: 0.5rem;
+    background: rgb(220, 220, 220);
+}
+
+#gpio td:hover {
+    cursor: pointer;
+}
+
+#gpio td.push {
+    background: rgb(100, 100, 100);
+}
+
+#gpio td.push.on {
+    background: rgb(150, 150, 150);
+}
+
+#gpio td.toggle {
+    border: 2px solid rgb(150, 150, 150);
+    background: linear-gradient(to bottom, rgb(220, 220, 220) 60%, rgb(100, 100, 100) 60%);
+}
+
+#gpio td.toggle.on {
+    background: linear-gradient(to top, rgb(220, 220, 220) 60%, rgb(100, 100, 100) 60%);
+}
+
+#gpio td.led {
+    border-radius: 50%;
+    border: 2px solid rgb(0, 255, 0);
+    background-color: rgb(0, 50, 0);
+}
+
+#gpio td.led.on {
+    border: 2px solid rgb(0, 50, 0);
+    background-color: rgb(0, 255, 0);
 }
 
 /* ---------------------------------------------------- *

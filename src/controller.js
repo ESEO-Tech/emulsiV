@@ -16,7 +16,6 @@ export class Controller {
         this.stepping    = false;
         this.stopRequest = false;
         this.breakpoints = {};
-        this.reset();
     }
 
     reset(resetBus=true) {
@@ -24,7 +23,7 @@ export class Controller {
         if (resetBus) {
             this.bus.reset();
         }
-        view.clearDevices();
+        view.clearDeviceViews();
         this.savedIrq = this.bus.irq();
         this.forceUpdate();
         view.resize();
@@ -63,14 +62,22 @@ export class Controller {
         }
 
         // Update text input register view.
+        // TODO move this to text.js
         for (let i = 0; i < 2; i ++) {
             view.simpleUpdate(`memb000000${i}`, toHex(this.bus.read(0xB0000000 + i, 1, false), 2));
         }
 
         // Update text output register view.
+        // TODO move this to text.js
         view.simpleUpdate("memc0000000", "-");
 
-        view.updateDevices(true);
+        // Update GPIO register view.
+        // TODO move this to gpio.js
+        for (let a = 0xd0000000; a < 0xd0000014; a ++) {
+            view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2));
+        }
+
+        view.updateDeviceViews(true);
 
         view.highlightAsm(this.cpu.pc);
     }
@@ -118,7 +125,7 @@ export class Controller {
             for (let a = addr; a < addr + 4; a ++) {
                 view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2))
             }
-            view.updateDevices(false);
+            view.updateDeviceViews(false);
         }
     }
 
@@ -427,7 +434,7 @@ export class Controller {
 
         view.clearPaths();
 
-        view.updateDevices(true);
+        view.updateDeviceViews(true);
     }
 
     async traceUpdatePC() {
@@ -474,18 +481,11 @@ export class Controller {
             this.prepareNextState(state);
         }
         else if (this.cpu.state === "fetch") {
-            view.updateDevices(false);
+            view.updateDeviceViews(false);
         }
 
         if (!oneStage && !this.stopRequest && !(single && this.cpu.state === "fetch")) {
             await view.delay(STEP_DELAY);
         }
-    }
-
-    onKeyDown(dev, code) {
-        dev.onKeyDown(code);
-        view.update("mem" + toHex(dev.firstAddress),     toHex(dev.localRead(0, 1), 2));
-        view.update("mem" + toHex(dev.firstAddress + 1), toHex(dev.localRead(1, 1), 2));
-        view.update("irq", this.bus.irq());
     }
 }

@@ -1,7 +1,10 @@
 
-    .set TEXT_IN,            0xb0000000
-    .set TEXT_IN_IRQ_MASK,   0x0040
-    .set TEXT_IN_IRQ_ENABLE, 0x0080
+    .set GPIO,            0xd0000000
+    .set GPIO_IRQ_ENABLE, 0x0040A040
+    .set GPIO_BTN_UP,     0x00000040
+    .set GPIO_BTN_LEFT,   0x00008000
+    .set GPIO_BTN_RIGHT,  0x00002000
+    .set GPIO_BTN_DOWN,   0x00400000
 
     .set DIR_HORIZONTAL, 0
     .set DIR_VERTICAL,   1
@@ -26,50 +29,53 @@ __irq:
     sw t1, 4(sp)
     sw t2, 8(sp)
 
-    /* Clear the interrupt flag */
-    li t0, TEXT_IN
-    lhu t1, (t0)
-    xori t1, t1, TEXT_IN_IRQ_MASK
-    sh t1, (t0)
-    srli t1, t1, 8
+    /* Read the GPIO "rising-edge" indicators and clear all event flags */
+    li t1, GPIO
+    lw t0, 8(t1)
+    sw x0, 8(t1)
+    sw x0, 12(t1)
 
     /* If the previous movement has not been processed yet, do nothing. */
-    lw t2, cursor_index
-    lw t0, cursor_index_next
-    bne t0, t2, irq_end
+    lw t1, cursor_index
+    lw t2, cursor_index_next
+    bne t1, t2, irq_end
 
 irq_check_move_left:
-    li t0, '4'
-    bne t1, t0, irq_check_move_right
-    addi t2, t2, -1
-    li t1, DIR_LEFT
+    li t2, GPIO_BTN_LEFT
+    and t2, t2, t0
+    beqz t2, irq_check_move_right
+    addi t1, t1, -1
+    li t2, DIR_LEFT
     j irq_store
 
 irq_check_move_right:
-    li t0, '6'
-    bne t1, t0, irq_check_move_up
-    addi t2, t2, 1
-    li t1, DIR_RIGHT
+    li t2, GPIO_BTN_RIGHT
+    and t2, t2, t0
+    beqz t2, irq_check_move_up
+    addi t1, t1, 1
+    li t2, DIR_RIGHT
     j irq_store
 
 irq_check_move_up:
-    li t0, '8'
-    bne t1, t0, irq_check_move_down
-    addi t2, t2, -32
-    li t1, DIR_UP
+    li t2, GPIO_BTN_UP
+    and t2, t2, t0
+    beqz t2, irq_check_move_down
+    addi t1, t1, -32
+    li t2, DIR_UP
     j irq_store
 
 irq_check_move_down:
-    li t0, '2'
-    bne t1, t0, irq_end
-    addi t2, t2, 32
-    li t1, DIR_DOWN
+    li t2, GPIO_BTN_DOWN
+    and t2, t2, t0
+    beqz t2, irq_end
+    addi t1, t1, 32
+    li t2, DIR_DOWN
 
 irq_store:
     /* Store the new location */
-    andi t2, t2, 1023
-    sw t2, cursor_index_next, t0
-    sw t1, cursor_direction, t0
+    andi t1, t1, 1023
+    sw t1, cursor_index_next, t0
+    sw t2, cursor_direction, t0
 
 irq_end:
     /* Restore all registers from the stack */
@@ -88,9 +94,9 @@ start:
     jal draw
 
     /* Enable interrupts */
-    li t0, TEXT_IN
-    li t1, TEXT_IN_IRQ_ENABLE
-    sh t1, (t0)
+    li t0, GPIO
+    li t1, GPIO_IRQ_ENABLE
+    sw t1, 4(t0)
 
 main_loop:
     /* By default, we will draw at the current cursor location */

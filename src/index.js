@@ -1,36 +1,53 @@
 
-import {Bus, Memory, Processor} from "./virgule.js";
-import {Controller}             from "./controller.js";
-import {TextInput, TextOutput}  from "./devices/text.js";
-import {BitmapOutput}           from "./devices/bitmap.js";
-import {AsmOutput}              from "./devices/assembly.js";
-import * as view                from "./view.js";
-import {toHex}                  from "./int32.js";
-import * as url                 from "./url.js";
-import * as hex                 from "./hex.js";
+import {Bus, Memory, Processor}         from "./virgule.js";
+import {Controller}                     from "./controller.js";
+import {TextInput, TextInputView,
+       TextOutput, TextOutputView}      from "./devices/text.js";
+import {GPIO, GPIOView}                 from "./devices/gpio.js";
+import {BitmapOutput, BitmapOutputView} from "./devices/bitmap.js";
+import {AsmOutput, AsmOutputView}       from "./devices/assembly.js";
+import * as view                        from "./view.js";
+import {toHex}                          from "./int32.js";
+import * as url                         from "./url.js";
+import * as hex                         from "./hex.js";
 
 window.addEventListener("load", async () => {
     const memSize = 4096;
 
-    const bus = new Bus();
-    const mem = new Memory(0, memSize);
+    const bus  = new Bus();
+    const cpu  = new Processor(16, bus);
+    const mem  = new Memory(0, memSize);
+    const ctrl = new Controller(cpu, bus, mem);
     bus.addDevice(mem);
-    const asm_out = new AsmOutput(mem);
-    bus.addDevice(asm_out);
-    const text_in = new TextInput(0xB0000000);
-    bus.addDevice(text_in);
-    const text_out = new TextOutput(0xC0000000, 4);
-    bus.addDevice(text_out);
-    const bitmap_out = new BitmapOutput(0x00000C00, 32, 32);
-    bus.addDevice(bitmap_out);
-    const cpu = new Processor(16, bus);
+
+    const asmOut     = new AsmOutput(mem);
+    const asmOutView = new AsmOutputView(asmOut, "asm", ctrl, false);
+    bus.addDevice(asmOut);
+    view.addDeviceView(asmOutView);
+
+    const textIn = new TextInput(0xB0000000);
+    const textInView = new TextInputView(textIn, "text-input", ctrl, true);
+    bus.addDevice(textIn);
+    view.addDeviceView(textInView);
+
+    const textOut = new TextOutput(0xC0000000, 4);
+    const textOutView = new TextOutputView(textOut, "text-output", ctrl, true);
+    bus.addDevice(textOut);
+    view.addDeviceView(textOutView);
+
+    const gpio = new GPIO(0xD0000000, 16);
+    const gpioView = new GPIOView(gpio, "gpio", ctrl, true);
+    bus.addDevice(gpio);
+    view.addDeviceView(gpioView);
+
+    const bitmapOut = new BitmapOutput(0x00000C00, 32, 32);
+    const bitmapOutView = new BitmapOutputView(bitmapOut, "bitmap-output", ctrl, true);
+    bus.addDevice(bitmapOut);
+    view.addDeviceView(bitmapOutView);
 
     view.init(mem.size);
-    view.registerView("asm", asm_out, false);
-    view.registerView("text-output", text_out, true);
-    view.registerView("bitmap-output", bitmap_out, true);
 
-    const ctrl = new Controller(cpu, bus, mem);
+    ctrl.reset();
 
     window.addEventListener("resize", () => view.resize());
 
@@ -48,7 +65,7 @@ window.addEventListener("load", async () => {
         ctrl.loadHex(url.decode(window.location.hash));
     }
     else {
-        await loadExample("hello-asm/hello.hex");
+        loadExample("hello-asm/hello.hex");
     }
 
     /* ---------------------------------------------------------------------- *
@@ -57,10 +74,11 @@ window.addEventListener("load", async () => {
 
     document.getElementById("examples-sel").addEventListener("change", async evt => {
         if (evt.target.value) {
-            await loadExample(evt.target.value);
+            loadExample(evt.target.value);
             evt.target.value = "";
         }
     });
+
     document.getElementById("hex-input").addEventListener("change", evt => {
         const file   = evt.target.files[0];
         const reader = new FileReader();
@@ -69,17 +87,6 @@ window.addEventListener("load", async () => {
     });
 
     document.getElementById("speed").addEventListener("change", evt => view.setAnimationSpeed(evt.target.value));
-
-    document.getElementById("text-input").addEventListener("keydown", evt => {
-        if (evt.key.length > 1) {
-            return;
-        }
-        const code = evt.key.charCodeAt(0);
-        if (code > 255) {
-            return;
-        }
-        ctrl.onKeyDown(text_in, code);
-    });
 
     document.getElementById("run-btn").addEventListener("click", () => {
         if (ctrl.running) {
@@ -143,7 +150,7 @@ window.addEventListener("load", async () => {
             const value = parseInt(elt.innerText, 16);
             if (!isNaN(value)) {
                 bus.write(addr, 1, value);
-                view.updateDevices(true);
+                view.updateDeviceViews(true);
             }
         });
 
@@ -188,7 +195,7 @@ window.addEventListener("load", async () => {
         elt.addEventListener("blur", () => {
             if (changed) {
                 // Update all devices that map to memory, inclding the assembly view.
-                view.updateDevices(true);
+                view.updateDeviceViews(true);
             }
             else {
                 // Restore the original content if no input occurred.
@@ -200,9 +207,10 @@ window.addEventListener("load", async () => {
     });
 
     // Alternative memory view format change
-    document.getElementById("alt-mem-view-sel").addEventListener("change", () => {
-        asm_out.refresh();
-        view.updateDevices(true);
+    document.getElementById("alt-mem-view-sel").addEventListener("change", evt => {
+        asmOut.refresh();
+        asmOutView.format = evt.target.value;
+        asmOutView.update();
         view.resize();
     });
 
@@ -331,9 +339,9 @@ window.addEventListener("load", async () => {
        Event handlers for the canvas.
      * ---------------------------------------------------------------------- */
 
-    document.getElementById("bitmap-output").addEventListener("click", evt => {
-        const {x, y} = view.getBitmapOutputXY("bitmap-output", bitmap_out, evt.clientX, evt.clientY);
-        const address = bitmap_out.firstAddress + x + y * bitmap_out.width;
+    document.getElementById(bitmapOutView.id).addEventListener("click", evt => {
+        const {x, y} = bitmapOutView.getXY(evt.clientX, evt.clientY);
+        const address = bitmapOut.firstAddress + x + y * bitmapOut.width;
         view.highlightMemoryCell("mem" + toHex(address));
     });
 

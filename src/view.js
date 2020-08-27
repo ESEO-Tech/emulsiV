@@ -1,8 +1,5 @@
 
-import {toHex, unsignedSlice, signedSlice, signed, unsigned} from "./int32.js";
-import {TextOutput}   from "./devices/text.js";
-import {BitmapOutput} from "./devices/bitmap.js";
-import {AsmOutput}    from "./devices/assembly.js";
+import {toHex} from "./int32.js";
 
 const MEMORY_BYTES_PER_ROW = 4;
 const MOVE_SPEED_MIN       = 30;      // Pixels/sec
@@ -45,6 +42,7 @@ export function resize() {
     delta = ioTop - document.querySelector("#cell-alu table:last-child").getBoundingClientRect().bottom - 10;
     resizeElt(document.querySelector("#cell-alu .spacer"), delta);
 
+    // TODO Move these to devices/text.js
     document.getElementById("text-input").style.width  =
     document.getElementById("text-output").style.width = tblWrapper.clientWidth + "px";
 
@@ -188,7 +186,7 @@ export function init(memSize) {
         }
     });
 
-    clearBitmapOutput("bitmap-output");
+    clearDeviceViews();
 
     resize();
 }
@@ -263,8 +261,8 @@ export function move(fromId, toId, value, {slot=0, path=`${fromId}-${toId}`} = {
         highlightPath(path);
     }
 
-    const fromElt   = document.getElementById(fromId);
-    const toElt     = document.getElementById(toId);
+    const fromElt = document.getElementById(fromId);
+    const toElt   = document.getElementById(toId);
 
     scrollIntoView(fromElt);
     scrollIntoView(toElt);
@@ -336,133 +334,41 @@ export function waitUpdate() {
     return delay(2 * WRITE_DELAY_MAX);
 }
 
+export class DeviceView {
+    constructor(dev, id, ctrl, always) {
+        this.device     = dev;
+        this.id         = id;
+        this.controller = ctrl;
+        this.always     = always;
+    }
+
+    update() {
+        // Abstract
+    }
+
+    clear() {
+        // Abstract
+    }
+}
+
 const deviceViews = [];
 
-export function registerView(id, dev, always) {
-    deviceViews.push({id, dev, always});
+export function addDeviceView(v) {
+    deviceViews.push(v);
 }
 
-export function updateDevices(all) {
-    for (let {id, dev, always} of deviceViews) {
-        if (!dev.hasData() || (!all && !always)) {
-            continue;
-        }
-        if (dev instanceof TextOutput) {
-            updateTextOutput(id, dev);
-        }
-        else if (dev instanceof BitmapOutput) {
-            updateBitmapOutput(id, dev);
-        }
-        else if (dev instanceof AsmOutput) {
-            updateAsmOutput(id, dev);
+export function updateDeviceViews(all) {
+    for (let v of deviceViews) {
+        if (v.device.hasData() && (all || v.always)) {
+            v.update();
         }
     }
 }
 
-function updateTextOutput(id, dev) {
-    document.getElementById(id).innerHTML += dev.getData();
-}
-
-function updateBitmapOutput(id, dev) {
-    const pixels = dev.getData();
-    const canvas = document.getElementById(id);
-    const scaleX = canvas.width / dev.width;
-    const scaleY = canvas.height / dev.height;
-    const ctx = canvas.getContext("2d");
-    for (let p of pixels) {
-        const red   = Math.floor(255 * unsignedSlice(p.c, 7, 5) / 7);
-        const green = Math.floor(255 * unsignedSlice(p.c, 4, 2) / 7);
-        const blue  = Math.floor(255 * unsignedSlice(p.c, 1, 0) / 3);
-        ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
-        ctx.fillRect(p.x * scaleX, p.y * scaleY, scaleX, scaleY);
+export function clearDeviceViews() {
+    for (let v of deviceViews) {
+        v.clear();
     }
-}
-
-export function getBitmapOutputXY(id, dev, clientX, clientY) {
-    const rect = document.getElementById(id).getBoundingClientRect();
-    let x = Math.floor((clientX - rect.left) * dev.width  / rect.width);
-    x = Math.max(x, 0);
-    x = Math.min(x, dev.width - 1);
-
-    let y = Math.floor((clientY - rect.top)  * dev.height / rect.height);
-    y = Math.max(y, 0);
-    y = Math.min(y, dev.height - 1);
-
-    return {x, y};
-}
-
-function updateAsmOutput(id, dev) {
-    const format = document.getElementById("alt-mem-view-sel").value;
-
-    const instrs = dev.getData();
-    for (let [addr, {word, asm, pseudo, meta}] of Object.entries(instrs)) {
-        let res = "";
-        switch (format) {
-            case "asm":
-            case "pseudo":
-                if (format === "pseudo" && pseudo) {
-                    const metaStr = meta ? ` <${meta}>` : "";
-                    res = `<abbr title="${asm}${metaStr}">${pseudo}</abbr>`;
-                }
-                else if (meta) {
-                    const s = asm.split(" ");
-                    const asmr = s[s.length-1];
-                    const asml = asm.slice(0, -asmr.length);
-                    res = `${asml} <abbr title="${meta}">${asmr}</abbr>`;
-                }
-                else {
-                    res = asm;
-                }
-                break;
-
-            case "ascii":
-                for (let i = 0; i < 32; i += 8) {
-                    const charCode = unsignedSlice(word, i + 7, i);
-                    const char = (charCode >= 0x20 && charCode < 0x7f || charCode >= 0xa1) ? String.fromCharCode(charCode) : "\ufffd";
-                    res += char;
-                }
-                break;
-
-            case "int32":  res = signed(word).toString(); break;
-            case "uint32": res = unsigned(word).toString(); break;
-            case "int16":
-                res = [signedSlice(word, 15, 0), signedSlice(word, 31, 16)].map(s => s.toString()).join(", ");
-                break;
-            case "uint16":
-                res = [unsignedSlice(word, 15, 0), unsignedSlice(word, 31, 16)].map(s => s.toString()).join(", ");
-                break;
-            case "int8":
-                res = [signedSlice(word, 7, 0),   signedSlice(word, 15, 8),
-                       signedSlice(word, 23, 16), signedSlice(word, 31, 24),].map(s => s.toString()).join(", ");
-                break;
-            case "uint8":
-                res = [unsignedSlice(word, 7, 0),   unsignedSlice(word, 15, 8),
-                       unsignedSlice(word, 23, 16), unsignedSlice(word, 31, 24),].map(s => s.toString()).join(", ");
-                break;
-        }
-        if (res.length) {
-            simpleUpdate(id + addr, res);
-        }
-    }
-}
-
-export function clearDevices() {
-    for (let {id, dev} of deviceViews) {
-        if (dev instanceof TextOutput) {
-            clearTextOutput(id);
-        }
-    }
-}
-
-function clearTextOutput(id) {
-    document.getElementById(id).innerHTML = "";
-}
-
-function clearBitmapOutput(id) {
-    const canvas = document.getElementById(id);
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 export function enableBreakpoint(id) {
