@@ -181,8 +181,8 @@ export class Processor {
     updatePC() {
         this.acceptingIrq = this.bus.irq() && !this.irqState;
         if (this.acceptingIrq) {
-            this.setPc(4);
             this.mepc = this.branchTaken ? this.aluResult : this.pcNext;
+            this.setPc(4);
             this.irqState = true;
         }
         else if (this.instr.name === "mret") {
