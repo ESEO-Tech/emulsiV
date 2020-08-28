@@ -1,5 +1,5 @@
 
-import {assemble, disassemble, disassemblePseudo} from "../src/assembly.js"
+import {assemble, disassemble, disassemblePseudo} from "./src/assembly.js"
 
 function testInstruction({asm, fields, dis=true, pseudo=false}) {
     if (!pseudo) {
