@@ -1,5 +1,5 @@
 
-import {Device, Memory} from "../virgule.js";
+import {Memory} from "../virgule.js";
 import * as view from "../view.js";
 import {toHex, unsignedSlice} from "../int32.js";
 
