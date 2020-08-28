@@ -9,8 +9,8 @@
     "url": "https://github.com/Guillaume-Savaton-ESEO/emulsiV.git"
   },
   "scripts": {
-    "start": "node_modules/.bin/http-server -o index.html .",
-    "test": "node_modules/.bin/http-server -o test/index.html .",
+    "start": "node_modules/.bin/ws -o",
+    "test": "node_modules/.bin/ws -o -d test",
     "lint": "node_modules/.bin/eslint src"
   },
   "dependencies": {
@@ -19,6 +19,6 @@
   },
   "devDependencies": {
     "eslint": "^7.7.0",
-    "http-server": "^0.12.3"
+    "local-web-server": "^4.2.1"
   }
 }

@@ -1,5 +1,5 @@
 
-import {encode, decode} from "../src/binary.js"
+import {encode, decode} from "./src/binary.js"
 
 function testInstruction({asm, word, fields}) {
     it(`decodes instruction: ${asm}`, () => {
