@@ -75,6 +75,7 @@ export class TextInputView extends view.DeviceView {
                 return;
             }
 
+            // FIXME update IRQ input in the main CPU view.
             const savedIrq = this.controller.bus.irq();
             this.device.onKeyDown(code);
             view.update("mem" + toHex(this.device.firstAddress),     toHex(this.device.localRead(0, 1), 2));

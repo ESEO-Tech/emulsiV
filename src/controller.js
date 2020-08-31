@@ -425,6 +425,7 @@ export class Controller {
         }
 
         // IRQ status
+        // FIXME update IRQ input independently of CPU execution.
         const irq = this.bus.irq();
         if (this.savedIrq !== irq) {
             this.savedIrq = irq;

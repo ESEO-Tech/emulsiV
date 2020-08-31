@@ -16,12 +16,25 @@ export class GPIO extends Memory {
         this.reset();
     }
 
+    checkChanges(fn) {
+        const saved = [];
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
+            saved.push(this.localRead(i, 1));
+        }
+        fn();
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
+            if (saved[i - GPIO_RISING_EVT_ADDR] !== this.localRead(i, 1)) {
+                this.changed.add(i);
+            }
+        }
+    }
+
     get direction() {
         return super.localRead(GPIO_DIR_ADDR, 4);
     }
 
     set direction(value) {
-        this.localWrite(GPIO_DIR_ADDR, 4, value);
+        super.localWrite(GPIO_DIR_ADDR, 4, value);
     }
 
     get interruptEnable() {
@@ -29,7 +42,7 @@ export class GPIO extends Memory {
     }
 
     set interruptEnable(value) {
-        this.localWrite(GPIO_INT_ADDR, 4, value);
+        super.localWrite(GPIO_INT_ADDR, 4, value);
     }
 
     get inputRisingEvents() {
@@ -37,7 +50,7 @@ export class GPIO extends Memory {
     }
 
     set inputRisingEvents(value) {
-        this.localWrite(GPIO_RISING_EVT_ADDR, 4, value);
+        super.localWrite(GPIO_RISING_EVT_ADDR, 4, value);
     }
 
     get inputFallingEvents() {
@@ -45,7 +58,7 @@ export class GPIO extends Memory {
     }
 
     set inputFallingEvents(value) {
-        this.localWrite(GPIO_FALLING_EVT_ADDR, 4, value);
+        super.localWrite(GPIO_FALLING_EVT_ADDR, 4, value);
     }
 
     get inputEvents() {
@@ -58,7 +71,7 @@ export class GPIO extends Memory {
     }
 
     set ioStatus(value) {
-        this.localWrite(GPIO_STATUS_ADDR, 4, value);
+        super.localWrite(GPIO_STATUS_ADDR, 4, value);
     }
 
     reset() {
@@ -80,23 +93,11 @@ export class GPIO extends Memory {
         return unsignedSlice(this.ioStatus, left, right);
     }
 
-    checkChanges(fn) {
-        const saved = [];
-        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
-            saved.push(this.localRead(i, 1));
-        }
-        fn();
-        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
-            if (saved[i - GPIO_RISING_EVT_ADDR] !== this.localRead(i, 1)) {
-                this.changed.add(i);
-            }
-        }
-    }
-
     localWrite(address, size, value) {
-        this.checkChanges(() => {
-            super.localWrite(address, size, value);
-        });
+        for (let a = address; a < address + size; a ++) {
+            this.changed.add(a);
+        }
+        super.localWrite(address, size, value);
     }
 
     hasData() {
@@ -198,6 +199,7 @@ export class GPIOView extends view.DeviceView {
         this.setDeviceType(elt, index, nextType);
     }
 
+    // FIXME update IRQ input in the main CPU view.
     toggleInput(bitIndex) {
         const savedIrq = this.controller.bus.irq();
         this.device.toggleInput(bitIndex);
@@ -209,7 +211,6 @@ export class GPIOView extends view.DeviceView {
         }
     }
 
-    // FIXME update IRQ input.
     update() {
         for (let a of this.device.getData()) {
             view.update("mem" + toHex(this.device.firstAddress + a), toHex(this.device.localRead(a, 1), 2));
