@@ -39,4 +39,10 @@ SECTIONS {
     }
 
     __bitmap_end = __bitmap_start + BITMAP_SIZE;
+
+    . = MEM_SIZE;
+
+    .gpio_config ALIGN(4) : {
+        *(gpio_config)
+    }
 }

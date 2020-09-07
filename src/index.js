@@ -3,7 +3,7 @@ import {Bus, Memory, Processor}         from "./virgule.js";
 import {Controller}                     from "./controller.js";
 import {TextInput, TextInputView,
        TextOutput, TextOutputView}      from "./devices/text.js";
-import {GPIO, GPIOView}                 from "./devices/gpio.js";
+import {GPIO, GPIOConfig, GPIOView}     from "./devices/gpio.js";
 import {BitmapOutput, BitmapOutputView} from "./devices/bitmap.js";
 import {AsmOutput, AsmOutputView}       from "./devices/assembly.js";
 import * as view                        from "./view.js";
@@ -35,9 +35,11 @@ window.addEventListener("load", async () => {
     bus.addDevice(textOut);
     view.addDeviceView(textOutView);
 
-    const gpio = new GPIO(0xD0000000, 16);
+    const gpio = new GPIO(0xD0000000, 20);
     const gpioView = new GPIOView(gpio, "gpio", ctrl, true);
+    const gpioConfig = new GPIOConfig(memSize, 32, gpioView);
     bus.addDevice(gpio);
+    bus.addDevice(gpioConfig);
     view.addDeviceView(gpioView);
 
     const bitmapOut = new BitmapOutput(0x00000C00, 32, 32);
@@ -307,7 +309,7 @@ window.addEventListener("load", async () => {
         genLinkBtn.setAttribute("title", "Create a link to this program and copy the address into the browser's location bar.")
     }
     genLinkBtn.addEventListener("click", async () => {
-        const hash = url.encode(hex.generate(bus, mem.size));
+        const hash = url.encode(hex.generate(bus, mem.size + gpioConfig.size));
         genLinkBtn.classList.add("active");
         if (navigator.clipboard) {
             const a = document.createElement("a");
@@ -327,7 +329,7 @@ window.addEventListener("load", async () => {
     });
 
     document.getElementById("download-btn").addEventListener("click", () => {
-        const blob = new Blob([hex.generate(bus, mem.size)], {type: "text/plain;charset=utf-8"});
+        const blob = new Blob([hex.generate(bus, mem.size + gpioConfig.size)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "program.hex");
     });
 
