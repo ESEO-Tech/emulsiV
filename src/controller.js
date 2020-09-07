@@ -20,9 +20,7 @@ export class Controller {
 
     reset(resetBus=true) {
         this.cpu.reset();
-        if (resetBus) {
-            this.bus.reset();
-        }
+        this.bus.reset();
         view.clearDeviceViews();
         this.savedIrq = this.bus.irq();
         this.forceUpdate();
@@ -154,7 +152,7 @@ export class Controller {
         hex.parse(data, this.bus);
 
         // Reset processor and device views.
-        this.reset(false);
+        this.reset();
 
         // Disable all breakpoints.
         for (let [key, enabled] of Object.entries(this.breakpoints)) {

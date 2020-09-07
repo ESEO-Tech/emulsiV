@@ -62,7 +62,7 @@ export class GPIO extends Memory {
     }
 
     get inputEvents() {
-        return this.inputRisingEvents | this.inputRisingEvents;
+        return this.inputRisingEvents | this.inputFallingEvents;
     }
 
     get ioStatus() {

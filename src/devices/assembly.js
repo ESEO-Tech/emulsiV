@@ -9,11 +9,8 @@ export class AsmOutput extends Device {
     constructor(mem) {
         super(mem.firstAddress, mem.size);
         this.mem = mem;
-        this.reset();
-    }
-
-    reset() {
         this.instrs = {};
+        this.reset();
     }
 
     hasData() {
