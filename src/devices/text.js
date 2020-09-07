@@ -88,4 +88,8 @@ export class TextInputView extends view.DeviceView {
             }
         });
     }
+
+    clear() {
+        document.getElementById(this.id).value = "";
+    }    
 }

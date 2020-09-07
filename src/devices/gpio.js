@@ -211,6 +211,13 @@ export class GPIOView extends view.DeviceView {
         }
     }
 
+    clear() {
+        document.querySelectorAll(`#${this.id} td`).forEach((elt, index) => {
+            const bitIndex = index + 7 - 2 * (index % 8);
+            elt.classList.remove("on");
+        });
+    }
+
     update() {
         for (let a of this.device.getData()) {
             view.update("mem" + toHex(this.device.firstAddress + a), toHex(this.device.localRead(a, 1), 2));
