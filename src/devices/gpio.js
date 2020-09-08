@@ -96,6 +96,9 @@ export class GPIO extends Memory {
     localWrite(address, size, value) {
         for (let a = address; a < address + size; a ++) {
             this.changed.add(a);
+            if (a < GPIO_INT_ADDR) {
+                this.changed.add(a + GPIO_STATUS_ADDR);
+            }
         }
         super.localWrite(address, size, value);
     }
@@ -205,6 +208,17 @@ export class GPIOView extends view.DeviceView {
                 }
             });
         });
+
+        for (let index = 0; index < this.device.size; index ++) {
+            const addr = this.device.firstAddress + index;
+            const cellId = "mem" + toHex(addr);
+            view.setupRegister(cellId, {
+                onBlur: value => {
+                    this.device.localWrite(index, 1, value);
+                    this.update();
+                }
+            });
+        }
     }
 
     getElementAtIndex(eltIndex) {
