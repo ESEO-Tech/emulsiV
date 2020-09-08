@@ -507,7 +507,7 @@ export class Controller {
         // with animations enabled, wait a small time between stages.
         // When running in continuous mode with animations disabled,
         // this will introduce 0 delays every THROTTLING_TIME_MS to allow
-        // updading the view.
+        // updating the view.
         await view.delay(STEP_DELAY);
     }
 }

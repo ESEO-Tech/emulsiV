@@ -51,9 +51,3 @@ This command starts a local web server and runs the unit tests from the `test` f
 ```
 npm test
 ```
-
-Known issues
-------------
-
-In the rightmost column of the memory view, in *ASCII* mode,
-typing spaces can result in unexpected values.
