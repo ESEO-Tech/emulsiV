@@ -244,13 +244,6 @@ function highlightPath(pathPrefix) {
     }
 }
 
-function blurOnEnter(evt) {
-    if (evt.which === 13) {
-        evt.target.blur();
-        evt.preventDefault();
-    }
-}
-
 function selectAll(evt) {
     const range = document.createRange();
     range.selectNodeContents(evt.target);
@@ -266,25 +259,34 @@ export function setupRegister(id, {onInput, onBlur}) {
     elt.setAttribute("spellcheck",      "false");
 
     elt.addEventListener("focus", selectAll);
-    elt.addEventListener("keypress", blurOnEnter);
 
-    if (onBlur) {
-        elt.addEventListener("blur", () => {
-            const value = parseInt(elt.innerText, 16);
-            if (!isNaN(value)) {
+    let changed = false;
+
+    elt.addEventListener("keypress", evt => {
+        if (evt.which === 13) {
+            changed = true;
+            evt.target.blur();
+            evt.preventDefault();
+        }
+    });
+
+    elt.addEventListener("blur", () => {
+        const value = parseInt(elt.innerText, 16);
+        if (changed && !isNaN(value)) {
+            if (onBlur) {
                 onBlur(value);
             }
-        });
-    }
+            changed = false;
+        }
+    });
 
-    if (onInput) {
-        elt.addEventListener("input", () => {
-            const value = parseInt(elt.innerText, 16);
-            if (!isNaN(value)) {
-                onInput(value);
-            }
-        });
-    }
+    elt.addEventListener("input", () => {
+        changed = true;
+        const value = parseInt(elt.innerText, 16);
+        if (onInput && !isNaN(value)) {
+            onInput(value);
+        }
+    });
 }
 
 export function setupEditable(id, {onFocus, onInput, onBlur}) {
@@ -302,7 +304,12 @@ export function setupEditable(id, {onFocus, onInput, onBlur}) {
     let changed = false;
     let saved;
 
-    elt.addEventListener("keypress", blurOnEnter);
+    elt.addEventListener("keypress", evt => {
+        if (evt.which === 13) {
+            evt.target.blur();
+            evt.preventDefault();
+        }
+    });
 
     elt.addEventListener("focus", evt => {
         // Save the original content of this cell.

@@ -97,7 +97,7 @@ export class TextInputView extends view.DeviceView {
             view.setupRegister(cellId, {
                 onBlur: value => {
                     this.device.localWrite(index, 1, value);
-                    view.update(cellId, toHex(this.device.localRead(index, 1), 2));
+                    view.simpleUpdate(cellId, toHex(this.device.localRead(index, 1), 2));
                 }
             });
         }

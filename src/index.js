@@ -123,7 +123,7 @@ window.addEventListener("load", async () => {
      * ---------------------------------------------------------------------- */
 
     // Memory.
-    for (let elt of document.querySelectorAll("#mem .reg.editable")) {
+    for (let elt of document.querySelectorAll("#mem .reg")) {
         const addr = parseInt(elt.id.slice(3), 16);
         view.setupRegister(elt.id, {
             onInput(value) {
@@ -140,7 +140,7 @@ window.addEventListener("load", async () => {
     }
 
     // Assembly/user-friendly view.
-    for (let elt of document.querySelectorAll(".asm.editable")) {
+    for (let elt of document.querySelectorAll(".asm")) {
         const addr = parseInt(elt.id.slice(3), 16);
         view.setupEditable(elt.id, {
             onFocus() {
@@ -167,7 +167,7 @@ window.addEventListener("load", async () => {
     });
 
     // General-purpose registers.
-    for (let elt of document.querySelectorAll("#x .reg.editable")) {
+    for (let elt of document.querySelectorAll("#x .reg")) {
         const addr = parseInt(elt.id.slice(1));
         view.setupRegister(elt.id, {
             onBlur(value) {
