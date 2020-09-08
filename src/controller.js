@@ -5,17 +5,19 @@ import {toHex, unsignedSlice}  from "./int32.js";
 import {encode, decode}        from "./binary.js";
 import {assemble, disassemble} from "./assembly.js";
 
-const STEP_DELAY = 2500
+const STEP_DELAY = 2500;
+const THROTTLING_TIME_MS = 20;
 
 export class Controller {
     constructor(cpu, bus, mem) {
-        this.cpu         = cpu;
-        this.bus         = bus;
-        this.mem         = mem;
-        this.running     = false;
-        this.stepping    = false;
-        this.stopRequest = false;
-        this.breakpoints = {};
+        this.cpu           = cpu;
+        this.bus           = bus;
+        this.mem           = mem;
+        this.running       = false;
+        this.stepping      = false;
+        this.stopRequest   = false;
+        this.breakpoints   = {};
+        this.lastTraceTime = -1;
     }
 
     reset(resetBus=true) {
@@ -483,8 +485,29 @@ export class Controller {
             view.updateDeviceViews(false);
         }
 
-        if (!oneStage && !this.stopRequest && !(single && this.cpu.state === "fetch")) {
-            await view.delay(STEP_DELAY);
+        // For performance reasons, when running the program in continuous
+        // (non-single) mode, we will update the view only every THROTTLING_TIME_MS.
+        const traceTime = performance.now();
+        const enableViewDelay = traceTime - this.lastTraceTime >= THROTTLING_TIME_MS;
+        if (enableViewDelay) {
+            this.lastTraceTime = traceTime;
         }
+
+        // Terminate immediately when:
+        // * running in one-stage mode,
+        // * an instruction has just terminated in single-step mode,
+        // * a stop request has been received,
+        // * running in continuous mode with animations disabled if the view has been updated recently.
+        if (oneStage || single && this.cpu.state === "fetch" || this.stopRequest ||
+            !single && !view.animationsEnabled() && !enableViewDelay) {
+            return;
+        }
+
+        // When running in single-step mode, or in continuous mode
+        // with animations enabled, wait a small time between stages.
+        // When running in continuous mode with animations disabled,
+        // this will introduce 0 delays every THROTTLING_TIME_MS to allow
+        // updading the view.
+        await view.delay(STEP_DELAY);
     }
 }
