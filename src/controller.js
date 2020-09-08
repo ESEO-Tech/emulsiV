@@ -10,21 +10,22 @@ const THROTTLING_TIME_MS = 20;
 
 export class Controller {
     constructor(cpu, bus, mem) {
-        this.cpu           = cpu;
-        this.bus           = bus;
-        this.mem           = mem;
-        this.running       = false;
-        this.stepping      = false;
-        this.stopRequest   = false;
-        this.breakpoints   = {};
-        this.lastTraceTime = -1;
+        this.cpu              = cpu;
+        this.bus              = bus;
+        this.mem              = mem;
+        this.running          = false;
+        this.stepping         = false;
+        this.stopRequest      = false;
+        this.breakpoints      = {};
+        this.lastTraceTime    = -1;
+        this.savedIrq         = false;
+        setInterval(() => this.updateIrq(), THROTTLING_TIME_MS);
     }
 
     reset(resetBus=true) {
         this.cpu.reset();
         this.bus.reset();
         view.clearDeviceViews();
-        this.savedIrq = this.bus.irq();
         this.forceUpdate();
         view.resize();
         this.prepareNextState();
@@ -69,7 +70,7 @@ export class Controller {
 
         // Update text output register view.
         // TODO move this to text.js
-        view.simpleUpdate("memc0000000", "-");
+        view.simpleUpdate("memc0000000", toHex(this.bus.read(0xc0000000, 1, false), 2));
 
         // Update GPIO register view.
         // TODO move this to gpio.js
@@ -424,15 +425,6 @@ export class Controller {
                 break;
         }
 
-        // IRQ status
-        // FIXME update IRQ input independently of CPU execution.
-        const irq = this.bus.irq();
-        if (this.savedIrq !== irq) {
-            this.savedIrq = irq;
-            view.update("irq", irq);
-            await view.waitUpdate();
-        }
-
         view.clearPaths();
 
         view.updateDeviceViews(true);
@@ -509,5 +501,14 @@ export class Controller {
         // this will introduce 0 delays every THROTTLING_TIME_MS to allow
         // updating the view.
         await view.delay(STEP_DELAY);
+    }
+
+    updateIrq() {
+        // Update the IRQ input view if it has changed.
+        const irq = this.bus.irq();
+        if (irq !== this.savedIrq) {
+            view.update("irq", irq);
+            this.savedIrq = irq;
+        }
     }
 }

@@ -177,15 +177,6 @@ export function init(memSize) {
         currentRow.querySelector("td.asm").setAttribute("id", "asm" + rowAddressX);
     }
 
-    // Make registers and assembly view editable.
-    // Omit the instruction register and the device registers.
-    document.querySelectorAll(".reg, .asm").forEach(elt => {
-        if (elt.id !== "instr" && (!elt.id.startsWith("mem") || elt.id < "mem" + toHex(memSize))) {
-            elt.setAttribute("contenteditable", "true");
-            elt.setAttribute("spellcheck",      "false");
-        }
-    });
-
     clearDeviceViews();
 
     resize();
@@ -234,7 +225,9 @@ function scrollIntoView(elt) {
 }
 
 export function highlightAsm(address) {
-    document.querySelectorAll(".asm").forEach(e => e.classList.remove("active"));
+    for (let e of document.querySelectorAll(".asm")) {
+        e.classList.remove("active");
+    }
     const cell = document.getElementById("asm" + toHex(address));
     if (cell) {
         cell.classList.add("active");
@@ -244,11 +237,106 @@ export function highlightAsm(address) {
 
 function highlightPath(pathPrefix) {
     clearPaths();
-    const pathElt  = document.getElementById(pathPrefix + "-path");
+    const pathElt = document.getElementById(pathPrefix + "-path");
     if (pathElt) {
         pathElt.classList.add("active");
         pathElt.parentNode.appendChild(pathElt);
     }
+}
+
+function blurOnEnter(evt) {
+    if (evt.which === 13) {
+        evt.target.blur();
+        evt.preventDefault();
+    }
+}
+
+function selectAll(evt) {
+    const range = document.createRange();
+    range.selectNodeContents(evt.target);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+export function setupRegister(id, {onInput, onBlur}) {
+    const elt = document.getElementById(id);
+
+    elt.setAttribute("contenteditable", "true");
+    elt.setAttribute("spellcheck",      "false");
+
+    elt.addEventListener("focus", selectAll);
+    elt.addEventListener("keypress", blurOnEnter);
+
+    if (onBlur) {
+        elt.addEventListener("blur", () => {
+            const value = parseInt(elt.innerText, 16);
+            if (!isNaN(value)) {
+                onBlur(value);
+            }
+        });
+    }
+
+    if (onInput) {
+        elt.addEventListener("input", () => {
+            const value = parseInt(elt.innerText, 16);
+            if (!isNaN(value)) {
+                onInput(value);
+            }
+        });
+    }
+}
+
+export function setupEditable(id, {onFocus, onInput, onBlur}) {
+    const elt = document.getElementById(id);
+
+    elt.setAttribute("contenteditable", "true");
+    elt.setAttribute("spellcheck",      "false");
+
+    function removeTrailingLineBreak() {
+        if (elt.lastChild instanceof HTMLBRElement) {
+            elt.removeChild(elt.lastChild);
+        }
+    }
+
+    let changed = false;
+    let saved;
+
+    elt.addEventListener("keypress", blurOnEnter);
+
+    elt.addEventListener("focus", evt => {
+        // Save the original content of this cell.
+        saved   = elt.innerHTML;
+        changed = false;
+        if (onFocus) {
+            onFocus();
+        }
+        // Select the text in the current cell.
+        selectAll(evt);
+        // Resize the view in case the instruction column width has changed.
+        resize();
+    });
+
+    if (onInput) {
+        elt.addEventListener("input", () => {
+            removeTrailingLineBreak();
+            onInput(elt.innerText);
+            changed = true;
+        });
+    }
+
+    elt.addEventListener("blur", () => {
+        if (!changed) {
+            // Restore the original content if no input occurred.
+            elt.innerHTML = saved;
+        }
+        else if (onBlur) {
+            removeTrailingLineBreak();
+            onBlur(elt.innerText);
+        }
+        // Resize the view in case the instruction column width has changed.
+        resize();
+    });
 }
 
 export function move(fromId, toId, value, {slot=0, path=`${fromId}-${toId}`} = {}) {

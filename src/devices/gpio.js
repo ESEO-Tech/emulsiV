@@ -239,16 +239,9 @@ export class GPIOView extends view.DeviceView {
         this.setDeviceType(elt, bitIndex, nextType);
     }
 
-    // FIXME update IRQ input in the main CPU view.
     toggleInput(bitIndex) {
-        const savedIrq = this.controller.bus.irq();
         this.device.toggleInput(bitIndex);
         this.update();
-        // Update the IRQ input view if it has changed.
-        const irq = this.controller.bus.irq();
-        if (irq !== savedIrq) {
-            view.update("irq", irq);
-        }
     }
 
     clear() {
