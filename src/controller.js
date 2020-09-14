@@ -124,7 +124,7 @@ export class Controller {
         if (word !== null) {
             this.bus.write(addr, 4, word);
             for (let a = addr; a < addr + 4; a ++) {
-                view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2))
+                view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2));
             }
             view.updateDeviceViews(false);
         }
@@ -299,7 +299,7 @@ export class Controller {
         switch (this.cpu.datapath.src1) {
             case "pc":
                 await view.move("pc", "alu-a", toHex(this.cpu.pc));
-                break
+                break;
             case "x1":
                 await view.move("x" + this.cpu.instr.rs1, "alu-a", toHex(this.cpu.x1), {path: "xrs1-alu-a"});
                 break;
