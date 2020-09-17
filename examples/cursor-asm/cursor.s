@@ -229,3 +229,10 @@ background:
     .byte B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B
     .byte B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B
     .byte B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B
+
+    .section gpio_config, "a"
+
+btns:
+    .byte 0, 1, 0, 0, 0, 0, 0, 0
+    .byte 1, 0, 1, 0, 0, 0, 0, 0
+    .byte 0, 1, 0, 0, 0, 0, 0, 0

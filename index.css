@@ -247,7 +247,7 @@ input.state-btn {
 
 .asm {
     font-family: "Droid Sans Mono", monospace;
-    white-space: nowrap;
+    white-space: pre;
 }
 
 /* ---------------------------------------------------- *

@@ -30,6 +30,17 @@ export class TextOutput extends Device {
 }
 
 export class TextOutputView extends view.DeviceView {
+    constructor(...args) {
+        super(...args);
+        const cellId = "mem" + toHex(this.device.firstAddress);
+        view.setupRegister(cellId, {
+            onBlur: value => {
+                this.device.localWrite(0, 1, value);
+                this.update();
+            }
+        });
+    }
+
     update() {
         document.getElementById(this.id).innerHTML += this.device.getData();
     }
@@ -75,16 +86,24 @@ export class TextInputView extends view.DeviceView {
                 return;
             }
 
-            const savedIrq = this.controller.bus.irq();
             this.device.onKeyDown(code);
             view.update("mem" + toHex(this.device.firstAddress),     toHex(this.device.localRead(0, 1), 2));
             view.update("mem" + toHex(this.device.firstAddress + 1), toHex(this.device.localRead(1, 1), 2));
-
-            // Update the IRQ input view if it has changed.
-            const irq = this.controller.bus.irq();
-            if (irq !== savedIrq) {
-                view.update("irq", irq);
-            }
         });
+
+        for (let index = 0; index < this.device.size; index ++) {
+            const addr = this.device.firstAddress + index;
+            const cellId = "mem" + toHex(addr);
+            view.setupRegister(cellId, {
+                onBlur: value => {
+                    this.device.localWrite(index, 1, value);
+                    view.simpleUpdate(cellId, toHex(this.device.localRead(index, 1), 2));
+                }
+            });
+        }
+    }
+
+    clear() {
+        document.getElementById(this.id).value = "";
     }
 }

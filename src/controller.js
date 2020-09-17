@@ -5,26 +5,27 @@ import {toHex, unsignedSlice}  from "./int32.js";
 import {encode, decode}        from "./binary.js";
 import {assemble, disassemble} from "./assembly.js";
 
-const STEP_DELAY = 2500
+const STEP_DELAY = 2500;
+const THROTTLING_TIME_MS = 20;
 
 export class Controller {
     constructor(cpu, bus, mem) {
-        this.cpu         = cpu;
-        this.bus         = bus;
-        this.mem         = mem;
-        this.running     = false;
-        this.stepping    = false;
-        this.stopRequest = false;
-        this.breakpoints = {};
+        this.cpu              = cpu;
+        this.bus              = bus;
+        this.mem              = mem;
+        this.running          = false;
+        this.stepping         = false;
+        this.stopRequest      = false;
+        this.breakpoints      = {};
+        this.lastTraceTime    = -1;
+        this.savedIrq         = false;
+        setInterval(() => this.updateIrq(), THROTTLING_TIME_MS);
     }
 
     reset(resetBus=true) {
         this.cpu.reset();
-        if (resetBus) {
-            this.bus.reset();
-        }
+        this.bus.reset();
         view.clearDeviceViews();
-        this.savedIrq = this.bus.irq();
         this.forceUpdate();
         view.resize();
         this.prepareNextState();
@@ -69,7 +70,7 @@ export class Controller {
 
         // Update text output register view.
         // TODO move this to text.js
-        view.simpleUpdate("memc0000000", "-");
+        view.simpleUpdate("memc0000000", toHex(this.bus.read(0xc0000000, 1, false), 2));
 
         // Update GPIO register view.
         // TODO move this to gpio.js
@@ -123,7 +124,7 @@ export class Controller {
         if (word !== null) {
             this.bus.write(addr, 4, word);
             for (let a = addr; a < addr + 4; a ++) {
-                view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2))
+                view.simpleUpdate("mem" + toHex(a), toHex(this.bus.read(a, 1, false), 2));
             }
             view.updateDeviceViews(false);
         }
@@ -154,7 +155,7 @@ export class Controller {
         hex.parse(data, this.bus);
 
         // Reset processor and device views.
-        this.reset(false);
+        this.reset();
 
         // Disable all breakpoints.
         for (let [key, enabled] of Object.entries(this.breakpoints)) {
@@ -298,7 +299,7 @@ export class Controller {
         switch (this.cpu.datapath.src1) {
             case "pc":
                 await view.move("pc", "alu-a", toHex(this.cpu.pc));
-                break
+                break;
             case "x1":
                 await view.move("x" + this.cpu.instr.rs1, "alu-a", toHex(this.cpu.x1), {path: "xrs1-alu-a"});
                 break;
@@ -424,14 +425,6 @@ export class Controller {
                 break;
         }
 
-        // IRQ status
-        const irq = this.bus.irq();
-        if (this.savedIrq !== irq) {
-            this.savedIrq = irq;
-            view.update("irq", irq);
-            await view.waitUpdate();
-        }
-
         view.clearPaths();
 
         view.updateDeviceViews(true);
@@ -484,8 +477,38 @@ export class Controller {
             view.updateDeviceViews(false);
         }
 
-        if (!oneStage && !this.stopRequest && !(single && this.cpu.state === "fetch")) {
-            await view.delay(STEP_DELAY);
+        // For performance reasons, when running the program in continuous
+        // (non-single) mode, we will update the view only every THROTTLING_TIME_MS.
+        const traceTime = performance.now();
+        const enableViewDelay = traceTime - this.lastTraceTime >= THROTTLING_TIME_MS;
+        if (enableViewDelay) {
+            this.lastTraceTime = traceTime;
+        }
+
+        // Terminate immediately when:
+        // * running in one-stage mode,
+        // * an instruction has just terminated in single-step mode,
+        // * a stop request has been received,
+        // * running in continuous mode with animations disabled if the view has been updated recently.
+        if (oneStage || single && this.cpu.state === "fetch" || this.stopRequest ||
+            !single && !view.animationsEnabled() && !enableViewDelay) {
+            return;
+        }
+
+        // When running in single-step mode, or in continuous mode
+        // with animations enabled, wait a small time between stages.
+        // When running in continuous mode with animations disabled,
+        // this will introduce 0 delays every THROTTLING_TIME_MS to allow
+        // updating the view.
+        await view.delay(STEP_DELAY);
+    }
+
+    updateIrq() {
+        // Update the IRQ input view if it has changed.
+        const irq = this.bus.irq();
+        if (irq !== this.savedIrq) {
+            view.update("irq", irq);
+            this.savedIrq = irq;
         }
     }
 }

@@ -1,5 +1,5 @@
 
-import {Memory} from "../virgule.js";
+import {Memory, Device} from "../virgule.js";
 import * as view from "../view.js";
 import {toHex, unsignedSlice} from "../int32.js";
 
@@ -16,12 +16,25 @@ export class GPIO extends Memory {
         this.reset();
     }
 
+    checkChanges(fn) {
+        const saved = [];
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
+            saved.push(this.localRead(i, 1));
+        }
+        fn();
+        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
+            if (saved[i - GPIO_RISING_EVT_ADDR] !== this.localRead(i, 1)) {
+                this.changed.add(i);
+            }
+        }
+    }
+
     get direction() {
         return super.localRead(GPIO_DIR_ADDR, 4);
     }
 
     set direction(value) {
-        this.localWrite(GPIO_DIR_ADDR, 4, value);
+        super.localWrite(GPIO_DIR_ADDR, 4, value);
     }
 
     get interruptEnable() {
@@ -29,7 +42,7 @@ export class GPIO extends Memory {
     }
 
     set interruptEnable(value) {
-        this.localWrite(GPIO_INT_ADDR, 4, value);
+        super.localWrite(GPIO_INT_ADDR, 4, value);
     }
 
     get inputRisingEvents() {
@@ -37,7 +50,7 @@ export class GPIO extends Memory {
     }
 
     set inputRisingEvents(value) {
-        this.localWrite(GPIO_RISING_EVT_ADDR, 4, value);
+        super.localWrite(GPIO_RISING_EVT_ADDR, 4, value);
     }
 
     get inputFallingEvents() {
@@ -45,11 +58,11 @@ export class GPIO extends Memory {
     }
 
     set inputFallingEvents(value) {
-        this.localWrite(GPIO_FALLING_EVT_ADDR, 4, value);
+        super.localWrite(GPIO_FALLING_EVT_ADDR, 4, value);
     }
 
     get inputEvents() {
-        return this.inputRisingEvents | this.inputRisingEvents;
+        return this.inputRisingEvents | this.inputFallingEvents;
     }
 
     get ioStatus() {
@@ -58,7 +71,7 @@ export class GPIO extends Memory {
     }
 
     set ioStatus(value) {
-        this.localWrite(GPIO_STATUS_ADDR, 4, value);
+        super.localWrite(GPIO_STATUS_ADDR, 4, value);
     }
 
     reset() {
@@ -80,23 +93,14 @@ export class GPIO extends Memory {
         return unsignedSlice(this.ioStatus, left, right);
     }
 
-    checkChanges(fn) {
-        const saved = [];
-        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
-            saved.push(this.localRead(i, 1));
-        }
-        fn();
-        for (let i = GPIO_RISING_EVT_ADDR; i < this.size; i ++) {
-            if (saved[i - GPIO_RISING_EVT_ADDR] !== this.localRead(i, 1)) {
-                this.changed.add(i);
+    localWrite(address, size, value) {
+        for (let a = address; a < address + size; a ++) {
+            this.changed.add(a);
+            if (a < GPIO_INT_ADDR) {
+                this.changed.add(a + GPIO_STATUS_ADDR);
             }
         }
-    }
-
-    localWrite(address, size, value) {
-        this.checkChanges(() => {
-            super.localWrite(address, size, value);
-        });
+        super.localWrite(address, size, value);
     }
 
     hasData() {
@@ -134,14 +138,50 @@ export class GPIO extends Memory {
     }
 }
 
+export class GPIOConfig extends Device {
+    constructor(firstAddress, size, view) {
+        super(firstAddress, size);
+        this.view = view;
+    }
+
+    localWrite(address, size, value) {
+        for (let a = address; a < address + size; a ++) {
+            const bitIndex = address + 7 - 2 * (address % 8);
+            const right = (a - address) * 8;
+            let deviceType = "none";
+            switch (unsignedSlice(value, right + 7, right)) {
+                case 1: deviceType = "push";   break;
+                case 2: deviceType = "toggle"; break;
+                case 3: deviceType = "led";    break;
+            }
+            this.view.setDeviceType(this.view.getElementAtIndex(address), bitIndex, deviceType);
+        }
+    }
+
+    localRead(address, size) {
+        let value = 0;
+        for (let a = address; a < address + size; a ++) {
+            const bitIndex = address + 7 - 2 * (address % 8);
+            let deviceTypeId = 0;
+            switch (this.view.deviceTypes[bitIndex]) {
+                case "push":   deviceTypeId = 1; break;
+                case "toggle": deviceTypeId = 2; break;
+                case "led":    deviceTypeId = 3; break;
+            }
+            value |= deviceTypeId << (8 * (a - address));
+        }
+        return value;
+    }
+}
+
 export class GPIOView extends view.DeviceView {
     constructor(...args) {
         super(...args);
 
         this.deviceTypes = [];
 
-        document.querySelectorAll(`#${this.id} td`).forEach((elt, index) => {
-            const bitIndex = index + 7 - 2 * (index % 8);
+        document.querySelectorAll(`#${this.id} td`).forEach((elt, eltIndex) => {
+            const bitIndex = eltIndex + 7 - 2 * (eltIndex % 8);
 
             this.setDeviceType(elt, bitIndex, "none");
 
@@ -168,14 +208,29 @@ export class GPIOView extends view.DeviceView {
                 }
             });
         });
+
+        for (let index = 0; index < this.device.size; index ++) {
+            const addr = this.device.firstAddress + index;
+            const cellId = "mem" + toHex(addr);
+            view.setupRegister(cellId, {
+                onBlur: value => {
+                    this.device.localWrite(index, 1, value);
+                    this.update();
+                }
+            });
+        }
     }
 
-    setDeviceType(elt, index, type) {
-        if (index < this.deviceTypes.length) {
-            elt.classList.remove(this.deviceTypes[index]);
+    getElementAtIndex(eltIndex) {
+        return document.querySelectorAll(`#${this.id} td`)[eltIndex];
+    }
+
+    setDeviceType(elt, bitIndex, type) {
+        if (bitIndex < this.deviceTypes.length) {
+            elt.classList.remove(this.deviceTypes[bitIndex]);
         }
         elt.classList.add(type);
-        this.deviceTypes[index] = type;
+        this.deviceTypes[bitIndex] = type;
         let title = "Right-click to change this input device";
         switch (type) {
             case "push":   title = "Push-button";   break;
@@ -183,40 +238,39 @@ export class GPIOView extends view.DeviceView {
             case "led":    title = "LED";           break;
         }
         elt.setAttribute("title", title);
-        this.device.clearInput(index);
+        this.device.clearInput(bitIndex);
         this.update();
     }
 
-    setNextDeviceType(elt, index) {
+    setNextDeviceType(elt, bitIndex) {
         let nextType = "none";
-        switch (this.deviceTypes[index]) {
+        switch (this.deviceTypes[bitIndex]) {
             case "none":   nextType = "push";   break;
             case "push":   nextType = "toggle"; break;
             case "toggle": nextType = "led";    break;
             case "led":    nextType = "none";   break;
         }
-        this.setDeviceType(elt, index, nextType);
+        this.setDeviceType(elt, bitIndex, nextType);
     }
 
     toggleInput(bitIndex) {
-        const savedIrq = this.controller.bus.irq();
         this.device.toggleInput(bitIndex);
         this.update();
-        // Update the IRQ input view if it has changed.
-        const irq = this.controller.bus.irq();
-        if (irq !== savedIrq) {
-            view.update("irq", irq);
+    }
+
+    clear() {
+        for (let elt of document.querySelectorAll(`#${this.id} td`)) {
+            elt.classList.remove("on");
         }
     }
 
-    // FIXME update IRQ input.
     update() {
         for (let a of this.device.getData()) {
             view.update("mem" + toHex(this.device.firstAddress + a), toHex(this.device.localRead(a, 1), 2));
         }
 
-        document.querySelectorAll(`#${this.id} td`).forEach((elt, index) => {
-            const bitIndex = index + 7 - 2 * (index % 8);
+        document.querySelectorAll(`#${this.id} td`).forEach((elt, eltIndex) => {
+            const bitIndex = eltIndex + 7 - 2 * (eltIndex % 8);
             if (this.device.ioStatus & (1 << bitIndex)) {
                 elt.classList.add("on");
             }
