@@ -1,5 +1,10 @@
 
+@import "../node_modules/fontsource-arsenal/index.css";
+@import "../node_modules/fontsource-roboto/index.css";
+@import "../node_modules/fontsource-roboto-mono/index.css";
+
 body {
+    font-family: "Roboto", sans-serif;
     margin: 1em calc(50vw - 30em);
     font-size: 13pt;
 }
@@ -9,7 +14,7 @@ h1 {
 }
 
 h1, h2, h3, h4 {
-    font-family: sans-serif;
+    font-family: "Arsenal", sans-serif;
 }
 
 h1, h2, h3 {
@@ -53,6 +58,10 @@ td, th {
     border: 1px solid rgb(50, 50, 50);
     padding: 0.25em 1em;
     font-size: 90%;
+}
+
+pre, code {
+    font-family: "Roboto Mono", monospace;
 }
 
 code {
