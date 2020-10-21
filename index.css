@@ -1,6 +1,9 @@
 
+@import "node_modules/fontsource-roboto/index.css";
+@import "node_modules/fontsource-roboto-mono/index.css";
+
 body {
-    font-family: "Droid Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
     overflow: hidden;
     margin: 0;
     padding: 0;
@@ -68,6 +71,10 @@ body {
 
 input[type=button] {
     padding: 0;
+}
+
+input, select, textarea, button {
+    font-family:inherit;
 }
 
 #speed {
@@ -163,7 +170,7 @@ input.state-btn {
 .bus, .reg {
     transition: background-color 0.25s;
     text-align: center;
-    font-family: "Droid Sans Mono", monospace;
+    font-family: "Roboto Mono", monospace;
     font-size: 95%;
 }
 
@@ -200,7 +207,7 @@ input.state-btn {
 }
 
 .moving-value {
-    font-family: "Droid Sans Mono", monospace;
+    font-family: "Roboto Mono", monospace;
     display: none;
     position: absolute;
     background-color: hsl(180, 100%, 80%);
@@ -246,7 +253,7 @@ input.state-btn {
 }
 
 .asm {
-    font-family: "Droid Sans Mono", monospace;
+    font-family: "Roboto Mono", monospace;
     white-space: pre;
 }
 
@@ -268,7 +275,7 @@ input.state-btn {
 }
 
 pre {
-    font-family: "Droid Sans Mono", monospace;
+    font-family: "Roboto Mono", monospace;
     padding: 0.1rem 0.2rem;
     background: black;
     color: lightgreen;
