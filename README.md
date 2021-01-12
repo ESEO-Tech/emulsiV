@@ -2,7 +2,7 @@
 emulsiV
 ==========
 
-[emulsiV](http://tice.sea.eseo.fr/riscv) is a visual simulator for Virgule,
+[emulsiV](https://guillaume-savaton-eseo.github.io/emulsiV/) is a visual simulator for Virgule,
 a minimal CPU core implementation based on the RISC-V architecture.
 This simulator is intended to be used as a tool for teaching the basics of
 computer architecture.
