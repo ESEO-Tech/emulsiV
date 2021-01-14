@@ -1,7 +1,4 @@
 
-@import "node_modules/fontsource-roboto/index.css";
-@import "node_modules/fontsource-roboto-mono/index.css";
-
 body {
     font-family: "Roboto", sans-serif;
     overflow: hidden;
