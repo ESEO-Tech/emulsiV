@@ -15,7 +15,7 @@ window.addEventListener("load", async () => {
     const memSize = 4096;
 
     const bus  = new Bus();
-    const cpu  = new Processor(16, bus);
+    const cpu  = new Processor(32, bus);
     const mem  = new Memory(0, memSize);
     const ctrl = new Controller(cpu, bus, mem);
     bus.addDevice(mem);
