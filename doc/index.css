@@ -1,7 +1,10 @@
 
-@import "../node_modules/fontsource-arsenal/index.css";
-@import "../node_modules/fontsource-roboto/index.css";
-@import "../node_modules/fontsource-roboto-mono/index.css";
+@import "../node_modules/fontsource-arsenal/latin-400.css";
+@import "../node_modules/fontsource-arsenal/latin-700.css";
+@import "../node_modules/fontsource-roboto/latin-400.css";
+@import "../node_modules/fontsource-roboto/latin-700.css";
+@import "../node_modules/fontsource-roboto-mono/latin-400.css";
+@import "../node_modules/fontsource-roboto-mono/latin-700.css";
 
 body {
     font-family: "Roboto", sans-serif;
@@ -15,6 +18,7 @@ h1 {
 
 h1, h2, h3, h4 {
     font-family: "Arsenal", sans-serif;
+    margin-top: 1.5em;
 }
 
 h1, h2, h3 {
@@ -49,7 +53,7 @@ table {
 }
 
 th {
-    font-family: sans-serif;
+    font-family: Arsenal, sans-serif;
     font-weight: normal;
     background: rgb(220, 220, 220);
 }
