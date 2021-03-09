@@ -1,4 +1,7 @@
 
+@import "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap";
+@import "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap";
+
 body {
     font-family: "Roboto", sans-serif;
     overflow: hidden;
@@ -71,7 +74,7 @@ input[type=button] {
 }
 
 input, select, textarea, button {
-    font-family:inherit;
+    font-family: Roboto, sans-serif;
 }
 
 #speed {

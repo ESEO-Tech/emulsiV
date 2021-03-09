@@ -1,4 +1,8 @@
 
+@import "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap";
+@import "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap";
+@import "https://fonts.googleapis.com/css2?family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap";
+
 body {
     font-family: "Roboto", sans-serif;
     margin: 1em calc(50vw - 30em);
@@ -11,6 +15,7 @@ h1 {
 
 h1, h2, h3, h4 {
     font-family: "Arsenal", sans-serif;
+    margin-top: 1.5em;
 }
 
 h1, h2, h3 {
@@ -45,7 +50,7 @@ table {
 }
 
 th {
-    font-family: sans-serif;
+    font-family: Arsenal, sans-serif;
     font-weight: normal;
     background: rgb(220, 220, 220);
 }
