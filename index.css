@@ -16,6 +16,8 @@ body {
 
     display: grid;
     grid-template-rows: auto auto max-content;
+
+    user-select: none;
 }
 
 @media screen and (min-height: 701px) {
@@ -46,6 +48,21 @@ body {
     body {
         font-size: 7pt;
     }
+}
+
+.divider {
+    height: 0.3rem;
+    width: 100%;
+    margin: 0;
+    border: none;
+    background: transparent;
+    display: grid;
+    box-shadow: 0 0.2rem 0.15rem rgba(0, 0, 0, 20%);
+}
+
+.divider:hover {
+    background: hsl(288, 100%, 90%);
+    cursor: row-resize;
 }
 
 /* ---------------------------------------------------- *
@@ -270,6 +287,15 @@ input.state-btn {
     padding-top: 1rem;
     display: grid;
     grid-template-columns: repeat(4, auto);
+    overflow-y: auto;
+}
+
+.io.resizing {
+    background: white;
+}
+
+.io .cell {
+    height: 100%;
 }
 
 #text-input {
