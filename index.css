@@ -1,6 +1,9 @@
 
-@import "node_modules/fontsource-roboto/index.css";
-@import "node_modules/fontsource-roboto-mono/index.css";
+@import "node_modules/@fortawesome/fontawesome-free/css/all.css";
+@import "node_modules/fontsource-roboto/latin-400.css";
+@import "node_modules/fontsource-roboto/latin-700.css";
+@import "node_modules/fontsource-roboto-mono/latin-400.css";
+@import "node_modules/fontsource-roboto-mono/latin-700.css";
 
 body {
     font-family: "Roboto", sans-serif;
@@ -74,7 +77,7 @@ input[type=button] {
 }
 
 input, select, textarea, button {
-    font-family:inherit;
+    font-family: Roboto, sans-serif;
 }
 
 #speed {
