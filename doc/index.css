@@ -3,27 +3,43 @@
 @import "https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap";
 @import "https://fonts.googleapis.com/css2?family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap";
 
-body {
-    font-family: "Roboto", sans-serif;
-    margin: 1em calc(50vw - 30em);
-    font-size: 13pt;
+html {
+    font-size: medium;
 }
 
-h1 {
-    text-align: center;
+body {
+    font-family: "Roboto", sans-serif;
+    margin: 1em calc(50vw - 30rem);
 }
 
 h1, h2, h3, h4 {
     font-family: "Arsenal", sans-serif;
     margin-top: 1.5em;
+    margin-bottom: 1em;
 }
 
-h1, h2, h3 {
+h1 {
+    text-align: center;
     font-weight: normal;
+    font-size: 230%;
+}
+
+h2 {
+    text-align: center;
+    font-weight: normal;
+    font-size: 180%;
+}
+
+h3 {
+    text-align: left;
+    font-weight: normal;
+    font-size: 140%;
 }
 
 h4 {
+    text-align: left;
     font-weight: bold;
+    font-size: 110%;
 }
 
 address {

@@ -19,55 +19,55 @@ body {
 
 
 @media screen and (min-width: 1701px) and (min-height: 800px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 16px;
     }
 }
 
 @media screen and (max-width: 1700px) and (min-height: 800px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 14.5px;
     }
 }
 
 @media screen and (max-width: 1600px) and (min-height: 800px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 13.25px;
     }
 }
 
 @media screen and (min-width: 1501px) and (max-height: 799px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 12px;
     }
 }
 
 @media screen and (max-width: 1500px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 12px;
     }
 }
 
 @media screen and (max-width: 1400px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 10.75px;
     }
 }
 
 @media screen and (max-width: 1300px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 9.5px;
     }
 }
 
 @media screen and (max-width: 1200px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 8.25px;
     }
 }
 
 @media screen and (max-width: 1100px) {
-    body, input, textarea, select, button {
+    html, input, textarea, select, button {
         font-size: 7px;
     }
 }
