@@ -204,8 +204,11 @@ input.state-btn {
     font-weight: normal;
 }
 
-.cell .heading th {
+.cell thead th {
     text-align: center;
+    position: sticky;
+    top: 0;
+    background: white;
 }
 
 .cell th {
