@@ -188,8 +188,9 @@ export class Controller {
 
     async run(single = false) {
         view.setButtonLabel("run", "Pause");
+        view.enableInput("open-btn",  false);
         view.enableInput("hex-input", false);
-        view.enableInput("step-btn", false);
+        view.enableInput("step-btn",  false);
         view.enableInput("reset-btn", false);
 
         this.running     = true;
@@ -213,6 +214,7 @@ export class Controller {
 
         view.setButtonLabel("run", "Run");
         view.enableInput(this.cpu.state + "-btn");
+        view.enableInput("open-btn");
         view.enableInput("hex-input");
         view.enableInput("step-btn");
         view.enableInput("reset-btn");
@@ -223,6 +225,7 @@ export class Controller {
     highlightState(name) {
         view.activateButton(name);
         view.enableInput(name + "-btn", false);
+        view.enableInput("open-btn",    false);
         view.enableInput("hex-input",   false);
         view.enableInput("step-btn",    false);
         view.enableInput("reset-btn",   false);
@@ -233,6 +236,7 @@ export class Controller {
             view.activateButton(name, false);
         }
         view.enableInput(this.cpu.state + "-btn", !this.running);
+        view.enableInput("open-btn",              !this.running);
         view.enableInput("hex-input",             !this.running);
         view.enableInput("step-btn",              !this.running);
         view.enableInput("reset-btn",             !this.running);
