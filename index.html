@@ -55,33 +55,37 @@
         <h1>Memory</h1>
         <div id="mem" class="tbl-wrapper">
             <table>
-                <tr class="heading">
-                    <th>Address</th>
-                    <th>0</th> <th>1</th> <th>2</th> <th>3</th>
-                    <th>
-                        <select id="alt-mem-view-sel">
-                            <option value="asm" selected>Instructions</option>
-                            <option value="pseudo">Pseudo-instructions</option>
-                            <option value="ascii">Characters (ASCII)</option>
-                            <option value="int32">Decimal (signed 32-bit)</option>
-                            <option value="uint32">Decimal (unsigned 32-bit)</option>
-                            <option value="int16">Decimal (signed 16-bit)</option>
-                            <option value="uint16">Decimal (unsigned 16-bit)</option>
-                            <option value="int8">Decimal (signed 8-bit)</option>
-                            <option value="uint8">Decimal (unsigned 8-bit)</option>
-                        </select>
-                    </th>
-                    <th></th>
-                </tr>
-                <tr>
-                    <th>00000000</th>
-                    <td class="reg">00</td>
-                    <td class="reg">00</td>
-                    <td class="reg">00</td>
-                    <td class="reg">00</td>
-                    <td class="asm">&mdash;</td>
-                    <td class="brk" title="Click to set/remove a breakpoint">&#x25cf;</td>
-                </tr>
+                <thead>
+                    <tr class="heading">
+                        <th>Address</th>
+                        <th>0</th> <th>1</th> <th>2</th> <th>3</th>
+                        <th>
+                            <select id="alt-mem-view-sel">
+                                <option value="asm" selected>Instructions</option>
+                                <option value="pseudo">Pseudo-instructions</option>
+                                <option value="ascii">Characters (ASCII)</option>
+                                <option value="int32">Decimal (signed 32-bit)</option>
+                                <option value="uint32">Decimal (unsigned 32-bit)</option>
+                                <option value="int16">Decimal (signed 16-bit)</option>
+                                <option value="uint16">Decimal (unsigned 16-bit)</option>
+                                <option value="int8">Decimal (signed 8-bit)</option>
+                                <option value="uint8">Decimal (unsigned 8-bit)</option>
+                            </select>
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>00000000</th>
+                        <td class="reg">00</td>
+                        <td class="reg">00</td>
+                        <td class="reg">00</td>
+                        <td class="reg">00</td>
+                        <td class="asm">&mdash;</td>
+                        <td class="brk" title="Click to set/remove a breakpoint">&#x25cf;</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>

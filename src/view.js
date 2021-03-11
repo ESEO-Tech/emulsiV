@@ -19,7 +19,8 @@ export function moveDivider(delta) {
 }
 
 export function resize() {
-    // Preserve the scrolling in the memory table wrapper.
+    // Preserve the scrolling in the memory table wrapper
+    // (this will not work if the font size changes).
     const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
     const tblWrapperScrollTop = tblWrapper.scrollTop;
 
@@ -174,7 +175,7 @@ export function clearPaths() {
 }
 
 export function init(memSize) {
-    const row = document.querySelector("#cell-memory tr:nth-child(2)");
+    const row = document.querySelector("#cell-memory tbody tr");
     for (let i = 0; i < Math.ceil(memSize / MEMORY_BYTES_PER_ROW); i ++) {
         let currentRow = row;
         if (i !== 0) {
