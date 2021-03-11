@@ -51,8 +51,6 @@ window.addEventListener("load", async () => {
 
     ctrl.reset();
 
-    window.addEventListener("resize", () => view.resize());
-
     function loadExample(name) {
         const xhr = new XMLHttpRequest();
         xhr.addEventListener("load", () => {
@@ -69,6 +67,39 @@ window.addEventListener("load", async () => {
     else {
         loadExample("hello-asm/hello.hex");
     }
+
+    /* ---------------------------------------------------------------------- *
+       Event handlers for the divider.
+     * ---------------------------------------------------------------------- */
+
+    const divider = document.querySelector("hr.divider");
+
+    divider.addEventListener("mousedown", evt => {
+        if (evt.button !== 0) {
+            return;
+        }
+
+        let lastY = evt.clientY;
+
+        document.querySelector(".io").classList.add("resizing");
+
+        function dividerDrag(evt) {
+            view.moveDivider(evt.clientY - lastY)
+            lastY = evt.clientY;
+        }
+
+        document.documentElement.addEventListener("mousemove", dividerDrag);
+
+        document.documentElement.addEventListener("mouseup", evt => {
+            if (evt.button === 0) {
+                document.documentElement.removeEventListener("mousemove", dividerDrag);
+                document.querySelector(".io").classList.remove("resizing");
+                view.resize();
+            }
+        });
+    });
+
+    window.addEventListener("resize", view.resize);
 
     /* ---------------------------------------------------------------------- *
        Event handlers for toolbar elements.

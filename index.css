@@ -16,36 +16,78 @@ body {
 
     display: grid;
     grid-template-rows: auto auto max-content;
+
+    user-select: none;
 }
 
-@media screen and (min-height: 701px) {
-    body {
-        font-size: 11pt;
+
+@media screen and (min-width: 1701px) and (min-height: 800px) {
+    body, input, textarea, select, button {
+        font-size: 16px;
     }
 }
 
-@media screen and (max-height: 700px) {
-    body {
-        font-size: 10pt;
+@media screen and (max-width: 1700px) and (min-height: 800px) {
+    body, input, textarea, select, button {
+        font-size: 14.5px;
     }
 }
 
-@media screen and (max-height: 680px) {
-    body {
-        font-size: 9pt;
+@media screen and (max-width: 1600px) and (min-height: 800px) {
+    body, input, textarea, select, button {
+        font-size: 13.25px;
     }
 }
 
-@media screen and (max-height: 645px) {
-    body {
-        font-size: 8pt;
+@media screen and (min-width: 1501px) and (max-height: 799px) {
+    body, input, textarea, select, button {
+        font-size: 12px;
     }
 }
 
-@media screen and (max-height: 610px) {
-    body {
-        font-size: 7pt;
+@media screen and (max-width: 1500px) {
+    body, input, textarea, select, button {
+        font-size: 12px;
     }
+}
+
+@media screen and (max-width: 1400px) {
+    body, input, textarea, select, button {
+        font-size: 10.75px;
+    }
+}
+
+@media screen and (max-width: 1300px) {
+    body, input, textarea, select, button {
+        font-size: 9.5px;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    body, input, textarea, select, button {
+        font-size: 8.25px;
+    }
+}
+
+@media screen and (max-width: 1100px) {
+    body, input, textarea, select, button {
+        font-size: 7px;
+    }
+}
+
+.divider {
+    height: 0.3rem;
+    width: 100%;
+    margin: 0;
+    border: none;
+    background: transparent;
+    display: grid;
+    box-shadow: 0 0.2rem 0.15rem rgba(0, 0, 0, 20%);
+}
+
+.divider:hover {
+    background: hsl(288, 100%, 90%);
+    cursor: row-resize;
 }
 
 /* ---------------------------------------------------- *
@@ -170,6 +212,10 @@ input.state-btn {
     border: none;
 }
 
+.cell .overlay td {
+    padding: 0;
+}
+
 .bus, .reg {
     transition: background-color 0.25s;
     text-align: center;
@@ -180,7 +226,7 @@ input.state-btn {
 .bus {
     border-top: 1px solid hsl(60, 80%, 40%);
     border-bottom: 1px solid hsl(60, 80%, 40%);
-    width: 6rem;
+    width: 6em;
 }
 
 .overlay {
@@ -270,6 +316,15 @@ input.state-btn {
     padding-top: 1rem;
     display: grid;
     grid-template-columns: repeat(4, auto);
+    overflow-y: auto;
+}
+
+.io.resizing {
+    background: white;
+}
+
+.io .cell {
+    height: 100%;
 }
 
 #text-input {
