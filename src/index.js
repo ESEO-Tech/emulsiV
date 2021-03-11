@@ -287,7 +287,9 @@ window.addEventListener("load", async () => {
     });
 
     document.getElementById("open-btn").addEventListener("click", () => {
-        document.getElementById("hex-input").click();
+        const hexInput = document.getElementById("hex-input");
+        hexInput.value = "";
+        hexInput.click();
     });
 
     /* ---------------------------------------------------------------------- *
