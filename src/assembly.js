@@ -192,7 +192,7 @@ export function assemble(str) {
         }
         const res = parseInt(m[1]);
         return isNaN(res) || res < 0 ? 0 :
-               res > 15 ? 15 :
+               res > 31 ? 31 :
                res;
     }
 
