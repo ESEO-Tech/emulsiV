@@ -49,12 +49,12 @@ export function resize() {
 
     // Set registry table height to its maximum in its parent grid cell.
     const xBottomx = tblWrapperx.getBoundingClientRect().bottom;
-    resizeElt(tblWrapperx, ioTop - xBottomx);
+    resizeElt(tblWrapperx, mainBottom - xBottomx);
 
     // Restore the scrolling of the memory view.
     tblWrapper.scrollTop = tblWrapperScrollTop;
 
-    // Restore the scrolling of the memory view.
+    // Restore the scrolling of the register view.
     tblWrapperx.scrollTop = tblWrapperScrollTopx;
 
     // Center the contents of the "register" cell vertically.
