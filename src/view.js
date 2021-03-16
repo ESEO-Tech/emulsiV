@@ -24,6 +24,10 @@ export function resize() {
     const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
     const tblWrapperScrollTop = tblWrapper.scrollTop;
 
+    // Preserve the scrolling in the registry table wrapper.
+    const tblWrapperx = document.querySelector("#cell-x .tbl-wrapper");
+    const tblWrapperScrollTopx = tblWrapperx.scrollTop;
+
     // Reset the "register" cell to the top of the window.
     const regH1 = document.querySelector("#cell-x h1");
     regH1.style["padding-top"] = 0;
@@ -43,8 +47,15 @@ export function resize() {
     const mainBottom = document.querySelector(".divider").getBoundingClientRect().top;
     resizeElt(tblWrapper, mainBottom - memBottom);
 
+    // Set registry table height to its maximum in its parent grid cell.
+    const xBottomx = tblWrapperx.getBoundingClientRect().bottom;
+    resizeElt(tblWrapperx, ioTop - xBottomx);
+
     // Restore the scrolling of the memory view.
     tblWrapper.scrollTop = tblWrapperScrollTop;
+
+    // Restore the scrolling of the memory view.
+    tblWrapperx.scrollTop = tblWrapperScrollTopx;
 
     // Center the contents of the "register" cell vertically.
     delta = mainBottom - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
