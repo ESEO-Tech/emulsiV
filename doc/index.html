@@ -87,8 +87,8 @@ in VHDL or Verilog, or instantiate one to make their own system-on-chip.</p>
 
 <h3 id="specification">Relation with the RISC-V specification</h3>
 
-<p>Virgule implements all the computational, transfer control, and memory access instructions
-from the integer subset RV32E of the RISC-V specification.
+<p>Virgule implements all the computational, transfer control, and memory access
+instructions from the integer subset RV32I of the RISC-V specification.
 It also provides an exception return instruction that can be used in
 interrupt handlers.</p>
 
@@ -109,8 +109,7 @@ Virgule only supports the <em>machine</em> level.</p>
 <p>Virgule contains the following 32-bit registers:</p>
 
 <ul>
-    <li>16 general-purpose registers named <code>x0</code> to <code>x15</code>
-        as specified in the RV32E base instruction set of the RISC-V specification.</li>
+    <li>32 general-purpose registers named <code>x0</code> to <code>x31</code>.</li>
     <li>The program counter <code>pc</code>. This register contains the address of the
         current instruction. Its reset value is zero and it is always a multiple of 4.</li>
     <li>The machine exception program counter <code>mepc</code>. This register
@@ -520,54 +519,21 @@ in the assembly column of the memory view.
 Another option is to type your program in a text editor and generate an executable
 for emulsiV using the GNU toolchain.</p>
 
+<p>The following instructions have been tested in Ubuntu 20.04</p>
+
 <h3 id="gnu-install">Installation</h3>
 
-<p>You can use the following instructions to install the RISC-V GNU toolchain
-in a Debian or Ubuntu Linux environment.
-The <a href="https://github.com/riscv/riscv-gnu-toolchain">riscv-gnu-toolchain</a>
-project provides additional information if you need to install the toolchain
-in another distribution, or if you need features that are not covered here.</p>
-
-<p>The build process will need the following packages:</p>
+<p>If you are using Ubuntu, you can install the pre-built RISC-V <em>bare-metal</em>
+toolchain using this command:</p>
 
 <pre>
-sudo apt install autoconf automake autotools-dev curl libmpc-dev zlib1g-dev \
-     libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf \
-     libtool patchutils bc zlib1g-dev libexpat-dev git-core
+sudo apt install gcc-riscv64-unknown-elf
 </pre>
 
-<p>Clone the source repository of the RISC-V GNU toolchain:</p>
-
-<pre>
-git clone --recursive https://github.com/riscv/riscv-gnu-toolchain
-</pre>
-
-<p>Configure and build the toolchain with support for the RV32E target.
-The <code>make</code> command will attempt to install the tools in <code>/opt/riscv</code>.
-You can change the <code>--prefix</code> option if you want to install them in
-another location.
-Run <code>sudo make</code> if you don't have the permissions to create the target folder.</p>
-
-<pre>
-cd riscv-gnu-toolchain
-./configure --prefix=/opt/riscv --with-arch=rv32e --with-abi=ilp32
-make
-</pre>
-
-<p>Before using the toolchain, update your <code>PATH</code> variable
-like this:</p>
-
-<pre>
-export PATH=$PATH:/opt/riscv/bin
-</pre>
+<p>Despite what the name suggests, this installs a toolchain that supports both
+the 32-bit and 64-bit architectures.</p>
 
 <h3 id="gnu-asm">Using the assembler</h3>
-
-<p>This command assembles a source file <code>example.s</code> into an object file <code>example.o</code>:</p>
-
-<pre>
-riscv32-unknown-elf-gcc -march=rv32e -c -o example.o example.s
-</pre>
 
 <p>Here is a typical startup module (<code>startup.s</code>) that you can use
 for your programs.
@@ -607,12 +573,35 @@ memclr_done:
     j .
 </pre>
 
-<h3 id="gnu-compile">Using the C compiler</h3>
-
-<p>This command compiles the source file <code>example.c</code> into an object file <code>example.o</code>:</p>
+<p>This command assembles the source file <code>startup.s</code> into an object
+file <code>startup.o</code>:</p>
 
 <pre>
-riscv32-unknown-elf-gcc -march=rv32e -ffreestanding -c -o example.o example.c
+riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -c -o startup.o startup.s
+</pre>
+
+<h3 id="gnu-compile">Using the C compiler</h3>
+
+Here is an implementation of <em>Hello World</em> in C for <em>emulsiV</em>:
+
+<pre>
+#define TEXT_OUT (*(char*)0xC0000000)
+
+void print(const char *str) {
+    while (*str) {
+        TEXT_OUT = *str++;
+    }
+}
+
+void main(void) {
+    print("Virgule says\n<< Hello! >>\n");
+}
+</pre>
+
+<p>This command compiles the source file <code>hello.c</code> into an object file <code>hello.o</code>:</p>
+
+<pre>
+riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -ffreestanding -c -o hello.o hello.c
 </pre>
 
 <p>If you want to write an interrupt handler in C, you can override the <code>irq_handler</code>
@@ -627,10 +616,10 @@ void irq_handler(void) {
 
 <h3 id="gnu-linker">Using the linker</h3>
 
-<p>This command links <code>startup.o</code> and <code>example.o</code> into a binary executable file <code>example.elf</code>:</p>
+<p>This command links <code>startup.o</code> and <code>hello.o</code> into a binary executable file <code>hello.elf</code>:</p>
 
 <pre>
-riscv32-unknown-elf-gcc -nostdlib -T emulsiv.ld -o example.elf startup.o example.o
+riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostdlib -T emulsiv.ld -o hello.elf startup.o hello.o
 </pre>
 
 <p>The memory map of the simulator is configured in the linker script <code>emulsiv.ld</code> below:</p>
@@ -681,14 +670,15 @@ SECTIONS {
 
 <h3 id="gnu-hex">Converting an executable to the hex format</h3>
 
-<p>This command converts an ELF binary file <code>example.elf</code> into a text file <code>example.hex</code>
+<p>This command converts an ELF binary file <code>hello.elf</code> into a text file <code>hello.hex</code>
 in the <a href="https://en.wikipedia.org/wiki/Intel_HEX">Intel Hex format</a>:</p>
 
 <pre>
-riscv32-unknown-elf-objcopy -O ihex example.elf example.hex
+riscv64-unknown-elf-objcopy -O ihex hello.elf hello.hex
 </pre>
 
-<p>In the simulator, use the button "Open an hex file from your computer" and choose an hex file to load.</p>
+<p>In the simulator, use the button "Open an hex file from your computer" and
+choose <code>hello.hex</code> or any other hex file that you want to load.</p>
 
 <h2 id="license">License</h2>
 
