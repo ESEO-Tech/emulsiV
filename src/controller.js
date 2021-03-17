@@ -305,7 +305,7 @@ export class Controller {
                 await view.move("pc", "alu-a", toHex(this.cpu.pc));
                 break;
             case "x1":
-                await view.move("x" + this.cpu.instr.rs1, "alu-a", toHex(this.cpu.x1), {path: "xrs1-alu-a"});
+                await view.move("x" + this.cpu.instr.rs1, "alu-a", toHex(this.cpu.x1), {path: "x-alu-a"});
                 break;
         }
 
@@ -315,7 +315,7 @@ export class Controller {
                 await view.move("imm", "alu-b", toHex(this.cpu.instr.imm));
                 break
             case "x2":
-                await view.move("x" + this.cpu.instr.rs2, "alu-b", toHex(this.cpu.x2), {path: "xrs2-alu-b"});
+                await view.move("x" + this.cpu.instr.rs2, "alu-b", toHex(this.cpu.x2), {path: "x-alu-b"});
                 break;
         }
 
@@ -327,8 +327,8 @@ export class Controller {
     }
 
     async traceCompare() {
-        await view.move("x" + this.cpu.instr.rs1, "cmp-a", toHex(this.cpu.x1), {path: "xrs1-cmp-a"});
-        await view.move("x" + this.cpu.instr.rs2, "cmp-b", toHex(this.cpu.x2), {path: "xrs2-cmp-b"});
+        await view.move("x" + this.cpu.instr.rs1, "cmp-a", toHex(this.cpu.x1), {path: "x-cmp-a"});
+        await view.move("x" + this.cpu.instr.rs2, "cmp-b", toHex(this.cpu.x2), {path: "x-cmp-b"});
         view.clearPaths();
         await view.delay(2 * STEP_DELAY);
         view.update("cmp-taken", this.cpu.branchTaken);
@@ -343,13 +343,13 @@ export class Controller {
         switch (this.cpu.datapath.wbMem) {
             case "r":
                 if (this.cpu.instr.rd) {
-                    await view.move("alu-r", "x" + this.cpu.instr.rd, rx, {path: "alu-r-xrd"});
+                    await view.move("alu-r", "x" + this.cpu.instr.rd, rx, {path: "alu-r-x"});
                 }
                 break;
 
             case "pc+":
                 if (this.cpu.instr.rd) {
-                    await view.move("pc-i",  "x" + this.cpu.instr.rd, toHex(this.cpu.pcNext), {path: "pc-i-xrd"});
+                    await view.move("pc-i",  "x" + this.cpu.instr.rd, toHex(this.cpu.pcNext), {path: "pc-i-x"});
                 }
                 break;
 
@@ -361,7 +361,7 @@ export class Controller {
                 }
                 view.update("data", lx);
                 if (this.cpu.instr.rd) {
-                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-x"});
                 }
                 break;
 
@@ -376,7 +376,7 @@ export class Controller {
                 }
                 view.update("data", lx);
                 if (this.cpu.instr.rd) {
-                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-x"});
                 }
                 break;
 
@@ -392,13 +392,13 @@ export class Controller {
                 }
                 view.update("data", lx);
                 if (this.cpu.instr.rd) {
-                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-xrd"});
+                    await view.move("data", "x" + this.cpu.instr.rd, lx, {path: "data-x"});
                 }
                 break;
 
             case "sb":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "x-data"});
                 if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await view.move("data0", "mem" + rx, x2x.slice(6, 8), {path: "data-mem"});
                 }
@@ -406,7 +406,7 @@ export class Controller {
 
             case "sh":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "x-data"});
                 if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("data0", "mem" + toHex(this.cpu.aluResult + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),
@@ -417,7 +417,7 @@ export class Controller {
 
             case "sw":
                 await view.move("alu-r", "addr", rx);
-                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "xrs2-data"});
+                await view.move("x" + this.cpu.instr.rs2, "data", x2x, {path: "x-data"});
                 if (!this.cpu.loadStoreError) { // TODO Add error indicator
                     await Promise.all([
                         view.move("data0", "mem" + toHex(this.cpu.aluResult + 0), x2x.slice(6, 8), {slot: 0, path: "data-mem"}),

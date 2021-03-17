@@ -99,39 +99,39 @@ const PSEUDO_TABLE = {
 // ABI name, Register, description
 // dexc for future
 const PSEUDO_REG_TABLE = {
-    'zero':       {name: 'x0', desc: 'Zero'},
-      'ra':       {name: 'x1', desc: ''},
-      'sp':       {name: 'x2', desc: ''},
-      'gp':       {name: 'x3', desc: ''},
-      'tp':       {name: 'x4', desc: ''},
-      't0':       {name: 'x5', desc: ''},
-      't1':       {name: 'x6', desc: ''},
-      't2':       {name: 'x7', desc: ''},
-      's0':       {name: 'x8', desc: ''},
-      'fp':       {name: 'x8', desc: ''},
-      's1':       {name: 'x9', desc: ''},
-      'a0':       {name: 'x10', desc: ''},
-      'a1':       {name: 'x11', desc: ''},
-      'a2':       {name: 'x12', desc: ''},
-      'a3':       {name: 'x13', desc: ''},
-      'a4':       {name: 'x14', desc: ''},
-      'a5':       {name: 'x15', desc: ''},
-      'a6':       {name: 'x16', desc: ''},
-      'a7':       {name: 'x17', desc: ''},
-      's2':       {name: 'x18', desc: ''},
-      's3':       {name: 'x19', desc: ''},
-      's4':       {name: 'x20', desc: ''},
-      's5':       {name: 'x21', desc: ''},
-      's6':       {name: 'x22', desc: ''},
-      's7':       {name: 'x23', desc: ''},
-      's8':       {name: 'x24', desc: ''},
-      's9':       {name: 'x25', desc: ''},
-     's10':       {name: 'x26', desc: ''},
-     's11':       {name: 'x27', desc: ''},
-      't3':       {name: 'x28', desc: ''},
-      't4':       {name: 'x29', desc: ''},
-      't5':       {name: 'x30', desc: ''},
-      't6':       {name: 'x31', desc: ''}
+    zero: {name: "x0",  desc: "Zero"},
+    ra:   {name: "x1",  desc: ""},
+    sp:   {name: "x2",  desc: ""},
+    gp:   {name: "x3",  desc: ""},
+    tp:   {name: "x4",  desc: ""},
+    t0:   {name: "x5",  desc: ""},
+    t1:   {name: "x6",  desc: ""},
+    t2:   {name: "x7",  desc: ""},
+    s0:   {name: "x8",  desc: ""},
+    fp:   {name: "x8",  desc: ""},
+    s1:   {name: "x9",  desc: ""},
+    a0:   {name: "x10", desc: ""},
+    a1:   {name: "x11", desc: ""},
+    a2:   {name: "x12", desc: ""},
+    a3:   {name: "x13", desc: ""},
+    a4:   {name: "x14", desc: ""},
+    a5:   {name: "x15", desc: ""},
+    a6:   {name: "x16", desc: ""},
+    a7:   {name: "x17", desc: ""},
+    s2:   {name: "x18", desc: ""},
+    s3:   {name: "x19", desc: ""},
+    s4:   {name: "x20", desc: ""},
+    s5:   {name: "x21", desc: ""},
+    s6:   {name: "x22", desc: ""},
+    s7:   {name: "x23", desc: ""},
+    s8:   {name: "x24", desc: ""},
+    s9:   {name: "x25", desc: ""},
+    s10:  {name: "x26", desc: ""},
+    s11:  {name: "x27", desc: ""},
+    t3:   {name: "x28", desc: ""},
+    t4:   {name: "x29", desc: ""},
+    t5:   {name: "x30", desc: ""},
+    t6:   {name: "x31", desc: ""}
 }
 // Disassemble an instruction or pseudo-instruction.
 export function disassemble({name, rd, rs1, rs2, imm}) {
@@ -198,13 +198,13 @@ function alt(...res) {
 // Assembly instruction grammar.
 const instructionNameRe     = /\b[a-z]+\b/;
 const registerNameRe        = /\bx([0-9]+)\b/;
-const registerNameReAlias   = /\bx|s|t|a([0-9]+)\b/;
+const registerAliasRe       = /\b[xsta][0-9]+\b/;
 const decimalLiteralRe      = /[+-]?[0-9]+\b/;
 const hexLiteralRe          = /[+-]?0x[0-9a-f]+\b/;
 const integerLiteralRe      = alt(decimalLiteralRe, hexLiteralRe);
-const indirectAddressRe     = seq(/\(\s*/, registerNameRe, /\s*\)/);
+const indirectAddressRe     = seq(/\(\s*/, registerAliasRe, /\s*\)/);
 const offsetAddressRe       = seq(integerLiteralRe, /\s*/, indirectAddressRe);
-const instructionFragmentRe = new RegExp(alt(instructionNameRe, registerNameReAlias, indirectAddressRe, offsetAddressRe, integerLiteralRe), "g");
+const instructionFragmentRe = new RegExp(alt(instructionNameRe, registerAliasRe, indirectAddressRe, offsetAddressRe, integerLiteralRe), "g");
 
 export function assemble(str) {
     const instr = {name: "invalid", rd: 0, rs1: 0, rs2: 0, imm: 0};
@@ -223,19 +223,20 @@ export function assemble(str) {
 
     const syntax = ASM_TABLE[name];
 
-    function parseReg(op) { 
-        if(!op) return 0;
-        op = op.toLowerCase();
-        var m = registerNameRe.exec(op);
-        if (!m) {
-            op = PSEUDO_REG_TABLE[op];
-            if(!op) return 0;
-            return parseReg(op.name);
+    function parseReg(op) {
+        const m = registerNameRe.exec(op);
+        if (m) {
+            const res = parseInt(m[1]);
+            return isNaN(res) || res < 0 ? 0 :
+                   res > 31 ? 31 :
+                   res;
         }
-        const res = parseInt(m[1]);
-        return isNaN(res) || res < 0 ? 0 :
-               res > 15 ? 15 :
-               res;
+
+        if (op in PSEUDO_REG_TABLE) {
+            return parseReg(PSEUDO_REG_TABLE[op].name);
+        }
+
+        return 0;
     }
 
     function parseImm(op) {
