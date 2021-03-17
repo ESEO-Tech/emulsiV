@@ -19,10 +19,12 @@ export function moveDivider(delta) {
 }
 
 export function resize() {
-    // Preserve the scrolling in the memory table wrapper
+    // Preserve the scrolling in the memory and register table wrappers
     // (this will not work if the font size changes).
-    const tblWrapper = document.querySelector("#cell-memory .tbl-wrapper");
-    const tblWrapperScrollTop = tblWrapper.scrollTop;
+    const memWrapper   = document.querySelector("#cell-memory .tbl-wrapper");
+    const memScrollTop = memWrapper.scrollTop;
+    const xWrapper     = document.querySelector("#cell-x .tbl-wrapper");
+    const xScrollTop   = xWrapper.scrollTop;
 
     // Reset the "register" cell to the top of the window.
     const regH1 = document.querySelector("#cell-x h1");
@@ -39,12 +41,17 @@ export function resize() {
     }
 
     // Set memory table height to its maximum in its parent grid cell.
-    const memBottom  = tblWrapper.getBoundingClientRect().bottom;
+    const memBottom  = memWrapper.getBoundingClientRect().bottom;
     const mainBottom = document.querySelector(".divider").getBoundingClientRect().top;
-    resizeElt(tblWrapper, mainBottom - memBottom);
+    resizeElt(memWrapper, mainBottom - memBottom);
 
-    // Restore the scrolling of the memory view.
-    tblWrapper.scrollTop = tblWrapperScrollTop;
+    // Set register table height to its maximum in its parent grid cell.
+    const xBottom = xWrapper.getBoundingClientRect().bottom;
+    resizeElt(xWrapper, mainBottom - xBottom);
+
+    // Restore the scrolling of the memory view and register views.
+    memWrapper.scrollTop = memScrollTop;
+    xWrapper.scrollTop   = xScrollTop;
 
     // Center the contents of the "register" cell vertically.
     delta = mainBottom - document.querySelector("#cell-x table").getBoundingClientRect().bottom;
@@ -60,7 +67,7 @@ export function resize() {
 
     // TODO Move these to devices/text.js
     document.getElementById("text-input").style.width  =
-    document.getElementById("text-output").style.width = tblWrapper.clientWidth + "px";
+    document.getElementById("text-output").style.width = memWrapper.clientWidth + "px";
 
     // Center the contents of the "bus" cell vertically.
     const busH1 = document.querySelector("#cell-bus h1");
@@ -68,66 +75,61 @@ export function resize() {
     delta = mainBottom - document.querySelector("#cell-bus table").getBoundingClientRect().bottom;
     busH1.style["padding-top"] = (delta / 2) + "px";
 
-    const xmXrs1 = resizePath("xrs1", "alu-a", {style: "bus2", fromWeight: 3, labelFrom: "x[rs1]"});
-                   resizePath("xrs1", "cmp-a", {style: "bus2", xm: xmXrs1});
+    resizePath("x", "alu-a", {style: "bus2", fromYId: "alu-a", labelFrom: "x[rs1]"});
+    resizePath("x", "cmp-a", {style: "bus2", fromYId: "alu-a"});
 
-    const xmXrs2 = resizePath("xrs2",  "alu-b", {style: "bus1", labelFrom: "x[rs2]"});
-                   resizePath("xrs2",  "cmp-b", {style: "bus1", xm: xmXrs2});
-                   resizePath("xrs2",  "data",  {style: "bus1", xm: xmXrs2, toYOffset: -0.5});
+    const xmXrs2 = resizePath("x",  "alu-b", {style: "bus1", fromYId: "alu-b", fromWeight: 2, labelFrom: "x[rs2]"});
+                   resizePath("x",  "cmp-b", {style: "bus1", fromYId: "alu-b", xm: xmXrs2});
+                   resizePath("x",  "data",  {style: "bus1", fromYId: "alu-b", xm: xmXrs2, toYOffset: -0.5});
 
     const xmAluR = resizePath("alu-r", "pc",   {style: "bus1", toYOffset: 0.5});
                    resizePath("alu-r", "mepc", {style: "bus1", xm: xmAluR});
                    resizePath("alu-r", "addr", {style: "bus1", xm: xmAluR, toYOffset: 0.5});
-                   resizePath("alu-r", "xrd",  {style: "bus3", fromWeight: 2, toYOffset: -0.6, labelTo: "x[rd]"});
+                   resizePath("alu-r", "x",    {style: "bus3", fromWeight: 2, toYId: "irq", toYOffset: -0.6, labelTo: "x[rd]"});
 
-    const xmXrd = 2 * xmAluR - resizePath("pc", "alu-a", {style: "bus2", fromYOffset: -0.5, toWeight: 2});
-                               resizePath("pc", "addr",  {style: "bus1", toYOffset: -0.5});
+    const xmPc = resizePath("pc", "alu-a", {style: "bus2", fromYOffset: -0.5, toWeight: 2});
+                 resizePath("pc", "addr",  {style: "bus1", toYOffset: -0.5});
 
-    resizePath("data", "xrd",   {style: "bus3", xm: xmXrd - (xmAluR - xmXrd), fromYOffset: 0.5, toYOffset: 0.6});
-    resizePath("data", "instr", {style: "bus3", fromYOffset: 0.5});
+    const xmData = resizePath("data", "instr", {style: "bus3", fromYOffset: 0.5});
+                   resizePath("data", "x",     {style: "bus3", toYId: "irq", xm: xmData, fromYOffset: 0.5, toYOffset: 0.6});
 
-    resizePath("pc-i", "xrd",   {style: "bus3", xm: xmXrd});
+    resizePath("pc-i", "x",     {style: "bus3", toYId: "irq", xm: 2 * xmAluR - xmPc});
     resizePath("imm",  "alu-b", {style: "bus2", toWeight: 2});
 
-    const xmMem = resizePath("data",  "mem",  {style: "bus1", horizontalFrom: true});
-                  resizePath("mem",   "data", {style: "bus1", horizontalTo: true});
+    const xmMem = resizePath("data",  "mem",  {style: "bus1", fromYId: "data"});
+                  resizePath("mem",   "data", {style: "bus1", toYId:   "mem"});
 
     resizePath("memb0000001", "irq", {style: "bus1", xm: xmMem});
 }
 
-function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromWeight=1, toWeight=1, xm, horizontalFrom=false, horizontalTo=false, style, labelFrom, labelTo} = {}) {
+function resizePath(fromId, toId, {fromYOffset=0, toYOffset=0, fromYId=fromId, toYId=toId, fromWeight=1, toWeight=1, xm, style, labelFrom, labelTo} = {}) {
     const pathOffset = 9;
 
-    let fromElt = document.getElementById(fromId);
-    if (fromElt.tagName === "TD") {
-        fromElt = fromElt.parentNode;
+    function rect(id) {
+        let elt = document.getElementById(id);
+        if (elt.tagName === "TD") {
+            elt = elt.parentNode;
+        }
+        return elt.getBoundingClientRect();
     }
-    const fromRect = fromElt.getBoundingClientRect();
 
-    let toElt = document.getElementById(toId);
-    if (toElt.tagName === "TD") {
-        toElt = toElt.parentNode;
-    }
-    const toRect   = toElt.getBoundingClientRect();
+    const fromRect  = rect(fromId);
+    const fromYRect = rect(fromYId);
+    const toRect    = rect(toId);
+    const toYRect   = rect(toYId);
 
     let x1, x2;
     if (fromRect.right < toRect.left) {
         x1 = fromRect.right + pathOffset;
-        x2 = toRect.left - pathOffset;
+        x2 = toRect.left    - pathOffset;
     }
     else {
         x1 = fromRect.left - pathOffset;
-        x2 = toRect.right + pathOffset;
+        x2 = toRect.right  + pathOffset;
     }
 
-    let y1 = (fromRect.top + fromRect.bottom) / 2 + fromYOffset * 10;
-    let y2 = (toRect.top + toRect.bottom) / 2 + toYOffset * 10;
-    if (horizontalFrom) {
-        y2 = y1;
-    }
-    else if (horizontalTo) {
-        y1 = y2;
-    }
+    const y1 = Math.round((fromYRect.top + fromYRect.bottom) / 2 + fromYOffset * 10);
+    const y2 = Math.round((toYRect.top   + toYRect.bottom)   / 2 + toYOffset   * 10);
 
     if (xm === undefined) {
         xm = (x1 * fromWeight + x2 * toWeight) / (fromWeight + toWeight);
