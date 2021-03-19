@@ -89,7 +89,7 @@ Um simulador é a melhor forma de visualizar como cada instrução afeta o camin
 <h3 id="specification">Relação com a especificação RISC-V</h3>
 
 <p>Virgule implementa todas as instruções computacionais, de transferência de controle, e acesso a memória
-do subconjunto de inteiros do RV32E da especificação RISC-V.
+do subconjunto de inteiros do RV32I da especificação RISC-V.
 Ele também fornece uma instrução de retorno de exceção que pode ser usada
 em funções de tratamento de interrupção.</p>
 
@@ -110,7 +110,7 @@ Virgule somente suporta o nível <em>machine</em>.</p>
 <p>Virgule contem os seguintes registradores 32-bit:</p>
 
 <ul>
-    <li>16 registradores de proposito geral nomeados <code>x0</code> até <code>x15</code>
+    <li>32 registradores de proposito geral nomeados <code>x0</code> até <code>x32</code>
         como especificado no conjunto base de instruções RV32E da especificação RISC-V.</li>
     <li>O contador de programa <code>pc</code>. Este registrador conteim o endereço da instrução corrente.
         Ao ser resetado este valor retorna para zero e sempre será multiplo de 4.</li>
