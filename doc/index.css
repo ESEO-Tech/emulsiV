@@ -50,6 +50,11 @@ address {
     font-style: normal;
 }
 
+.translations {
+    margin-top: 1rem;
+    text-align: center;
+}
+
 .toc {
     display: table;
     margin: 3em auto 2em auto;
