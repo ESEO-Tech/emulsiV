@@ -3,16 +3,13 @@
 <meta charset="utf-8">
 <title>emulsiV - Simulator for Virgule, a minimal processor based on the RISC-V architecture</title>
 
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arsenal:ital,wght@0,400;0,700;1,400;1,700&display=swap">
-<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" type="text/css" href="../index.css">
 
 <h1>Sobre Virgule e seu simulador emulsiV</h1>
 
 <address>
-    Guillaume Savaton, <a href="https://eseo.fr">ESEO</a>
+    Guillaume Savaton, <a href="https://eseo.fr">ESEO</a><br>
+    Traduzido por <a href="http://carlosdelfino.eti.br/">Carlos Delfino</a>.
 </address>
 
 <ul class="toc">
@@ -47,15 +44,15 @@
     <li><a href="#license">Licença</a></li>
 </ul>
 
-<p><a href="..">emulsiV</a> é um simulador virtual para um processador RISC simples, chamado Virgule.</p>
+<p><a href="../..">emulsiV</a> é um simulador virtual para um processador RISC simples, chamado Virgule.</p>
 
 <p>Virgule é um processador de núcleo RISC de 32-bits que implementa um conjunto mínimo de instruções RISC-V.
-Aqui, &ldquo;mínimo&rdquo; significa que Virgule aceita somente as 
+Aqui, &ldquo;mínimo&rdquo; significa que Virgule aceita somente as
 instruções que o compilador C deve gerar a partir de um programa "C stand-alone".</p>
 
 <h2 id="motivation">Motivativação e Escopo</h2>
 
-<p><em>Virgule</em> e <em>emulsiV</em> são usados para ensinar arquitetura 
+<p><em>Virgule</em> e <em>emulsiV</em> são usados para ensinar arquitetura
 e projeto de circuitos digitais para iniciante em <a href="https://eseo.fr">ESEO</a>.
 Antes de escolher uma arquitetura de processador, nos tivemos os seguintes requisitos em mente:</p>
 
@@ -323,11 +320,11 @@ else:
 <p>Valores Immediate são extendidos no sinal (sign-extended) para 32 bits.
 quando eles não são explicitamente codificados no campo <code>imm</code>, o bit menos significante é 0.</p>
 
-<p>Na especificação, formatos <code>B</code> e <code>J</code> 
+<p>Na especificação, formatos <code>B</code> e <code>J</code>
     são descritos como variantes dos formatos  <code>S</code> e <code>U</code>.
-Nos formatos <code>B</code> e <code>J</code>, valores immediate representam offsets de instruções 
+Nos formatos <code>B</code> e <code>J</code>, valores immediate representam offsets de instruções
 ramificações do código relativas.
-Elas são codificadas para que eles compartilhem o máximo de bits com outros formatos, 
+Elas são codificadas para que eles compartilhem o máximo de bits com outros formatos,
 enqaunto preservam seus bits mais significantes na localização 31 da palavra (word - 4 bytes) de instrução.</p>
 
 <p>A Seguinte tabela mostra o mapeamento entre os bits de uma palavra (word - 4 bytes) de instrução e os bits de um valor imediato:</p>
@@ -424,7 +421,7 @@ Nesta tabela, a coluna <code>opcode</code> refere-se aos nomes de base do opcode
 
 <h3 id="textio">Entrada/Saida Texto</h3>
 
-<p>O dispositivo de entrada de texto é representado por um campo de texto na interface de usuário 
+<p>O dispositivo de entrada de texto é representado por um campo de texto na interface de usuário
 do simulador. Ele tem dois registradores de 8-bit:</p>
 
 <table>
@@ -442,7 +439,7 @@ do simulador. Ele tem dois registradores de 8-bit:</p>
     <li>O dispositivo irá enviar uma requisição de interrupção para o procesador quando os bits 7 e 6 forem ambos definidos como 1.</li>
 </ul>
 
-<p>O dispositivo de saída de texto é representado por uma área de texto na interface 
+<p>O dispositivo de saída de texto é representado por uma área de texto na interface
 de usuário do simulador. Ele tem somente um registrador somente escrita:</p>
 
 <table>
@@ -461,7 +458,7 @@ de usuário do simulador. Ele tem somente um registrador somente escrita:</p>
     <li>LEDs.</li>
 </ul>
 
-<p>As entradas são organizadas em um grid de 8&times;4 na parte inferior 
+<p>As entradas são organizadas em um grid de 8&times;4 na parte inferior
 da seção <em>E/S de propósito geral</em> do simulador.
 Clique com o botão direito do mouse na célula para trocar o seu tipo.
 Clique com o botão esquerdo do mouse na célula alterar o estado do botão ou da chave.</p>
@@ -473,7 +470,7 @@ Clique com o botão esquerdo do mouse na célula alterar o estado do botão ou d
     <tr><td style="text-align:center;"><code>D0000000</code></td> <td>Direção (dir)</td> <td>A configuração de cada pino (0 para saída, 1 para entrada).</td></tr>
     <tr><td style="text-align:center;"><code>D0000004</code></td> <td>Interrupção habilitada (ien)</td> <td>Habilita a interrupção dos eventos de entrada.</td></tr>
     <tr><td style="text-align:center;"><code>D0000008</code></td> <td>Eventos subida de borda (rev)</td> <td>Cada bit é definido como 1 se a entrada correspondente alterar o pino de 0 para 1.</td></tr>
-    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Eventos decida de borda (fev)</td> <td>Cada bit é definido como 1 se a entrada correspondente alterar o pino de 1 para 0..</td></tr>
+    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Eventos decida de borda (fev)</td> <td>Cada bit é definido como 1 se a entrada correspondente alterar o pino de 1 para 0.</td></tr>
     <tr><td style="text-align:center;"><code>D0000010</code></td> <td>Valor (val)</td> <td>O valor atual de cada entrada ou saída.</td></tr>
 </table>
 
@@ -512,7 +509,7 @@ Para cada endereço, esta tabela mostra coordenadas (x, y) do pixel corresponden
 
 <p>O simulador permite criar e editar programas pela entrada de instruções
 na columna "Assembly" do visualizador de memória.
-Outra opçlão é digitar seu programa no editor de texto e gerar um executável 
+Outra opçlão é digitar seu programa no editor de texto e gerar um executável
 para o emulsiV usando as ferramentas GNU.</p>
 
 <h3 id="gnu-install">Instalação</h3>
@@ -563,7 +560,7 @@ riscv32-unknown-elf-gcc -march=rv32e -c -o example.o example.s
 </pre>
 
 <p>Aqui está um módulo típico de inicialização (<code>startup.s</code>) que você pode usar para seu programa.
-Outros arquivos fontes "assembly" ou "C" devem definir o subprograma <code>main</code>, 
+Outros arquivos fontes "assembly" ou "C" devem definir o subprograma <code>main</code>,
 e opcionalmente sobreescrever o subprograma <code>irq_handler</code>.</p>
 
 <pre>
