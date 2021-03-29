@@ -1,0 +1,105 @@
+
+@import "../../node_modules/fontsource-arsenal/latin-400.css";
+@import "../../node_modules/fontsource-arsenal/latin-700.css";
+@import "../../node_modules/fontsource-roboto/latin-400.css";
+@import "../../node_modules/fontsource-roboto/latin-700.css";
+@import "../../node_modules/fontsource-roboto-mono/latin-400.css";
+@import "../../node_modules/fontsource-roboto-mono/latin-700.css";
+
+html {
+    font-size: medium;
+}
+
+body {
+    font-family: "Roboto", sans-serif;
+    margin: 1em calc(50vw - 30rem);
+}
+
+h1, h2, h3, h4 {
+    font-family: "Arsenal", sans-serif;
+    margin-top: 1.5em;
+    margin-bottom: 1em;
+}
+
+h1 {
+    text-align: center;
+    font-weight: normal;
+    font-size: 230%;
+}
+
+h2 {
+    text-align: center;
+    font-weight: normal;
+    font-size: 180%;
+}
+
+h3 {
+    text-align: left;
+    font-weight: normal;
+    font-size: 140%;
+}
+
+h4 {
+    text-align: left;
+    font-weight: bold;
+    font-size: 110%;
+}
+
+address {
+    text-align: center;
+    font-style: normal;
+}
+
+.toc {
+    display: table;
+    margin: 3em auto 2em auto;
+}
+
+.toc li {
+    list-style-type: none;
+}
+
+a {
+    color: hsl(210, 55%, 40%);
+}
+
+table {
+    margin: 2em auto;
+    border-collapse: collapse;
+}
+
+th {
+    font-family: Arsenal, sans-serif;
+    font-weight: normal;
+    background: rgb(220, 220, 220);
+}
+
+td, th {
+    border: 1px solid rgb(50, 50, 50);
+    padding: 0.25em 1em;
+    font-size: 90%;
+}
+
+pre, code {
+    font-family: "Roboto Mono", monospace;
+}
+
+code {
+    white-space: nowrap;
+}
+
+pre {
+    margin: 2em 0 2em 4em;
+    padding-left: 1em;
+    border-left: 0.25em solid rgb(220, 220, 220);
+}
+
+td pre {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+footer {
+    margin-top: 3em;
+}
