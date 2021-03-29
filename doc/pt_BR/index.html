@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+<title>emulsiV - Simulator for Virgule, a minimal processor based on the RISC-V architecture</title>
+
+<link rel="stylesheet" type="text/css" href="../index.css">
+
+<h1>Sobre Virgule e seu simulador emulsiV</h1>
+
+<address>
+    Guillaume Savaton, <a href="https://eseo.fr">ESEO</a><br>
+    Traduzido por <a href="http://carlosdelfino.eti.br/">Carlos Delfino</a>.
+</address>
+
+<ul class="toc">
+    <li><a href="#motivation">Motivação e escopo</a></li>
+    <li><a href="#virgule">Arquitetura do Processador</a>
+        <ul>
+            <li><a href="#specification">Relação com a especificação RISC-V</a></li>
+            <li><a href="#registers">Registradores</a></li>
+            <li><a href="#memory">Organização da Memória</a></li>
+            <li><a href="#interrupts">Interrupções</a></li>
+            <li><a href="#instructions">Conjunto de Instruções</a></li>
+            <li><a href="#encoding">Codificação das Instruções</a></li>
+        </ul>
+    </li>
+    <li><a href="#devices">Memória e Periféricos</a>
+        <ul>
+            <li><a href="#layout">Layout da memória</a></li>
+            <li><a href="#textio">Entrada e Saída de texto</a></li>
+            <li><a href="#gpio">Entrada e Saída de propósito geral </a></li>
+            <li><a href="#bitmap">Saída de bitmap </a></li>
+        </ul>
+    </li>
+    <li><a href="#tools">Criando programas para o emulsiV com o "GNU toolchain"</a>
+        <ul>
+            <li><a href="#gnu-install">Instalação</a></li>
+            <li><a href="#gnu-asm">Usando o assembler</a></li>
+            <li><a href="#gnu-compile">Usando o compilador C</a></li>
+            <li><a href="#gnu-link">Usando o linker</a></li>
+            <li><a href="#gnu-hex">Convertendo um executável para o formato "hex"</a></li>
+        </ul>
+    </li>
+    <li><a href="#license">Licença</a></li>
+</ul>
+
+<p><a href="../..">emulsiV</a> é um simulador virtual para um processador RISC simples, chamado Virgule.</p>
+
+<p>Virgule é um processador de núcleo RISC de 32-bits que implementa um conjunto mínimo de instruções RISC-V.
+Aqui, &ldquo;mínimo&rdquo; significa que Virgule aceita somente as
+instruções que o compilador C deve gerar a partir de um programa "C stand-alone".</p>
+
+<h2 id="motivation">Motivativação e Escopo</h2>
+
+<p><em>Virgule</em> e <em>emulsiV</em> são usados para ensinar arquitetura
+e projeto de circuitos digitais para iniciante em <a href="https://eseo.fr">ESEO</a>.
+Antes de escolher uma arquitetura de processador, nos tivemos os seguintes requisitos em mente:</p>
+
+<ul>
+    <li>Uma arquitetura aberta que nos possamos usar e implementar sem precisar de permissão.</li>
+    <li>Um conjunto de instruções simples e regular, completo o suficiênte para ser um "target" para um compilador C.</li>
+    <li>Um arquitetura em linha com as tendência atuais de mercado, de preferência com a atual implementação das industrias.</li>
+    <li>Um toolchain aberto e gratuito.</li>
+</ul>
+
+<p>Dentre as arquiteturas candidatas, o <a href="https://riscv.org/">RISC-V</a> preencheu todos os requisitos:</p>
+
+<ul>
+    <li>Ela tem uma <a href="https://riscv.org/specifications/">especificação aberta</a>.</li>
+    <li>Ela é uma arquitetura RISC no estado da arte (state-of-the-art), com um conjunto de instruções claro e simples.</li>
+    <li>A fundação RISC-V <a href="https://riscv.org/members-at-a-glance/">tem uma lista de membros impressionante</a>;
+        <a href="https://riscv.org/risc-v-cores/">Os cores e chips RISC-V</a> já estão disponíveis atualmente.</li>
+    <li>A arquitetura é suportada pela <a href="https://github.com/riscv/riscv-gnu-toolchain">ferramentas GNU de compilação</a>.</li>
+</ul>
+
+<p>Estas propriedades permite diversos cenários de ensino.</p>
+
+<p>Em um curso de arquitetura de computadores, estudantes descobrem como um processador funciona,
+que tipo de linguagem e ferramentas podem ser usadas para criar um programa em baixo nível (Assembly, C).
+Um simulador é a melhor forma de visualizar como cada instrução afeta o caminho dos dados.</p>
+
+<p>Em um curso de projeto de circuitos digitais, estudantes podem implementar um core de processador em VHDL ou Verilog, ou instânciar um para fazer seu próprio system-on-chip.</p>
+
+<h2 id="virgule">Arquitetura do Processador</h2>
+
+<h3 id="specification">Relação com a especificação RISC-V</h3>
+
+<p>Virgule implementa todas as instruções computacionais, de transferência de controle, e acesso a memória
+do subconjunto de inteiros do RV32I da especificação RISC-V.
+Ele também fornece uma instrução de retorno de exceção que pode ser usada
+em funções de tratamento de interrupção.</p>
+
+<p>As seguintes intruções não estão disponíveis:</p>
+
+<ul>
+    <li>Instruções de ordenação de memória.</li>
+    <li>Chamada de ambiente e pontos de interrupção.</li>
+    <li>Instruções de Controle e Registradores de Status - Control and Status Register (CSR).</li>
+</ul>
+
+<p>A arquitetura RISC-V define três níveis de privilégios:
+<em>user</em>, <em>supervisor</em>, e <em>machine</em>.
+Virgule somente suporta o nível <em>machine</em>.</p>
+
+<h3 id="registers">Registradores</h3>
+
+<p>Virgule contem os seguintes registradores 32-bit:</p>
+
+<ul>
+    <li>32 registradores de proposito geral nomeados <code>x0</code> até <code>x32</code>
+        como especificado no conjunto base de instruções RV32E da especificação RISC-V.</li>
+    <li>O contador de programa <code>pc</code>. Este registrador conteim o endereço da instrução corrente.
+        Ao ser resetado este valor retorna para zero e sempre será multiplo de 4.</li>
+    <li>O contador de programa para exceções de máquina <code>mepc</code>. Este registrador
+        recebe o endereço de retorno quando uma exceção a nível de máquina ocorre.</li>
+</ul>
+
+<h3 id="memory">Organização da memória</h3>
+
+<p>Formato do dado para instruções de carga e gravação seguem as seguintes convenções:</p>
+
+<table>
+    <tr>
+        <th>Nome</th>
+        <th>Tamanho do dados em (bits)</th>
+        <th>O enderço é múltiplo de</th>
+    </tr>
+    <tr>
+        <td>Byte (<code>B</code>)</td>      <td>8</td>  <td>1</td>
+    </tr>
+    <tr>
+        <td>Half word (<code>H</code>)</td> <td>16</td> <td>2</td>
+    </tr>
+    <tr>
+        <td>Word (<code>W</code>)</td>      <td>32</td> <td>4</td>
+    </tr>
+</table>
+
+<p>Em memória, 16-bit e 32-bit os dados seguem a ordenção <a href="https://en.wikipedia.org/wiki/Endianness">little-endian</a>.</p>
+
+<p>Os dois endereços a seguir tem uma regra específica:</p>
+
+<ul>
+    <li>Após o reset, a execução inicializa no endereço 0.
+        Neste endereço, nos tipicamente encontramos uma instrução de branch para o início do programa.</li>
+    <li>No endereço 4, Virgule esepra encontrar a função de tratamento de interrupção.</li>
+</ul>
+
+<h3 id="interrupts">Interrupções</h3>
+
+<p>O Virgule implementa um hardware simples para o esquema de interrupção no modo previlegiado de <em>máquina</em>.
+Não controle de interrupção ou registrador de estatus internamente no core de processador.</p>
+
+<p>Quando ele recebe uma requisição de interrupção, Virgule executa as seguintes operações:</p>
+
+<ol>
+    <li>Completa a intrução corrente.</li>
+    <li>Chaveia para um estado de interrupção.</li>
+    <li>Define <code>mepc</code> para o endereço da próxima instrução.</li>
+    <li>Define <code>pc</code> para 4, que transferirá o controle para a função de tratamento de interrupção.</li>
+</ol>
+
+<p>Retornando de uma função de tratamento de interrupção é feito com a instrução <code>mret</code>.
+Esta intrução tem o seguinte efeito:</p>
+
+<ol>
+    <li>Copia <code>mepc</code> para <code>pc</code>.</li>
+    <li>Chaveia para um estado de interrompível.</li>
+</ol>
+
+<h3 id="instructions">Conjunto de Instruções</h3>
+
+<p>Na seguinte tabela:</p>
+
+<ul>
+    <li><code>rd</code> é o registrador de proposito geral de destino.
+    <li><code>rs1</code> e <code>rs2</code> são os registradores de proposito geral para de dados.
+    <li><code>imm</code> é um valor inteiro literal (immediate).
+</ul>
+
+<table>
+    <tr><th>Instrução</th>               <th>Sintáxe</th>                         <th>Operação</th></tr>
+    <tr><td>Load Upper Immediate</td>      <td><code>LUI rd, imm</code></td>       <td><code>rd ← imm</code></td></tr>
+    <tr><td>Add Upper Immediate to PC</td> <td><code>AUIPC rd, imm</code></td>     <td><code>rd ← pc + imm</code></td></tr>
+    <tr><td>Jump And Link</td>             <td><code>JAL rd, imm</code></td>       <td><code>rd ← pc + 4; pc ← pc + imm</code></td></tr>
+    <tr><td>Jump And Link Register</td>    <td><code>JALR rd, rs1, imm</code></td> <td><code>rd ← pc + 4; pc ← rs1 + imm</code></td></tr>
+    <tr><td>Branch if Equal</td>           <td><code>BEQ rs1, rs2, imm</code></td>
+<td><pre>
+if rs1 = rs2:
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Branch if Not Equal</td> <td><code>BNE rs1, rs2, imm</code></td>
+<td><pre>
+if rs1 ≠ rs2:
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Branch if Less Than</td> <td><code>BLT rs1, rs2, imm</code></td>
+<td><pre>
+if signed(rs1) &lt; signed(rs2):
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Branch if Greater or Equal</td> <td><code>BGE rs1, rs2, imm</code></td>
+<td><pre>
+if signed(rs1) ≥ signed(rs2):
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Branch if Less Than Unsigned</td> <td><code>BLTU rs1, rs2, imm</code></td>
+<td><pre>
+if unsigned(rs1) &lt; unsigned(rs2):
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Branch if Greater or Equal Unsigned</td> <td><code>BGEU rs1, rs2, imm</code></td>
+<td><pre>
+if unsigned(rs1) ≥ unsigned(rs2):
+    pc ← pc + imm
+else:
+    pc ← pc + 4
+</pre></td></tr>
+    <tr><td>Load Byte</td>                    <td><code>LB rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm])</code></td></tr>
+    <tr><td>Load Half word</td>               <td><code>LH rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm:rs1+imm+1])</code></td></tr>
+    <tr><td>Load Word</td>                    <td><code>LW rd, imm(rs1)</code></td>   <td><code>rd ← signed(mem[rs1+imm:rs1+imm+3])</code></td></tr>
+    <tr><td>Load Byte Unsigned</td>           <td><code>LBU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1+imm])</code></td></tr>
+    <tr><td>Load Half word Unsigned</td>      <td><code>LHU rd, imm(rs1)</code></td>  <td><code>rd ← unsigned(mem[rs1+imm:rs1+imm+1])</code></td></tr>
+    <tr><td>Store Byte</td>                   <td><code>SB rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm] ← rs2[7:0]</code></td></tr>
+    <tr><td>Store Half word</td>              <td><code>SH rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm:rs1+imm+1] ← rs2[15:0]</code></td></tr>
+    <tr><td>Store Word</td>                   <td><code>SW rs2, imm(rs1)</code></td>  <td><code>mem[rs1+imm:rs1+imm+3] ← rs2</code></td></tr>
+    <tr><td>Add Immediate</td>                <td><code>ADDI rd, rs1, imm</code></td> <td><code>rd ← rs1 + imm</code></td></tr>
+    <tr><td>Shift Left Logical Immediate</td> <td><code>SLLI rd, rs1, imm</code></td> <td><code>rd ← rs1 sll imm</code></td></tr>
+    <tr><td>Set on Less Than Immediate</td>   <td><code>SLTI rd, rs1, imm</code></td>
+<td><pre>
+if signed(rs1) &lt; signed(imm):
+    rd ← 1
+else:
+    rd ← 0
+</pre></td></tr>
+    <tr><td>Set on Less Than Immediate Unsigned</td> <td><code>SLTIU rd, rs1, imm</code></td>
+<td><pre>
+if unsigned(rs1) &lt; unsigned(imm):
+    rd ← 1
+else:
+    rd ← 0
+</pre></td></tr>
+    <tr><td>Exclusive Or Immediate</td>           <td><code>XORI rd, rs1, imm</code></td> <td><code>rd ← rs1 xor imm</code></td></tr>
+    <tr><td>Shift Right Logical Immediate</td>    <td><code>SRLI rd, rs1, imm</code></td> <td><code>rd ← rs1 srl imm</code></td></tr>
+    <tr><td>Shift Right Arithmetic Immediate</td> <td><code>SRAI rd, rs1, imm</code></td> <td><code>rd ← rs1 sra imm</code></td></tr>
+    <tr><td>Or Immediate</td>                     <td><code>ORI rd, rs1, imm</code></td>  <td><code>rd ← rs1 or imm</code></td></tr>
+    <tr><td>And Immediate</td>                    <td><code>ANDI rd, rs1, imm</code></td> <td><code>rd ← rs1 and imm</code></td></tr>
+    <tr><td>Add</td>                              <td><code>ADD rd, rs1, rs2</code></td>  <td><code>rd ← rs1 + rs2</code></td></tr>
+    <tr><td>Subtract</td>                         <td><code>SUB rd, rs1, rs2</code></td>  <td><code>rd ← rs1 - rs2</code></td></tr>
+    <tr><td>Shift Left Logical</td>               <td><code>SLL rd, rs1, rs2</code></td>  <td><code>rd ← rs1 sll rs2</code></td></tr>
+    <tr><td>Set on Less Than</td>                 <td><code>SLT rd, rs1, rs2</code></td>
+<td><pre>
+if signed(rs1) &lt; signed(rs2):
+    rd ← 1
+else:
+    rd ← 0
+</pre></td></tr>
+    <tr><td>Set on Less Than Unsigned</td> <td><code>SLTU rd, rs1, rs2</code></td>
+<td><pre>
+if unsigned(rs1) &lt; unsigned(rs2):
+    rd ← 1
+else:
+    rd ← 0
+</pre></td></tr>
+    <tr><td>Exclusive Or</td>                        <td><code>XOR rd, rs1, rs2</code></td>  <td><code>rd ← rs1 xor rs2</code></td></tr>
+    <tr><td>Shift Right Logical</td>                 <td><code>SRL rd, rs1, rs2</code></td>  <td><code>rd ← rs1 srl rs2[4:0]</code></td></tr>
+    <tr><td>Shift Right Arithmetic</td>              <td><code>SRA rd, rs1, rs2</code></td>  <td><code>rd ← rs1 sra rs2[4:0]</code></td></tr>
+    <tr><td>Or</td>                                  <td><code>OR rd, rs1, rs2</code></td>   <td><code>rd ← rs1 or rs2</code></td></tr>
+    <tr><td>And</td>                                 <td><code>AND rd, rs1, rs2</code></td>  <td><code>rd ← rs1 and rs2</code></td></tr>
+    <tr><td>Machine Return</td>                      <td><code>MRET</code></td>                       <td><code>pc ← mepc</code></td></tr>
+</table>
+
+<p>Na tabela acima, operações lógicas e deslocamento tem o seguinte significado:</p>
+
+<table>
+    <tr><th>Operador</th>         <th>Efeito</th></tr>
+    <tr><td><code>and</code></td> <td>Bitwise <em>and</em></td></tr>
+    <tr><td><code>or</code></td>  <td>Bitwise <em>or</em></td></tr>
+    <tr><td><code>xor</code></td> <td>Bitwise <em>exclusive or</em></td></tr>
+    <tr><td><code>sll</code></td> <td>Logical shift left</td></tr>
+    <tr><td><code>srl</code></td> <td>Logical shift right</td></tr>
+    <tr><td><code>sra</code></td> <td>Arithmetic shift right (com extenção de sinal)</td></tr>
+</table>
+
+<h3 id="encoding">Codificação de Instrução</h3>
+
+<p>Uma palavra (word - 4 bytes) de instrução pode ser composta pelos seguintes campos:</p>
+
+<ul>
+    <li><code>funct7</code>, <code>funct3</code> e <code>opcode</code> definem a operação a ser executada;
+    <li><code>rd</code> é o indice do registrador de propósito geral de destino (valores permitidos na faixa de 0 a 15).
+    <li><code>rs1</code> e <code>rs2</code> são indices dos registradores de propósito geral como fontes de dados(valores permitidos na faixa de 0 a 15);
+    <li><code>imm</code> representa um valor inteiro literal (immediate);
+</ul>
+
+<p>O conjunto de instruções RISC-V define seis formatos de instrução:</p>
+
+<table>
+<tr><th>Formato / Bits</th>  <th>31:25</th> <th>24:20</th>            <th>19:15</th>                    <th>14:12</th>                   <th>11:7</th>                    <th>6:0</th></tr>
+<tr><td><code>R</code></td> <td><code>funct7</code></td>             <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>I</code></td> <td><code>imm[11:5]`/`funct7</code></td> <td><code>imm[4:0]</code></td>    <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>S</code></td> <td><code>imm[11:5]</code></td>          <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:0]</code></td>    <td><code>opcode</code></td></tr>
+<tr><td><code>B</code></td> <td><code>imm[12,10:5]</code></td>       <td><code>rs2</code></td>         <td><code>rs1</code></td>        <td><code>funct3</code></td>     <td><code>imm[4:1,11]</code></td> <td><code>opcode</code></td></tr>
+<tr><td><code>U</code></td> <td><code>imm[31:25]</code></td>         <td><code>imm[24:20]</code></td>  <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+<tr><td><code>J</code></td> <td><code>imm[20,10:5]</code></td>       <td><code>imm[4:1,11]</code></td> <td><code>imm[19:15]</code></td> <td><code>imm[14:12]</code></td> <td><code>rd</code></td>          <td><code>opcode</code></td></tr>
+</table>
+
+<h4>Valores Immediate (Imediatos) </h4>
+
+<p>Valores Immediate são extendidos no sinal (sign-extended) para 32 bits.
+quando eles não são explicitamente codificados no campo <code>imm</code>, o bit menos significante é 0.</p>
+
+<p>Na especificação, formatos <code>B</code> e <code>J</code>
+    são descritos como variantes dos formatos  <code>S</code> e <code>U</code>.
+Nos formatos <code>B</code> e <code>J</code>, valores immediate representam offsets de instruções
+ramificações do código relativas.
+Elas são codificadas para que eles compartilhem o máximo de bits com outros formatos,
+enqaunto preservam seus bits mais significantes na localização 31 da palavra (word - 4 bytes) de instrução.</p>
+
+<p>A Seguinte tabela mostra o mapeamento entre os bits de uma palavra (word - 4 bytes) de instrução e os bits de um valor imediato:</p>
+
+<table>
+<tr><th>Formato</th>         <th><code>imm[31:25]</code></th>  <th><code>imm[24:21]</code></th>  <th><code>imm[20]</code></th>  <th><code>imm[19:15]</code></th>  <th><code>imm[14:12]</code></th>  <th><code>imm[11]</code></th>  <th><code>imm[10:5]</code></th>   <th><code>imm[4:1]</code></th>     <th><code>imm[0]</code></th></tr>
+<tr><td><code>I</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[30:25]</code></td> <td><code>inst[24:21]</code></td>  <td><code>inst[20]</code></td></tr>
+<tr><td><code>S</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[30:25]</code></td> <td><code>inst[11:8]</code></td>   <td><code>inst[7]</code></td></tr>
+<tr><td><code>B</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[7]</code></td>  <td><code>inst[30:25]</code></td> <td><code>inst[11:8]</code></td>   <td>0</td></tr>
+<tr><td><code>U</code></td> <td><code>inst[31:25]</code></td> <td><code>inst[24:21]</code></td> <td><code>inst[20]</code></td> <td><code>inst[19:15]</code></td> <td><code>inst[14:12]</code></td> <td>0</td>                     <td>0</td>                        <td>0</td>                         <td>0</td></tr>
+<tr><td><code>J</code></td> <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td>    <td><code>inst[31]</code></td> <td><code>inst[19:15]</code></td> <td><code>inst[14:12]</code></td> <td><code>inst[20]</code></td> <td><code>inst[30:25]</code></td> <td><code>inst[24:21]</code></td>  <td>0</td></tr>
+</table>
+
+<h4>Opcodes base</h4>
+
+<p>No Virgule, nos tempos retido o seguinte opcotes de base da especificação RISC-V.
+cara opcode corresponde a um formato de instrução específico:</p>
+
+<table>
+<tr><th>Nome</th>                <th><code>opcode</code></th> <th>Formato</th></tr>
+<tr><td><code>LOAD</code></td>   <td>0000011</td>             <td><code>I</code></td></tr>
+<tr><td><code>OP-IMM</code></td> <td>0010011</td>             <td><code>I</code></td></tr>
+<tr><td><code>AUIPC</code></td>  <td>0010111</td>             <td><code>U</code></td></tr>
+<tr><td><code>STORE</code></td>  <td>0100011</td>             <td><code>S</code></td></tr>
+<tr><td><code>OP</code></td>     <td>0110011</td>             <td><code>R</code></td></tr>
+<tr><td><code>LUI</code></td>    <td>0110111</td>             <td><code>U</code></td></tr>
+<tr><td><code>BRANCH</code></td> <td>1100011</td>             <td><code>B</code></td></tr>
+<tr><td><code>JALR</code></td>   <td>1100111</td>             <td><code>I</code></td></tr>
+<tr><td><code>JAL</code></td>    <td>1101111</td>             <td><code>J</code></td></tr>
+<tr><td><code>SYSTEM</code></td> <td>1110011</td>             <td><code>I</code></td></tr>
+</table>
+
+<h4>Valores de campos para cada instrução</h4>
+
+<p>Quando decodificando uma palavra de instruão, Virgule usa os seguintes campos para identificar a instrução atual.
+Nesta tabela, a coluna <code>opcode</code> refere-se aos nomes de base do opcode na tabela acima.</p>
+
+<table>
+<tr><th>Instrução</th>       <th><code>opcode</code></th> <th><code>funct3</code></th> <th><code>funct7</code></th> <th><code>rs2</code></th></tr>
+<tr><td><code>LUI</code></td>  <td><code>LUI</code></td>    <td>&mdash;</td>             <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>AUIPC</code></td><td><code>AUIPC</code></td>  <td>&mdash;</td>             <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>JAL</code></td>  <td><code>JAL</code></td>    <td>&mdash;</td>             <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>JALR</code></td> <td><code>JALR</code></td>   <td>000</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BEQ</code></td>  <td><code>BRANCH</code></td> <td>000</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BNE</code></td>  <td><code>BRANCH</code></td> <td>001</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BLT</code></td>  <td><code>BRANCH</code></td> <td>100</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BGE</code></td>  <td><code>BRANCH</code></td> <td>101</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BLTU</code></td> <td><code>BRANCH</code></td> <td>110</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>BGEU</code></td> <td><code>BRANCH</code></td> <td>111</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>LB</code></td>   <td><code>LOAD</code></td>   <td>000</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>LH</code></td>   <td><code>LOAD</code></td>   <td>001</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>LW</code></td>   <td><code>LOAD</code></td>   <td>010</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>LBU</code></td>  <td><code>LOAD</code></td>   <td>100</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>LHU</code></td>  <td><code>LOAD</code></td>   <td>101</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SB</code></td>   <td><code>STORE</code></td>  <td>000</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SH</code></td>   <td><code>STORE</code></td>  <td>001</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SW</code></td>   <td><code>STORE</code></td>  <td>010</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>ADDI</code></td> <td><code>OP-IMM</code></td> <td>000</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLLI</code></td> <td><code>OP-IMM</code></td> <td>001</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLTI</code></td> <td><code>OP-IMM</code></td> <td>010</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLTIU</code></td><td><code>OP-IMM</code></td> <td>011</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>XORI</code></td> <td><code>OP-IMM</code></td> <td>100</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>SRLI</code></td> <td><code>OP-IMM</code></td> <td>101</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SRAI</code></td> <td><code>OP-IMM</code></td> <td>101</td>                 <td>0100000</td>             <td>&mdash;</td></tr>
+<tr><td><code>ORI</code></td>  <td><code>OP-IMM</code></td> <td>110</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>ANDI</code></td> <td><code>OP-IMM</code></td> <td>111</td>                 <td>&mdash;</td>             <td>&mdash;</td></tr>
+<tr><td><code>ADD</code></td>  <td><code>OP</code></td>     <td>000</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SUB</code></td>  <td><code>OP</code></td>     <td>000</td>                 <td>0100000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLL</code></td>  <td><code>OP</code></td>     <td>001</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLT</code></td>  <td><code>OP</code></td>     <td>010</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SLTU</code></td> <td><code>OP</code></td>     <td>011</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>XOR</code></td>  <td><code>OP</code></td>     <td>100</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SRL</code></td>  <td><code>OP</code></td>     <td>101</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>SRA</code></td>  <td><code>OP</code></td>     <td>101</td>                 <td>0100000</td>             <td>&mdash;</td></tr>
+<tr><td><code>OR</code></td>   <td><code>OP</code></td>     <td>110</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>AND</code></td>  <td><code>OP</code></td>     <td>111</td>                 <td>0000000</td>             <td>&mdash;</td></tr>
+<tr><td><code>MRET</code></td> <td><code>SYSTEM</code></td> <td>000</td>                 <td>0011000</td>             <td>00010</td></tr>
+</table>
+
+<h2 id="devices">Dispositivo de memória e periféricos</h3>
+
+<h3 id="layout">Layout de memória</h3>
+
+<p>O espaço de endereçamento é organizado como segue.</p>
+
+<table>
+    <tr><th>Endereço (hex)</th> <th>Dispositivos</th></tr>
+    <tr><td style="text-align:center;"><code>00000000</code><br>&vellip;<br><code>00000bff</code></td> <td>RAM (3072 bytes)</td></tr>
+    <tr><td style="text-align:center;"><code>00000C00</code><br>&vellip;<br><code>00000fff</code></td> <td><a href="#bitmap">Bitmap RAM (1024 bytes)</a></td></tr>
+    <tr><td style="text-align:center;"><code>B0000000</code><br><code>B0000001</code></td> <td><a href="#textio">Entrada de Texto</a></td></tr>
+    <tr><td style="text-align:center;"><code>C0000000</code></td> <td><a href="#textio">Saída de Texto</a></td></tr>
+    <tr><td style="text-align:center;"><code>D0000000</code></td> <td><a href="#gpio">Entrada e Saída de propósito geral</a></td></tr>
+</table>
+
+<h3 id="textio">Entrada/Saida Texto</h3>
+
+<p>O dispositivo de entrada de texto é representado por um campo de texto na interface de usuário
+do simulador. Ele tem dois registradores de 8-bit:</p>
+
+<table>
+    <tr><th>Endereço (hex)</th> <th>Regra</th> <th>Valor</th></tr>
+    <tr><td style="text-align:center;"><code>B0000000</code></td> <td>Controle/Estatus</td> <td>Bit 7: Hablita Interrução<br>Bit 6: Character recebido</td></tr>
+    <tr><td style="text-align:center;"><code>B0000001</code></td> <td>Data</td> <td>O código ASCII do ultimo caracter inserido.</td></tr>
+</table>
+
+<p>O registrador de controle/Estatus trabalha da seguinte forma:</p>
+
+<ul>
+    <li>No reset, bits 6 e 7 são limpos.</li>
+    <li>Bit 6 é setado após o usuário entrar um caracter no campo de texto
+    A única forma de limpa-lo é escrever um zero usando uma instrução <em>store</em>.</li>
+    <li>O dispositivo irá enviar uma requisição de interrupção para o procesador quando os bits 7 e 6 forem ambos definidos como 1.</li>
+</ul>
+
+<p>O dispositivo de saída de texto é representado por uma área de texto na interface
+de usuário do simulador. Ele tem somente um registrador somente escrita:</p>
+
+<table>
+    <tr><th>Endereço (hex)</th> <th>Papel</th> <th>Valor</th></tr>
+    <tr><td style="text-align:center;"><code>C0000000</code></td> <td>Data</td> <td>O código ASCII do caracter para exibir.</td></tr>
+</table>
+
+<h3 id="gpio">Entrada/Saída de propósito geral</h3>
+
+<p>O GPIO (Entrada e Saída de propósito geral) de periféricos permite conectar
+    pelo menos 32 dispostivos simples de entrada e saída:</p>
+
+<ul>
+    <li>Push-buttons.</li>
+    <li>Chaves comuns.</li>
+    <li>LEDs.</li>
+</ul>
+
+<p>As entradas são organizadas em um grid de 8&times;4 na parte inferior
+da seção <em>E/S de propósito geral</em> do simulador.
+Clique com o botão direito do mouse na célula para trocar o seu tipo.
+Clique com o botão esquerdo do mouse na célula alterar o estado do botão ou da chave.</p>
+
+<p>Ele tem os seguintes registradores de 32-bits:</p>
+
+<table>
+    <tr><th>Endereço (hex)</th> <th>Papel</th> <th>Valor</th></tr>
+    <tr><td style="text-align:center;"><code>D0000000</code></td> <td>Direção (dir)</td> <td>A configuração de cada pino (0 para saída, 1 para entrada).</td></tr>
+    <tr><td style="text-align:center;"><code>D0000004</code></td> <td>Interrupção habilitada (ien)</td> <td>Habilita a interrupção dos eventos de entrada.</td></tr>
+    <tr><td style="text-align:center;"><code>D0000008</code></td> <td>Eventos subida de borda (rev)</td> <td>Cada bit é definido como 1 se a entrada correspondente alterar o pino de 0 para 1.</td></tr>
+    <tr><td style="text-align:center;"><code>D000000C</code></td> <td>Eventos decida de borda (fev)</td> <td>Cada bit é definido como 1 se a entrada correspondente alterar o pino de 1 para 0.</td></tr>
+    <tr><td style="text-align:center;"><code>D0000010</code></td> <td>Valor (val)</td> <td>O valor atual de cada entrada ou saída.</td></tr>
+</table>
+
+<p>Durante o reset, todos os pinos são configurados como entradas e interrupções são desabilitadas.</p>
+
+<p>Eventos de subida de borda ou descida de borda devem ser limpos por software usando instruções de <em>store</em>
+quando o evento foi processados.</p>
+
+<h3 id="bitmap">Saída de Bitmap</h3>
+
+<p>O simulador fornece uma área de "display" gráfico com 32 linhas com 32 pixels cada.
+Cada pixel é mapeado para um bate da RAM e sua cor é codificada da seguinte forma:</p>
+
+<table>
+    <tr><th>7</th><th>6</th><th>5</th><th>4</th><th>3</th><th>2</th><th>1</th><th>0</th></tr>
+    <tr>
+        <td colspan="3" style="text-align:center;">Vermelho (Red)</td>
+        <td colspan="3" style="text-align:center;">Verde (Green)</td>
+        <td colspan="2" style="text-align:center;">Azul (Blue)</td>
+    </tr>
+</table>
+
+<p>O bitmap na RAM segue uma ordem "raster-scan".
+Para cada endereço, esta tabela mostra coordenadas (x, y) do pixel correspondente:</p>
+
+<table style="text-align:center;">
+    <tr><th></th> <th>+0</th> <th>+1</th> <th>+2</th> <th>&hellip;</th> <th>+1F</th></tr>
+    <tr><th><code>00000C00</code></th> <td>(0, 0)</td> <td>(1, 0)</td> <td>(2, 0)</td> <td>&hellip;</td> <td>(31, 0)</td></tr>
+    <tr><th><code>00000C20</code></th> <td>(0, 1)</td> <td>(1, 1)</td> <td>(2, 1)</td> <td>&hellip;</td> <td>(31, 1)</td></tr>
+    <tr><th><code>00000C40</code></th> <td>(0, 2)</td> <td>(1, 2)</td> <td>(2, 2)</td> <td>&hellip;</td> <td>(31, 2)</td></tr>
+    <tr><th>&vellip;</th> <td>&vellip;</td> <td>&vellip;</td> <td>&vellip;</td> <td>&hellip;</td> <td>&vellip;</td></tr>
+    <tr><th><code>00000FE0</code></th> <td>(0, 31)</td> <td>(1, 31)</td> <td>(2, 31)</td> <td>&hellip;</td> <td>(31, 31)</td></tr>
+</table>
+
+<h2 id="tools">Criando programas para emulsiV com as ferramentas GNU.</h2>
+
+<p>O simulador permite criar e editar programas pela entrada de instruções
+na columna "Assembly" do visualizador de memória.
+Outra opçlão é digitar seu programa no editor de texto e gerar um executável
+para o emulsiV usando as ferramentas GNU.</p>
+
+<h3 id="gnu-install">Instalação</h3>
+
+<p>Você pode usar as seguintes intruções para instalar as ferramentas GNU para RISC-V
+no ambiente Linux Debian ou no Ubuntu.
+O projeto <a href="https://github.com/riscv/riscv-gnu-toolchain">riscv-gnu-toolchain</a>
+fornece informações adicionais se você precisa instalar o toolchain em outra distribuição,
+ou se você precisa recursos que não estão tratados aqui.</p>
+
+<p>Para o processo de "build" serão necessários os seguintes pacotes:</p>
+
+<pre>
+sudo apt install autoconf automake autotools-dev curl libmpc-dev zlib1g-dev \
+     libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf \
+     libtool patchutils bc zlib1g-dev libexpat-dev git-core
+</pre>
+
+<p>Clone o repositório fonte da ferramenta RISC-V GNU:</p>
+
+<pre>
+git clone --recursive https://github.com/riscv/riscv-gnu-toolchain
+</pre>
+
+<p>Configure e faça o "build" das ferramentas com suporte para o target RV32E.
+O comando <code>make</code> irá tentar instalar a ferramenta em <code>/opt/riscv</code>.
+Você pode alterar a opção <code>--prefix</code> se você deseja instalar em outro lugar.
+Execute o comando <code>sudo make</code> se você não tem permissão para criar o folder destino.</p>
+
+<pre>
+cd riscv-gnu-toolchain
+./configure --prefix=/opt/riscv --with-arch=rv32e --with-abi=ilp32
+make
+</pre>
+
+<p>Antes de usar as ferramentas, atualize a variável <code>PATH</code> da seguinte forma:</p>
+
+<pre>
+export PATH=$PATH:/opt/riscv/bin
+</pre>
+
+<h3 id="gnu-asm">Usando o "assembler"</h3>
+
+<p>Este comando compila o arquivo fonte <code>example.s</code> gerando um arquivo de objetos <code>example.o</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -march=rv32e -c -o example.o example.s
+</pre>
+
+<p>Aqui está um módulo típico de inicialização (<code>startup.s</code>) que você pode usar para seu programa.
+Outros arquivos fontes "assembly" ou "C" devem definir o subprograma <code>main</code>,
+e opcionalmente sobreescrever o subprograma <code>irq_handler</code>.</p>
+
+<pre>
+    .section vectors, "x"
+
+    .global __reset
+__reset:
+    j start
+
+__irq:
+    j irq_handler
+
+    .text
+    .align 4
+
+    .weak irq_handler
+irq_handler:
+    mret
+
+start:
+    la gp, __global_pointer
+    la sp, __stack_pointer
+    la t0, __bss_start
+    la t1, __bss_end
+    bgeu t0, t1, memclr_done
+memclr:
+    sw zero, (t0)
+    addi t0, t0, 4
+    bltu t0, t1, memclr
+
+memclr_done:
+    call main
+    j .
+</pre>
+
+<h3 id="gnu-compile">Usando o compilador C</h3>
+
+<p>Este comando compila o arquivo fonte <code>example.c</code> em um arquivo objeto <code>example.o</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -march=rv32e -ffreestanding -c -o example.o example.c
+</pre>
+
+<p>Se você deseja escrever uma função para tratar uma interrupção em C, você pode sobrescrever o subprograma <code> irq_handler</code>,
+adicionando o atributo <code>interrupt</code> como a seguir:</p>
+
+<pre>
+__attribute__((interrupt("machine")))
+void irq_handler(void) {
+    // Insert your code here.
+}
+</pre>
+
+<h3 id="gnu-linker">Usando o "linker"</h3>
+
+<p>Este comando liga <code>startup.o</code> e <code>example.o</code> em um arquivo executável <code>example.elf</code>:</p>
+
+<pre>
+riscv32-unknown-elf-gcc -nostdlib -T emulsiv.ld -o example.elf startup.o example.o
+</pre>
+
+<p>O mapa de memória do do simulador é configurado no "linker script" <code>emulsiv.ld</code> apresentado abaixo:</p>
+
+<pre>
+ENTRY(__reset)
+
+MEM_SIZE    = 4K;
+STACK_SIZE  = 512;
+BITMAP_SIZE = 1K;
+
+SECTIONS {
+    . = 0x0;
+
+    .text : {
+        *(vectors)
+        *(.text)
+        __text_end = .;
+    }
+
+    .data   : { *(.data) }
+    .rodata : { *(.rodata) }
+
+    __global_pointer = ALIGN(4);
+
+    .bss ALIGN(4) : {
+        __bss_start = .;
+        *(.bss COMMON)
+        __bss_end = ALIGN(4);
+    }
+
+    . = MEM_SIZE - STACK_SIZE - BITMAP_SIZE;
+
+    .stack ALIGN(4) : {
+        __stack_start = .;
+        . += STACK_SIZE;
+        __stack_pointer = .;
+    }
+
+    .bitmap ALIGN(4) : {
+        __bitmap_start = .;
+        *(bitmap)
+    }
+
+    __bitmap_end = __bitmap_start + BITMAP_SIZE;
+}
+</pre>
+
+<h3 id="gnu-hex">Convertendo um executável para o formato hex</h3>
+
+<p>Este comando converte um arquivo binário do tipo ELF <code>example.elf</code> em um arquivo texto <code>example.hex</code> com o  <a href="https://en.wikipedia.org/wiki/Intel_HEX">formato Intel Hex</a>:</p>
+
+<pre>
+riscv32-unknown-elf-objcopy -O ihex example.elf example.hex
+</pre>
+
+<p>No simulador, use o botão "Open an hex file from your computer" e escolha arquivo hex para ser carregado.</p>
+
+<h2 id="license">Licença</h2>
+
+<p>emulsiV é um software livre e é distribuido sobre os termos da licença
+<a href="https://github.com/Guillaume-Savaton-ESEO/emulsiV/blob/master/LICENSE">Mozilla Public 2.0</a>.</p>
+
+<p>Este documento foi criado por Guillaume Savaton, <a href="https://eseo.fr">ESEO</a>.
+E é licenciado sobre os termos da licença <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.</p>
