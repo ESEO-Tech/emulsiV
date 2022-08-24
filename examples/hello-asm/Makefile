@@ -1,4 +1,4 @@
 
 all: hello.hex
 
-include ../../lib/rv32e-asm.make
+include ../../lib/emulsiV-asm.make
