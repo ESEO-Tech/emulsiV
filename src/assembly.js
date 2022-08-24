@@ -1,16 +1,17 @@
 
-import {toHex, signed} from "./int32.js";
+import {toHex, signed, unsignedSlice} from "./int32.js";
 
 // Assembly operand syntax:
 // 'd': destination register
 // '1': source register 1
 // '2': source register 2
 // 'i': immediate
+// 'u': upper immediate
 // 'p': offset from PC
 // 'a': indirect address
 const ASM_TABLE = {
-    lui   : "di",
-    auipc : "di",
+    lui   : "du",
+    auipc : "du",
     jal   : "dp",
     jalr  : "d1i",
     beq   : "12p",
@@ -133,6 +134,7 @@ const PSEUDO_REG_TABLE = {
     t5:   {name: "x30", desc: ""},
     t6:   {name: "x31", desc: ""}
 }
+
 // Disassemble an instruction or pseudo-instruction.
 export function disassemble({name, rd, rs1, rs2, imm}) {
     if (!(name in ASM_TABLE)) {
@@ -147,6 +149,7 @@ export function disassemble({name, rd, rs1, rs2, imm}) {
             case "1": return emitReg(rs1);
             case "2": return emitReg(rs2);
             case "i": return Math.abs(imm) > 32768 ? `0x${toHex(imm)}` : signed(imm);
+            case "u": return `0x${toHex(unsignedSlice(imm, 31, 12), 5)}`;
             case "p": return (imm > 0 ? "+" : "") + imm;
             case "a": return `${imm}(${emitReg(rs1)})`;
         }
@@ -246,11 +249,12 @@ export function assemble(str) {
 
     operands.forEach((op, i) => {
         switch (syntax[i]) {
-            case "d": instr.rd  = parseReg(op); break;
-            case "1": instr.rs1 = parseReg(op); break;
-            case "2": instr.rs2 = parseReg(op); break;
+            case "d": instr.rd  = parseReg(op);       break;
+            case "1": instr.rs1 = parseReg(op);       break;
+            case "2": instr.rs2 = parseReg(op);       break;
             case "i":
-            case "p": instr.imm = parseImm(op); break;
+            case "p": instr.imm = parseImm(op);       break;
+            case "u": instr.imm = parseImm(op) << 12; break;
             case "a": {
                 const addressSpec = op.split(/[()]/);
                 if (addressSpec.length !== 3) {
