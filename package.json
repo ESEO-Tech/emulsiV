@@ -22,6 +22,6 @@
   },
   "devDependencies": {
     "eslint": "^7.11.0",
-    "local-web-server": "^4.2.1"
+    "local-web-server": "^5.3.1"
   }
 }
