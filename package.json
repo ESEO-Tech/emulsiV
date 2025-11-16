@@ -21,7 +21,7 @@
     "fontsource-roboto-mono": "^3.0.3"
   },
   "devDependencies": {
-    "eslint": "^7.11.0",
+    "eslint": "^9.39.1",
     "local-web-server": "^5.3.1"
   }
 }
